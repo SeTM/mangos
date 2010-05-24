@@ -102,6 +102,7 @@ World::World()
         m_configUint32Values[i] = 0;
 
     for(int i = 0; i < CONFIG_INT32_VALUE_COUNT; ++i)
+        m_configInt32Values[i] = 0;
 
     for(int i = 0; i < CONFIG_FLOAT_VALUE_COUNT; ++i)
         m_configFloatValues[i] = 0.0f;
