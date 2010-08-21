@@ -141,7 +141,7 @@ inline CellArea Cell::CalculateCellArea(const WorldObject &obj, float radius)
 
     //we should increase search radius by object's radius, otherwise
     //we could have problems with huge creatures, which won't attack nearest players etc
-    radius += obj.GetObjectSize();
+    radius += obj.GetObjectBoundingRadius();
     //lets calculate object coord offsets from cell borders.
     //TODO: add more correct/generic method for this task
     const float x_offset = (obj.GetPositionX() - CENTER_GRID_CELL_OFFSET)/SIZE_OF_GRID_CELL;
@@ -277,6 +277,41 @@ Cell::VisitCircle(TypeContainerVisitor<T, CONTAINER> &visitor, Map &m, const Cel
             m.Visit(r_zone_right, visitor);
         }
     }
+}
+
+template<class T>
+inline void Cell::VisitGridObjects(const WorldObject *center_obj, T &visitor, float radius, bool dont_load)
+{
+    CellPair p(MaNGOS::ComputeCellPair(center_obj->GetPositionX(), center_obj->GetPositionY()));
+    Cell cell(p);
+    if (dont_load)
+        cell.SetNoCreate();
+    TypeContainerVisitor<T, GridTypeMapContainer > gnotifier(visitor);
+    cell.Visit(p, gnotifier, *center_obj->GetMap(), *center_obj, radius);
+}
+
+template<class T>
+inline void Cell::VisitWorldObjects(const WorldObject *center_obj, T &visitor, float radius, bool dont_load)
+{
+    CellPair p(MaNGOS::ComputeCellPair(center_obj->GetPositionX(), center_obj->GetPositionY()));
+    Cell cell(p);
+    if (dont_load)
+        cell.SetNoCreate();
+    TypeContainerVisitor<T, WorldTypeMapContainer > gnotifier(visitor);
+    cell.Visit(p, gnotifier, *center_obj->GetMap(), *center_obj, radius);
+}
+
+template<class T>
+inline void Cell::VisitAllObjects(const WorldObject *center_obj, T &visitor, float radius, bool dont_load)
+{
+    CellPair p(MaNGOS::ComputeCellPair(center_obj->GetPositionX(), center_obj->GetPositionY()));
+    Cell cell(p);
+    if (dont_load)
+        cell.SetNoCreate();
+    TypeContainerVisitor<T, GridTypeMapContainer > gnotifier(visitor);
+    TypeContainerVisitor<T, WorldTypeMapContainer > wnotifier(visitor);
+    cell.Visit(p, gnotifier, *center_obj->GetMap(), *center_obj, radius);
+    cell.Visit(p, wnotifier, *center_obj->GetMap(), *center_obj, radius);
 }
 
 #endif

@@ -65,7 +65,7 @@ ObjectAccessor::GetUnit(WorldObject const &u, ObjectGuid guid)
     if (!u.IsInWorld())
         return NULL;
 
-    return u.GetMap()->GetCreatureOrPetOrVehicle(guid);
+    return u.GetMap()->GetAnyTypeCreature(guid);
 }
 
 Corpse* ObjectAccessor::GetCorpseInMap(ObjectGuid guid, uint32 mapid)
@@ -92,26 +92,25 @@ ObjectAccessor::FindPlayer(ObjectGuid guid)
 Player*
 ObjectAccessor::FindPlayerByName(const char *name)
 {
-    //TODO: Player Guard
-    HashMapHolder<Player>::MapType& m = HashMapHolder<Player>::GetContainer();
-    HashMapHolder<Player>::MapType::iterator iter = m.begin();
-    for(; iter != m.end(); ++iter)
+    HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+    HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
+    for(HashMapHolder<Player>::MapType::iterator iter = m.begin(); iter != m.end(); ++iter)
         if(iter->second->IsInWorld() && ( ::strcmp(name, iter->second->GetName()) == 0 ))
             return iter->second;
+
     return NULL;
 }
 
 void
 ObjectAccessor::SaveAllPlayers()
 {
-    Guard guard(*HashMapHolder<Player>::GetLock());
-    HashMapHolder<Player>::MapType& m = HashMapHolder<Player>::GetContainer();
-    HashMapHolder<Player>::MapType::iterator itr = m.begin();
-    for(; itr != m.end(); ++itr)
+    HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+    HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
+    for(HashMapHolder<Player>::MapType::iterator itr = m.begin(); itr != m.end(); ++itr)
         itr->second->SaveToDB();
 }
 
-void ObjectAccessor::KickPlayer(uint64 guid)
+void ObjectAccessor::KickPlayer(ObjectGuid guid)
 {
     if (Player* p = HashMapHolder<Player>::Find(guid))
     {
@@ -277,7 +276,7 @@ void ObjectAccessor::RemoveOldCorpses()
 /// Define the static member of HashMapHolder
 
 template <class T> UNORDERED_MAP< uint64, T* > HashMapHolder<T>::m_objectMap;
-template <class T> ACE_Thread_Mutex HashMapHolder<T>::i_lock;
+template <class T> ACE_RW_Thread_Mutex HashMapHolder<T>::i_lock;
 
 /// Global definitions for the hashmap storage
 

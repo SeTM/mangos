@@ -1,4 +1,5 @@
-﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_NoPCH|Win32">
       <Configuration>Debug_NoPCH</Configuration>
@@ -355,7 +356,7 @@
     <ClCompile Include="..\..\src\game\BattleGround.cpp" />
     <ClCompile Include="..\..\src\game\BattleGroundAA.cpp" />
     <ClCompile Include="..\..\src\game\BattleGroundAB.cpp" />
-    <ClCompile Include="..\..\src\game\BattleGroundABG.cpp" />
+    <ClCompile Include="..\..\src\game\BattleGroundRB.cpp" />
     <ClCompile Include="..\..\src\game\BattleGroundAV.cpp" />
     <ClCompile Include="..\..\src\game\BattleGroundBE.cpp" />
     <ClCompile Include="..\..\src\game\BattleGroundDS.cpp" />
@@ -370,9 +371,11 @@
     <ClCompile Include="..\..\src\game\BattleGroundWS.cpp" />
     <ClCompile Include="..\..\src\game\Calendar.cpp" />
     <ClCompile Include="..\..\src\game\CalendarHandler.cpp" />
+    <ClCompile Include="..\..\src\game\Camera.cpp" />
     <ClCompile Include="..\..\src\game\Channel.cpp" />
     <ClCompile Include="..\..\src\game\ChannelHandler.cpp" />
     <ClCompile Include="..\..\src\game\ChannelMgr.cpp" />
+    <ClCompile Include="..\..\src\game\CharacterDatabaseCleaner.cpp" />
     <ClCompile Include="..\..\src\game\CharacterHandler.cpp" />
     <ClCompile Include="..\..\src\game\Chat.cpp" />
     <ClCompile Include="..\..\src\game\ChatHandler.cpp" />
@@ -397,6 +400,7 @@
     <ClCompile Include="..\..\src\game\GMTicketHandler.cpp" />
     <ClCompile Include="..\..\src\game\GMTicketMgr.cpp" />
     <ClCompile Include="..\..\src\game\GossipDef.cpp" />
+    <ClCompile Include="..\..\src\game\GridMap.cpp" />
     <ClCompile Include="..\..\src\game\GridNotifiers.cpp" />
     <ClCompile Include="..\..\src\game\GridStates.cpp" />
     <ClCompile Include="..\..\src\game\Group.cpp" />
@@ -434,7 +438,7 @@
     <ClCompile Include="..\..\src\game\ObjectAccessor.cpp" />
     <ClCompile Include="..\..\src\game\ObjectGridLoader.cpp" />
     <ClCompile Include="..\..\src\game\ObjectMgr.cpp" />
-    <ClInclude Include="..\..\src\game\ObjectGuid.cpp" />
+    <ClCompile Include="..\..\src\game\ObjectGuid.cpp" />
     <ClCompile Include="..\..\src\game\ObjectPosSelector.cpp" />
     <ClCompile Include="..\..\src\game\Opcodes.cpp" />
     <ClCompile Include="..\..\src\game\pchdef.cpp">
@@ -468,6 +472,7 @@
     <ClCompile Include="..\..\src\game\SocialMgr.cpp" />
     <ClCompile Include="..\..\src\game\Spell.cpp" />
     <ClCompile Include="..\..\src\game\SpellAuras.cpp" />
+	<ClCompile Include="..\..\src\game\UnitAuraProcHandler.cpp" />
     <ClCompile Include="..\..\src\game\SpellEffects.cpp" />
     <ClCompile Include="..\..\src\game\SpellHandler.cpp" />
     <ClCompile Include="..\..\src\game\SpellMgr.cpp" />
@@ -502,7 +507,7 @@
     <ClInclude Include="..\..\src\game\BattleGround.h" />
     <ClInclude Include="..\..\src\game\BattleGroundAA.h" />
     <ClInclude Include="..\..\src\game\BattleGroundAB.h" />
-    <ClInclude Include="..\..\src\game\BattleGroundABG.h" />
+    <ClInclude Include="..\..\src\game\BattleGroundRB.h" />
     <ClInclude Include="..\..\src\game\BattleGroundAV.h" />
     <ClInclude Include="..\..\src\game\BattleGroundBE.h" />
     <ClInclude Include="..\..\src\game\BattleGroundDS.h" />
@@ -515,10 +520,12 @@
     <ClInclude Include="..\..\src\game\BattleGroundSA.h" />
     <ClInclude Include="..\..\src\game\BattleGroundWS.h" />
     <ClInclude Include="..\..\src\game\Calendar.h" />
+    <ClInclude Include="..\..\src\game\Camera.h" />
     <ClInclude Include="..\..\src\game\Cell.h" />
     <ClInclude Include="..\..\src\game\CellImpl.h" />
     <ClInclude Include="..\..\src\game\Channel.h" />
     <ClInclude Include="..\..\src\game\ChannelMgr.h" />
+    <ClInclude Include="..\..\src\game\CharacterDatabaseCleaner.h" />
     <ClInclude Include="..\..\src\game\Chat.h" />
     <ClInclude Include="..\..\src\game\ConfusedMovementGenerator.h" />
     <ClInclude Include="..\..\src\game\Corpse.h" />
@@ -545,6 +552,7 @@
     <ClInclude Include="..\..\src\game\GMTicketMgr.h" />
     <ClInclude Include="..\..\src\game\GossipDef.h" />
     <ClInclude Include="..\..\src\game\GridDefines.h" />
+    <ClInclude Include="..\..\src\game\GridMap.h" />
     <ClInclude Include="..\..\src\game\GridNotifiers.h" />
     <ClInclude Include="..\..\src\game\GridNotifiersImpl.h" />
     <ClInclude Include="..\..\src\game\GridStates.h" />

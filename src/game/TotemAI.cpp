@@ -68,30 +68,21 @@ TotemAI::UpdateAI(const uint32 /*diff*/)
     SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
     float max_range = GetSpellMaxRange(srange);
 
-    // SPELLMOD_RANGE not applied in this place just because not existence range mods for attacking totems
+    // SPELLMOD_RANGE not applied in this place just because nonexistent range mods for attacking totems
 
     // pointer to appropriate target if found any
-    Unit* victim = i_victimGuid ? ObjectAccessor::GetUnit(*m_creature, i_victimGuid) : NULL;
+    Unit* victim = i_victimGuid ? m_creature->GetMap()->GetUnit(i_victimGuid) : NULL;
 
     // Search victim if no, not attackable, or out of range, or friendly (possible in case duel end)
     if( !victim ||
         !victim->isTargetableForAttack() || !m_creature->IsWithinDistInMap(victim, max_range) ||
         m_creature->IsFriendlyTo(victim) || !victim->isVisibleForOrDetect(m_creature,m_creature,false) )
     {
-        CellPair p(MaNGOS::ComputeCellPair(m_creature->GetPositionX(),m_creature->GetPositionY()));
-        Cell cell(p);
-        cell.data.Part.reserved = ALL_DISTRICT;
-
         victim = NULL;
 
         MaNGOS::NearestAttackableUnitInObjectRangeCheck u_check(m_creature, m_creature, max_range);
         MaNGOS::UnitLastSearcher<MaNGOS::NearestAttackableUnitInObjectRangeCheck> checker(m_creature,victim, u_check);
-
-        TypeContainerVisitor<MaNGOS::UnitLastSearcher<MaNGOS::NearestAttackableUnitInObjectRangeCheck>, GridTypeMapContainer > grid_object_checker(checker);
-        TypeContainerVisitor<MaNGOS::UnitLastSearcher<MaNGOS::NearestAttackableUnitInObjectRangeCheck>, WorldTypeMapContainer > world_object_checker(checker);
-
-        cell.Visit(p, grid_object_checker,  *m_creature->GetMap(), *m_creature, max_range);
-        cell.Visit(p, world_object_checker, *m_creature->GetMap(), *m_creature, max_range);
+        Cell::VisitAllObjects(m_creature, checker, max_range);
     }
 
     // If have target

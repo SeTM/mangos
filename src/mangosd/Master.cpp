@@ -30,7 +30,7 @@
 #include "Timer.h"
 #include "Policies/SingletonImp.h"
 #include "SystemConfig.h"
-#include "Config/ConfigEnv.h"
+#include "Config/Config.h"
 #include "Database/DatabaseEnv.h"
 #include "CliRunnable.h"
 #include "RASocket.h"
@@ -194,6 +194,7 @@ int Master::Run()
         if( !pid )
         {
             sLog.outError( "Cannot create PID file %s.\n", pidfile.c_str() );
+            Log::WaitBeforeContinueIfNeed();
             return 1;
         }
 
@@ -202,7 +203,10 @@ int Master::Run()
 
     ///- Start the databases
     if (!_StartDB())
+    {
+        Log::WaitBeforeContinueIfNeed();
         return 1;
+    }
 
     ///- Initialize the World
     sWorld.SetInitialWorldSettings();
@@ -217,8 +221,8 @@ int Master::Run()
     // set realmbuilds depend on mangosd expected builds, and set server online
     {
         std::string builds = AcceptableClientBuildsListStr();
-        loginDatabase.escape_string(builds);
-        loginDatabase.PExecute("UPDATE realmlist SET color = 0, population = 0, realmbuilds = '%s'  WHERE id = '%d'", builds.c_str(), realmID);
+        LoginDatabase.escape_string(builds);
+        LoginDatabase.PExecute("UPDATE realmlist SET realmflags = realmflags & ~(%u), population = 0, realmbuilds = '%s'  WHERE id = '%d'", REALM_FLAG_OFFLINE, builds.c_str(), realmID);
     }
 
     ACE_Based::Thread* cliThread = NULL;
@@ -312,9 +316,10 @@ int Master::Run()
     uint16 wsport = sWorld.getConfig (CONFIG_UINT32_PORT_WORLD);
     std::string bind_ip = sConfig.GetStringDefault ("BindIP", "0.0.0.0");
 
-    if (sWorldSocketMgr->StartNetwork (wsport, bind_ip.c_str ()) == -1)
+    if (sWorldSocketMgr->StartNetwork (wsport, bind_ip) == -1)
     {
         sLog.outError ("Failed to start network");
+        Log::WaitBeforeContinueIfNeed();
         World::StopNow(ERROR_EXIT_CODE);
         // go down and shutdown the server
     }
@@ -337,7 +342,7 @@ int Master::Run()
     }
 
     ///- Set server offline in realmlist
-    loginDatabase.PExecute("UPDATE realmlist SET color = 2 WHERE id = '%d'",realmID);
+    LoginDatabase.PExecute("UPDATE realmlist SET realmflags = realmflags | %u WHERE id = '%d'", REALM_FLAG_OFFLINE, realmID);
 
     ///- Remove signal handling before leaving
     _UnhookSignals();
@@ -359,7 +364,7 @@ int Master::Run()
     ///- Wait for DB delay threads to end
     CharacterDatabase.HaltDelayThread();
     WorldDatabase.HaltDelayThread();
-    loginDatabase.HaltDelayThread();
+    LoginDatabase.HaltDelayThread();
 
     sLog.outString( "Halting process..." );
 
@@ -490,7 +495,7 @@ bool Master::_StartDB()
 
     ///- Initialise the login database
     sLog.outString("Login Database: %s", dbstring.c_str() );
-    if(!loginDatabase.Initialize(dbstring.c_str()))
+    if(!LoginDatabase.Initialize(dbstring.c_str()))
     {
         sLog.outError("Cannot connect to login database %s",dbstring.c_str());
 
@@ -500,12 +505,12 @@ bool Master::_StartDB()
         return false;
     }
 
-    if(!loginDatabase.CheckRequiredField("realmd_db_version",REVISION_DB_REALMD))
+    if(!LoginDatabase.CheckRequiredField("realmd_db_version",REVISION_DB_REALMD))
     {
         ///- Wait for already started DB delay threads to end
         WorldDatabase.HaltDelayThread();
         CharacterDatabase.HaltDelayThread();
-        loginDatabase.HaltDelayThread();
+        LoginDatabase.HaltDelayThread();
         return false;
     }
 
@@ -518,7 +523,7 @@ bool Master::_StartDB()
         ///- Wait for already started DB delay threads to end
         WorldDatabase.HaltDelayThread();
         CharacterDatabase.HaltDelayThread();
-        loginDatabase.HaltDelayThread();
+        LoginDatabase.HaltDelayThread();
         return false;
     }
 
@@ -539,7 +544,7 @@ void Master::clearOnlineAccounts()
 {
     // Cleanup online status for characters hosted at current realm
     /// \todo Only accounts with characters logged on *this* realm should have online status reset. Move the online column from 'account' to 'realmcharacters'?
-    loginDatabase.PExecute("UPDATE account SET active_realm_id = 0 WHERE active_realm_id = '%d'", realmID);
+    LoginDatabase.PExecute("UPDATE account SET active_realm_id = 0 WHERE active_realm_id = '%d'", realmID);
 
     CharacterDatabase.Execute("UPDATE characters SET online = 0 WHERE online<>0");
 

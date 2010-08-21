@@ -22,7 +22,8 @@
 #include "Platform/Define.h"
 #include "Policies/Singleton.h"
 #include <ace/Thread_Mutex.h>
-#include "Utilities/UnorderedMap.h"
+#include <ace/RW_Thread_Mutex.h>
+#include "Utilities/UnorderedMapSet.h"
 #include "Policies/ThreadingModel.h"
 
 #include "UpdateData.h"
@@ -47,26 +48,33 @@ class HashMapHolder
     public:
 
         typedef UNORDERED_MAP< uint64, T* >   MapType;
-        typedef ACE_Thread_Mutex LockType;
-        typedef MaNGOS::GeneralLock<LockType > Guard;
+        typedef ACE_RW_Thread_Mutex LockType;
+        typedef ACE_Read_Guard<LockType> ReadGuard;
+        typedef ACE_Write_Guard<LockType> WriteGuard;
 
-        static void Insert(T* o) { m_objectMap[o->GetGUID()] = o; }
+        static void Insert(T* o)
+        {
+            WriteGuard guard(i_lock);
+            m_objectMap[o->GetGUID()] = o;
+        }
 
         static void Remove(T* o)
         {
-            Guard guard(i_lock);
+            WriteGuard guard(i_lock);
             m_objectMap.erase(o->GetGUID());
         }
 
         static T* Find(ObjectGuid guid)
         {
+            ReadGuard guard(i_lock);
             typename MapType::iterator itr = m_objectMap.find(guid.GetRawValue());
             return (itr != m_objectMap.end()) ? itr->second : NULL;
         }
 
         static MapType& GetContainer() { return m_objectMap; }
 
-        static LockType* GetLock() { return &i_lock; }
+        static LockType& GetLock() { return i_lock; }
+
     private:
 
         //Non instanceable only static
@@ -78,8 +86,8 @@ class HashMapHolder
 
 class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, MaNGOS::ClassLevelLockable<ObjectAccessor, ACE_Thread_Mutex> >
 {
-
     friend class MaNGOS::OperatorNew<ObjectAccessor>;
+
     ObjectAccessor();
     ~ObjectAccessor();
     ObjectAccessor(const ObjectAccessor &);
@@ -95,13 +103,14 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
         static Creature*   GetCreatureInWorld(ObjectGuid guid)   { return FindHelper<Creature>(guid); }
         static GameObject* GetGameObjectInWorld(ObjectGuid guid) { return FindHelper<GameObject>(guid); }
 
-        // possible local search for specific object map
-        static Unit* GetUnit(WorldObject const &, ObjectGuid guid);
+        // Search player at any map in world and other objects at same map with `obj`
+        // Note: recommended use Map::GetUnit version if player also expected at same map only
+        static Unit* GetUnit(WorldObject const& obj, ObjectGuid guid);
 
         // Player access
-        static Player* FindPlayer(ObjectGuid guid);
+        static Player* FindPlayer(ObjectGuid guid);         // if need player at specific map better use Map::GetPlayer
         static Player* FindPlayerByName(const char *name);
-        static void KickPlayer(uint64 guid);
+        static void KickPlayer(ObjectGuid guid);
 
         HashMapHolder<Player>::MapType& GetPlayers()
         {

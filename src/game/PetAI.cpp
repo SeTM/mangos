@@ -107,7 +107,7 @@ void PetAI::_stopAttack()
     inCombat = false;
     if( !m_creature->isAlive() )
     {
-        DEBUG_LOG("PetAI (guid = %u) stopped attack, he is dead.", m_creature->GetGUIDLow());
+        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "PetAI (guid = %u) stopped attack, he is dead.", m_creature->GetGUIDLow());
         m_creature->StopMoving();
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
@@ -152,7 +152,7 @@ void PetAI::UpdateAI(const uint32 diff)
     {
         if (_needToStop())
         {
-            DEBUG_LOG("PetAI (guid = %u) is stopping attack.", m_creature->GetGUIDLow());
+            DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "PetAI (guid = %u) is stopping attack.", m_creature->GetGUIDLow());
             _stopAttack();
             return;
         }
@@ -245,7 +245,7 @@ void PetAI::UpdateAI(const uint32 diff)
                     continue;
             }
 
-            Spell *spell = new Spell(m_creature, spellInfo, false, 0);
+            Spell *spell = new Spell(m_creature, spellInfo, false);
 
             if (inCombat && !m_creature->hasUnitState(UNIT_STAT_FOLLOW) && spell->CanAutoCast(m_creature->getVictim()))
             {

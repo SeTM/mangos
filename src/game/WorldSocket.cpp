@@ -37,7 +37,6 @@
 #include "ByteBuffer.h"
 #include "Opcodes.h"
 #include "Database/DatabaseEnv.h"
-#include "Auth/BigNumber.h"
 #include "Auth/Sha1.h"
 #include "WorldSession.h"
 #include "WorldSocketMgr.h"
@@ -60,7 +59,7 @@ struct ServerPktHeader
         uint8 headerIndex=0;
         if(isLargePacket())
         {
-            sLog.outDebug("initializing large server to client packet. Size: %u, cmd: %u", size, cmd);
+            DEBUG_LOG("initializing large server to client packet. Size: %u, cmd: %u", size, cmd);
             header[headerIndex++] = 0x80|(0xFF &(size>>16));
         }
         header[headerIndex++] = 0xFF &(size>>8);
@@ -248,10 +247,14 @@ int WorldSocket::open (void *a)
     WorldPacket packet (SMSG_AUTH_CHALLENGE, 24);
     packet << uint32(1);                                    // 1...31
     packet << m_Seed;
-    packet << uint32(0xF3539DA3);                           // random data
-    packet << uint32(0x6E8547B9);                           // random data
-    packet << uint32(0x9A6AA2F8);                           // random data
-    packet << uint32(0xA4F170F4);                           // random data
+
+    BigNumber seed1;
+    seed1.SetRand(16 * 8);
+    packet.append(seed1.AsByteArray(16), 16);               // new encryption seeds
+
+    BigNumber seed2;
+    seed2.SetRand(16 * 8);
+    packet.append(seed2.AsByteArray(16), 16);               // new encryption seeds
 
     if (SendPacket (packet) == -1)
         return -1;
@@ -662,7 +665,7 @@ int WorldSocket::ProcessIncoming (WorldPacket* new_pct)
 
     if (opcode >= NUM_MSG_TYPES)
     {
-        sLog.outError( "SESSION: received non-existed opcode 0x%.4X", opcode);
+        sLog.outError( "SESSION: received nonexistent opcode 0x%.4X", opcode);
         return -1;
     }
 
@@ -715,7 +718,7 @@ int WorldSocket::ProcessIncoming (WorldPacket* new_pct)
     {
         sLog.outError("WorldSocket::ProcessIncoming ByteBufferException occured while parsing an instant handled packet (opcode: %u) from client %s, accountid=%i.",
                 opcode, GetRemoteAddress().c_str(), m_Session?m_Session->GetAccountId():-1);
-        if(sLog.IsOutDebug())
+        if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG))
         {
             sLog.outDebug("Dumping error-causing packet:");
             new_pct->hexlike();
@@ -723,7 +726,7 @@ int WorldSocket::ProcessIncoming (WorldPacket* new_pct)
 
         if (sWorld.getConfig(CONFIG_BOOL_KICK_PLAYER_ON_BAD_PACKET))
         {
-            sLog.outDetail("Disconnecting session [account id %i / address %s] for badly formatted packet.",
+            DETAIL_LOG("Disconnecting session [account id %i / address %s] for badly formatted packet.",
                 m_Session?m_Session->GetAccountId():-1, GetRemoteAddress().c_str());
 
             return -1;
@@ -740,7 +743,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     // NOTE: ATM the socket is singlethread, have this in mind ...
     uint8 digest[20];
     uint32 clientSeed;
-    uint32 unk2, unk3;
+    uint32 unk2, unk3, unk5, unk6, unk7;
     uint64 unk4;
     uint32 ClientBuild;
     uint32 id, security;
@@ -759,6 +762,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     recvPacket >> account;
     recvPacket >> unk3;
     recvPacket >> clientSeed;
+    recvPacket >> unk5 >> unk6 >> unk7;
     recvPacket >> unk4;
     recvPacket.read (digest, 20);
 
@@ -783,11 +787,11 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
     // Get the account information from the realmd database
     std::string safe_account = account; // Duplicate, else will screw the SHA hash verification below
-    loginDatabase.escape_string (safe_account);
+    LoginDatabase.escape_string (safe_account);
     // No SQL injection, username escaped.
 
     QueryResult *result =
-          loginDatabase.PQuery ("SELECT "
+          LoginDatabase.PQuery ("SELECT "
                                 "id, "                      //0
                                 "gmlevel, "                 //1
                                 "sessionkey, "              //2
@@ -822,7 +826,8 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     g.SetDword (7);
 
     v.SetHexStr(fields[5].GetString());
-    s.SetHexStr (fields[6].GetString ());
+    s.SetHexStr (fields[6].GetString());
+    m_s = s;
 
     const char* sStr = s.AsHexStr ();                       //Must be freed by OPENSSL_free()
     const char* vStr = v.AsHexStr ();                       //Must be freed by OPENSSL_free()
@@ -844,7 +849,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
             SendPacket (packet);
 
             delete result;
-            sLog.outBasic ("WorldSocket::HandleAuthSession: Sent Auth Response (Account IP differs).");
+            BASIC_LOG("WorldSocket::HandleAuthSession: Sent Auth Response (Account IP differs).");
             return -1;
         }
     }
@@ -866,7 +871,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
     // Re-check account ban (same check as in realmd)
     QueryResult *banresult =
-          loginDatabase.PQuery ("SELECT 1 FROM account_banned WHERE id = %u AND active = 1 AND (unbandate > UNIX_TIMESTAMP() OR unbandate = bandate)"
+          LoginDatabase.PQuery ("SELECT 1 FROM account_banned WHERE id = %u AND active = 1 AND (unbandate > UNIX_TIMESTAMP() OR unbandate = bandate)"
                                 "UNION "
                                 "SELECT 1 FROM ip_banned WHERE (unbandate = bandate OR unbandate > UNIX_TIMESTAMP()) AND ip = '%s'",
                                 id, GetRemoteAddress().c_str());
@@ -893,7 +898,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
         SendPacket (packet);
 
-        sLog.outBasic ("WorldSocket::HandleAuthSession: User tries to login but his security level is not enough");
+        BASIC_LOG("WorldSocket::HandleAuthSession: User tries to login but his security level is not enough");
         return -1;
     }
 
@@ -929,9 +934,9 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
 
     // Update the last_ip in the database
     // No SQL injection, username escaped.
-    loginDatabase.escape_string (address);
+    LoginDatabase.escape_string (address);
 
-    loginDatabase.PExecute ("UPDATE account "
+    LoginDatabase.PExecute ("UPDATE account "
                             "SET last_ip = '%s' "
                             "WHERE username = '%s'",
                             address.c_str (),

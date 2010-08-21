@@ -251,7 +251,7 @@ bool Item::Create( uint32 guidlow, uint32 itemid, Player const* owner)
     Object::_Create( guidlow, 0, HIGHGUID_ITEM );
 
     SetEntry(itemid);
-    SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
+    SetObjectScale(DEFAULT_OBJECT_SCALE);
 
     SetUInt64Value(ITEM_FIELD_OWNER, owner ? owner->GetGUID() : 0);
     SetUInt64Value(ITEM_FIELD_CONTAINED, owner ? owner->GetGUID() : 0);
@@ -278,7 +278,7 @@ void Item::UpdateDuration(Player* owner, uint32 diff)
     if (!GetUInt32Value(ITEM_FIELD_DURATION))
         return;
 
-    sLog.outDebug("Item::UpdateDuration Item (Entry: %u Duration %u Diff %u)",GetEntry(),GetUInt32Value(ITEM_FIELD_DURATION),diff);
+    //DEBUG_LOG("Item::UpdateDuration Item (Entry: %u Duration %u Diff %u)",GetEntry(),GetUInt32Value(ITEM_FIELD_DURATION),diff);
 
     if (GetUInt32Value(ITEM_FIELD_DURATION)<=diff)
     {
@@ -297,21 +297,26 @@ void Item::SaveToDB()
     {
         case ITEM_NEW:
         {
+            std::string text = m_text;
+            CharacterDatabase.escape_string(text);
             CharacterDatabase.PExecute( "DELETE FROM item_instance WHERE guid = '%u'", guid );
             std::ostringstream ss;
-            ss << "INSERT INTO item_instance (guid,owner_guid,data) VALUES (" << guid << "," << GUID_LOPART(GetOwnerGUID()) << ",'";
+            ss << "INSERT INTO item_instance (guid,owner_guid,data,text) VALUES (" << guid << "," << GUID_LOPART(GetOwnerGUID()) << ",'";
             for(uint16 i = 0; i < m_valuesCount; ++i )
                 ss << GetUInt32Value(i) << " ";
-            ss << "' )";
+            ss << "', '" << text << "')";
             CharacterDatabase.Execute( ss.str().c_str() );
         } break;
         case ITEM_CHANGED:
         {
+            std::string text = m_text;
+            CharacterDatabase.escape_string(text);
             std::ostringstream ss;
             ss << "UPDATE item_instance SET data = '";
             for(uint16 i = 0; i < m_valuesCount; ++i )
                 ss << GetUInt32Value(i) << " ";
-            ss << "', owner_guid = '" << GUID_LOPART(GetOwnerGUID()) << "' WHERE guid = '" << guid << "'";
+            ss << "', owner_guid = '" << GUID_LOPART(GetOwnerGUID());
+            ss << "', text = '" << text << "' WHERE guid = '" << guid << "'";
 
             CharacterDatabase.Execute( ss.str().c_str() );
 
@@ -320,8 +325,6 @@ void Item::SaveToDB()
         } break;
         case ITEM_REMOVED:
         {
-            if (GetUInt32Value(ITEM_FIELD_ITEM_TEXT_ID) > 0 )
-                CharacterDatabase.PExecute("DELETE FROM item_text WHERE id = '%u'", GetUInt32Value(ITEM_FIELD_ITEM_TEXT_ID));
             CharacterDatabase.PExecute("DELETE FROM item_instance WHERE guid = '%u'", guid);
             if(HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_WRAPPED))
                 CharacterDatabase.PExecute("DELETE FROM character_gifts WHERE item_guid = '%u'", GetGUIDLow());
@@ -334,30 +337,30 @@ void Item::SaveToDB()
     SetState(ITEM_UNCHANGED);
 }
 
-bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, QueryResult *result)
+bool Item::LoadFromDB(uint32 guidLow, uint64 owner_guid, QueryResult *result)
 {
     // create item before any checks for store correct guid
     // and allow use "FSetState(ITEM_REMOVED); SaveToDB();" for deleting item from DB
-    Object::_Create(guid, 0, HIGHGUID_ITEM);
+    Object::_Create(guidLow, 0, HIGHGUID_ITEM);
 
     bool delete_result = false;
     if(!result)
     {
-        result = CharacterDatabase.PQuery("SELECT data FROM item_instance WHERE guid = '%u'", guid);
+        result = CharacterDatabase.PQuery("SELECT data FROM item_instance WHERE guid = '%u'", guidLow);
         delete_result = true;
     }
 
     if (!result)
     {
-        sLog.outError("Item (GUID: %u owner: %u) not found in table `item_instance`, can't load. ",guid,GUID_LOPART(owner_guid));
+        sLog.outError("Item (GUID: %u owner: %u) not found in table `item_instance`, can't load. ", guidLow, GUID_LOPART(owner_guid));
         return false;
     }
 
     Field *fields = result->Fetch();
 
-    if(!LoadValues(fields[0].GetString()))
+    if (!LoadValues(fields[0].GetString()))
     {
-        sLog.outError("Item #%d have broken data in `data` field. Can't be loaded.",guid);
+        sLog.outError("Item #%d have broken data in `data` field. Can't be loaded.", guidLow);
         if (delete_result) delete result;
         return false;
     }
@@ -365,14 +368,15 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, QueryResult *result)
     bool need_save = false;                                 // need explicit save data at load fixes
 
     // overwrite possible wrong/corrupted guid
-    uint64 new_item_guid = MAKE_NEW_GUID(guid,0, HIGHGUID_ITEM);
-    if(GetUInt64Value(OBJECT_FIELD_GUID) != new_item_guid)
+    ObjectGuid new_item_guid = ObjectGuid(HIGHGUID_ITEM, guidLow);
+    if (GetGuidValue(OBJECT_FIELD_GUID) != new_item_guid)
     {
-        SetUInt64Value(OBJECT_FIELD_GUID, MAKE_NEW_GUID(guid,0, HIGHGUID_ITEM));
+        SetGuidValue(OBJECT_FIELD_GUID, new_item_guid);
         need_save = true;
     }
 
-    if (delete_result) delete result;
+    if (delete_result)
+        delete result;
 
     ItemPrototype const* proto = GetProto();
     if(!proto)
@@ -422,7 +426,7 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, QueryResult *result)
         ss << "UPDATE item_instance SET data = '";
         for(uint16 i = 0; i < m_valuesCount; ++i )
             ss << GetUInt32Value(i) << " ";
-        ss << "', owner_guid = '" << GUID_LOPART(GetOwnerGUID()) << "' WHERE guid = '" << guid << "'";
+        ss << "', owner_guid = '" << GUID_LOPART(GetOwnerGUID()) << "' WHERE guid = '" << guidLow << "'";
 
         CharacterDatabase.Execute( ss.str().c_str() );
     }
@@ -767,7 +771,10 @@ bool Item::IsFitToSpellRequirements(SpellEntry const* spellInfo) const
         }
     }
 
-    if(spellInfo->EquippedItemInventoryTypeMask != 0)       // 0 == any inventory type
+    // Only check for item enchantments (TARGET_FLAG_ITEM), all other spells are either NPC spells
+    // or spells where slot requirements are already handled with AttributesEx3 fields
+    // and special code (Titan's Grip, Windfury Attack). Check clearly not applicable for Lava Lash.
+    if(spellInfo->EquippedItemInventoryTypeMask != 0 && (spellInfo->Targets & TARGET_FLAG_ITEM))    // 0 == any inventory type
     {
         if((spellInfo->EquippedItemInventoryTypeMask  & (1 << proto->InventoryType)) == 0)
             return false;                                   // inventory type not present in mask
@@ -966,10 +973,10 @@ Item* Item::CloneItem( uint32 count, Player const* player ) const
     if(!newItem)
         return NULL;
 
-    newItem->SetUInt32Value( ITEM_FIELD_CREATOR,      GetUInt32Value( ITEM_FIELD_CREATOR ) );
-    newItem->SetUInt32Value( ITEM_FIELD_GIFTCREATOR,  GetUInt32Value( ITEM_FIELD_GIFTCREATOR ) );
-    newItem->SetUInt32Value( ITEM_FIELD_FLAGS,        GetUInt32Value( ITEM_FIELD_FLAGS ) );
-    newItem->SetUInt32Value( ITEM_FIELD_DURATION,     GetUInt32Value( ITEM_FIELD_DURATION ) );
+    newItem->SetGuidValue(ITEM_FIELD_CREATOR,     GetGuidValue(ITEM_FIELD_CREATOR));
+    newItem->SetGuidValue(ITEM_FIELD_GIFTCREATOR, GetGuidValue(ITEM_FIELD_GIFTCREATOR));
+    newItem->SetUInt32Value(ITEM_FIELD_FLAGS,     GetUInt32Value(ITEM_FIELD_FLAGS));
+    newItem->SetUInt32Value(ITEM_FIELD_DURATION,  GetUInt32Value(ITEM_FIELD_DURATION));
     newItem->SetItemRandomProperties(GetItemRandomPropertyId());
     return newItem;
 }

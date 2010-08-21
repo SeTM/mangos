@@ -102,23 +102,25 @@ enum ItemBondingType
 #define MAX_BIND_TYPE                             6
 
 // masks for ITEM_FIELD_FLAGS field
-enum ITEM_FLAGS
+enum ItemFlags
 {
     ITEM_FLAGS_BINDED                         = 0x00000001, // set in game at binding, not set in template
     ITEM_FLAGS_CONJURED                       = 0x00000002,
     ITEM_FLAGS_OPENABLE                       = 0x00000004,
-    ITEM_FLAGS_WRAPPED                        = 0x00000008,
+    ITEM_FLAGS_WRAPPED                        = 0x00000008, // conflicts with heroic flag
     ITEM_FLAGS_HEROIC                         = 0x00000008, // weird...
     ITEM_FLAGS_BROKEN                         = 0x00000010, // appears red icon (like when item durability==0)
-    ITEM_FLAGS_TOTEM                          = 0x00000020, // ?
+    ITEM_FLAGS_INDESTRUCTIBLE                 = 0x00000020, // used for totem. Item can not be destroyed, except by using spell (item can be reagent for spell and then allowed)
     ITEM_FLAGS_USABLE                         = 0x00000040, // ?
     ITEM_FLAGS_NO_EQUIP_COOLDOWN              = 0x00000080, // ?
+    ITEM_FLAGS_UNK3                           = 0x00000100, // saw this on item 47115, 49295...
     ITEM_FLAGS_WRAPPER                        = 0x00000200, // used or not used wrapper
     ITEM_FLAGS_IGNORE_BAG_SPACE               = 0x00000400, // ignore bag space at new item creation?
     ITEM_FLAGS_PARTY_LOOT                     = 0x00000800, // determines if item is party loot or not
     ITEM_FLAGS_REFUNDABLE                     = 0x00001000, // item cost can be refunded within 2 hours after purchase
     ITEM_FLAGS_CHARTER                        = 0x00002000, // arena/guild charter
-    ITEM_FLAGS_REFUNDABLE_2                   = 0x00008000, // ?
+    ITEM_FLAGS_UNK4                           = 0x00008000, // a lot of items have this
+    ITEM_FLAGS_UNK1                           = 0x00010000, // a lot of items have this
     ITEM_FLAGS_PROSPECTABLE                   = 0x00040000,
     ITEM_FLAGS_UNIQUE_EQUIPPED                = 0x00080000,
     ITEM_FLAGS_USEABLE_IN_ARENA               = 0x00200000,
@@ -130,7 +132,15 @@ enum ITEM_FLAGS
     ITEM_FLAGS_BOP_TRADEABLE                  = 0x80000000
 };
 
-enum BAG_FAMILY_MASK
+enum ItemFlags2
+{
+    ITEM_FLAGS2_HORDE_ONLY                    = 0x00000001, // drop in loot, sell by vendor and equipping only for horde
+    ITEM_FLAGS2_ALLIANCE_ONLY                 = 0x00000002, // drop in loot, sell by vendor and equipping only for alliance
+    ITEM_FLAGS2_EXT_COST_REQUIRES_GOLD        = 0x00000004, // item cost include gold part in case extended cost use also
+    ITEM_FLAGS2_NEED_ROLL_DISABLED            = 0x00000100, // need roll during looting is not allowed for this item
+};
+
+enum BagFamilyMask
 {
     BAG_FAMILY_MASK_NONE                      = 0x00000000,
     BAG_FAMILY_MASK_ARROWS                    = 0x00000001,
@@ -474,7 +484,7 @@ enum ItemExtraFlags
     ITEM_EXTRA_NON_CONSUMABLE     = 0x01,                   // use as additional flag to spellcharges_N negative values, item not expire at no chanrges
     ITEM_EXTRA_REAL_TIME_DURATION = 0x02,                   // if set and have Duration time, then offline time included in counting, if not set then counted only in game time
 
-    ITEM_EXTRA_ALL                                          // all used flags, used for check DB data
+    ITEM_EXTRA_ALL                = 0x03                    // all used flags, used for check DB data (mask all above flags)
 };
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
@@ -528,7 +538,7 @@ struct ItemPrototype
     uint32 DisplayInfoID;                                   // id from ItemDisplayInfo.dbc
     uint32 Quality;
     uint32 Flags;
-    uint32 Faction;
+    uint32 Flags2;
     uint32 BuyCount;
     uint32 BuyPrice;
     uint32 SellPrice;
@@ -584,7 +594,7 @@ struct ItemPrototype
     _Socket Socket[MAX_ITEM_PROTO_SOCKETS];
     uint32 socketBonus;                                     // id from SpellItemEnchantment.dbc
     uint32 GemProperties;                                   // id from GemProperties.dbc
-    uint32 RequiredDisenchantSkill;
+    int32 RequiredDisenchantSkill;
     float  ArmorDamageModifier;
     uint32 Duration;                                        // negative = realtime, positive = ingame time
     uint32 ItemLimitCategory;                               // id from ItemLimitCategory.dbc

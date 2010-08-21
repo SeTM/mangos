@@ -28,6 +28,7 @@
 
 struct ItemPrototype;
 struct AuctionEntry;
+struct AuctionHouseEntry;
 struct DeclinedName;
 
 class ObjectGuid;
@@ -42,6 +43,8 @@ class QueryResult;
 class LoginQueryHolder;
 class CharacterHandler;
 class GMTicket;
+
+struct OpcodeHandler;
 
 enum AccountDataType
 {
@@ -86,22 +89,56 @@ typedef std::list<AddonInfo> AddonsList;
 enum PartyOperation
 {
     PARTY_OP_INVITE = 0,
-    PARTY_OP_LEAVE = 2
+    PARTY_OP_LEAVE = 2,
+    PARTY_OP_SWAP = 4
 };
 
 enum PartyResult
 {
-    PARTY_RESULT_OK                   = 0,
-    PARTY_RESULT_CANT_FIND_TARGET     = 1,
-    PARTY_RESULT_NOT_IN_YOUR_PARTY    = 2,
-    PARTY_RESULT_NOT_IN_YOUR_INSTANCE = 3,
-    PARTY_RESULT_PARTY_FULL           = 4,
-    PARTY_RESULT_ALREADY_IN_GROUP     = 5,
-    PARTY_RESULT_YOU_NOT_IN_GROUP     = 6,
-    PARTY_RESULT_YOU_NOT_LEADER       = 7,
-    PARTY_RESULT_TARGET_UNFRIENDLY    = 8,
-    PARTY_RESULT_TARGET_IGNORE_YOU    = 9,
-    PARTY_RESULT_INVITE_RESTRICTED    = 13
+    ERR_PARTY_RESULT_OK                 = 0,
+    ERR_BAD_PLAYER_NAME_S               = 1,
+    ERR_TARGET_NOT_IN_GROUP_S           = 2,
+    ERR_TARGET_NOT_IN_INSTANCE_S        = 3,
+    ERR_GROUP_FULL                      = 4,
+    ERR_ALREADY_IN_GROUP_S              = 5,
+    ERR_NOT_IN_GROUP                    = 6,
+    ERR_NOT_LEADER                      = 7,
+    ERR_PLAYER_WRONG_FACTION            = 8,
+    ERR_IGNORING_YOU_S                  = 9,
+    ERR_LFG_PENDING                     = 12,
+    ERR_INVITE_RESTRICTED               = 13,
+    ERR_GROUP_SWAP_FAILED               = 14,               // if (PartyOperation == PARTY_OP_SWAP) ERR_GROUP_SWAP_FAILED else ERR_INVITE_IN_COMBAT
+    ERR_INVITE_UNKNOWN_REALM            = 15,
+    ERR_INVITE_NO_PARTY_SERVER          = 16,
+    ERR_INVITE_PARTY_BUSY               = 17,
+    ERR_PARTY_TARGET_AMBIGUOUS          = 18,
+    ERR_PARTY_LFG_INVITE_RAID_LOCKED    = 19,
+    ERR_PARTY_LFG_BOOT_LIMIT            = 20,
+    ERR_PARTY_LFG_BOOT_COOLDOWN_S       = 21,
+    ERR_PARTY_LFG_BOOT_IN_PROGRESS      = 22,
+    ERR_PARTY_LFG_BOOT_TOO_FEW_PLAYERS  = 23,
+    ERR_PARTY_LFG_BOOT_NOT_ELIGIBLE_S   = 24,
+    ERR_RAID_DISALLOWED_BY_LEVEL        = 25,
+    ERR_PARTY_LFG_BOOT_IN_COMBAT        = 26,
+    ERR_VOTE_KICK_REASON_NEEDED         = 27,
+    ERR_PARTY_LFG_BOOT_DUNGEON_COMPLETE = 28,
+    ERR_PARTY_LFG_BOOT_LOOT_ROLLS       = 29,
+    ERR_PARTY_LFG_TELEPORT_IN_COMBAT    = 30
+};
+
+enum ChatRestrictionType
+{
+    ERR_CHAT_RESTRICTED = 0,
+    ERR_CHAT_THROTTLED  = 1,
+    ERR_USER_SQUELCHED  = 2,
+    ERR_YELL_RESTRICTED = 3
+};
+
+enum TutorialDataState
+{
+    TUTORIALDATA_UNCHANGED = 0,
+    TUTORIALDATA_CHANGED   = 1,
+    TUTORIALDATA_NEW       = 2
 };
 
 /// Player session in the World
@@ -115,7 +152,6 @@ class MANGOS_DLL_SPEC WorldSession
         bool PlayerLoading() const { return m_playerLoading; }
         bool PlayerLogout() const { return m_playerLogout; }
         bool PlayerLogoutWithSave() const { return m_playerLogout && m_playerSave; }
-
 
         void SizeError(WorldPacket const& packet, uint32 size) const;
 
@@ -132,6 +168,7 @@ class MANGOS_DLL_SPEC WorldSession
         void SendAreaTriggerMessage(const char* Text, ...) ATTR_PRINTF(2,3);
         void SendSetPhaseShift(uint32 phaseShift);
         void SendQueryTimeResponse();
+        void SendRedirectClient(std::string& ip, uint16 port);
 
         AccountTypes GetSecurity() const { return _security; }
         uint32 GetAccountId() const { return _accountId; }
@@ -186,17 +223,19 @@ class MANGOS_DLL_SPEC WorldSession
 
         void SendAttackStop(Unit const* enemy);
 
-        void SendBattlegGroundList( uint64 guid, BattleGroundTypeId bgTypeId );
+        void SendBattlegGroundList(ObjectGuid guid, BattleGroundTypeId bgTypeId);
 
-        void SendTradeStatus(uint32 status);
+        void SendTradeStatus(TradeStatus status);
+        void SendUpdateTrade(bool trader_state = true);
         void SendCancelTrade();
 
-        void SendStablePet(uint64 guid );
-        void SendPetitionQueryOpcode( uint64 petitionguid);
-        void SendUpdateTrade();
+        void SendPetitionQueryOpcode(ObjectGuid petitionguid);
 
         //pet
         void SendPetNameQuery(uint64 guid, uint32 petnumber);
+        void SendStablePet(ObjectGuid guid);
+        void SendStableResult(uint8 res);
+        bool CheckStableMaster(ObjectGuid guid);
 
         // Account Data
         AccountData *GetAccountData(AccountDataType type) { return &m_accountData[type]; }
@@ -217,19 +256,21 @@ class MANGOS_DLL_SPEC WorldSession
             if(m_Tutorials[intId] != value)
             {
                 m_Tutorials[intId] = value;
-                m_TutorialsChanged = true;
+                if(m_tutorialState == TUTORIALDATA_UNCHANGED)
+                    m_tutorialState = TUTORIALDATA_CHANGED;
             }
         }
-                                                             //used with item_page table
+        //used with item_page table
         bool SendItemInfo( uint32 itemid, WorldPacket data );
 
         //auction
-        void SendAuctionHello( uint64 guid, Creature * unit );
+        void SendAuctionHello(Unit * unit);
         void SendAuctionCommandResult( uint32 auctionId, uint32 Action, uint32 ErrorCode, uint32 bidError = 0);
-        void SendAuctionBidderNotification( uint32 location, uint32 auctionId, uint64 bidder, uint32 bidSum, uint32 diff, uint32 item_template);
+        void SendAuctionBidderNotification( uint32 location, uint32 auctionId, ObjectGuid bidderGuid, uint32 bidSum, uint32 diff, uint32 item_template);
         void SendAuctionOwnerNotification( AuctionEntry * auction );
         void SendAuctionOutbiddedMail( AuctionEntry * auction, uint32 newPrice );
         void SendAuctionCancelledToBidderMail( AuctionEntry* auction );
+        AuctionHouseEntry const* GetCheckedAuctionHouseForAuctioneer(ObjectGuid guid);
 
         //Item Enchantment
         void SendEnchantmentLog(uint64 Target, uint64 Caster,uint32 ItemID,uint32 SpellID);
@@ -247,7 +288,6 @@ class MANGOS_DLL_SPEC WorldSession
         void SendNotInArenaTeamPacket(uint8 type);
         void SendPetitionShowList( uint64 guid );
         void SendSaveGuildEmblem( uint32 msg );
-        void SendBattleGroundOrArenaJoinError(uint8 err);
 
         // Looking For Group
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login
@@ -362,7 +402,6 @@ class MANGOS_DLL_SPEC WorldSession
         void HandleAreaTriggerOpcode(WorldPacket& recvPacket);
 
         void HandleSetFactionAtWar( WorldPacket & recv_data );
-        void HandleSetFactionCheat( WorldPacket & recv_data );
         void HandleSetWatchedFactionOpcode(WorldPacket & recv_data);
         void HandleSetFactionInactiveOpcode(WorldPacket & recv_data);
 
@@ -561,6 +600,9 @@ class MANGOS_DLL_SPEC WorldSession
 
         bool processChatmessageFurtherAfterSecurityChecks(std::string&, uint32);
         void SendPlayerNotFoundNotice(std::string name);
+        void SendPlayerAmbiguousNotice(std::string name);
+        void SendWrongFactionNotice();
+        void SendChatRestrictedNotice(ChatRestrictionType restriction);
         void HandleMessagechatOpcode(WorldPacket& recvPacket);
         void HandleTextEmoteOpcode(WorldPacket& recvPacket);
         void HandleChatIgnoredOpcode(WorldPacket& recvPacket);
@@ -736,11 +778,13 @@ class MANGOS_DLL_SPEC WorldSession
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
 
+        void ExecuteOpcode( OpcodeHandler const& opHandle, WorldPacket* packet );
+
         // logging helper
         void LogUnexpectedOpcode(WorldPacket *packet, const char * reason);
         void LogUnprocessedTail(WorldPacket *packet);
 
-        uint32 m_GUIDLow;                                   // set loggined or recently logout player (while m_playerRecentlyLogout set)
+        uint32 m_GUIDLow;                                   // set logged or recently logout player (while m_playerRecentlyLogout set)
         Player *_player;
         WorldSocket *m_Socket;
         std::string m_Address;
@@ -760,7 +804,7 @@ class MANGOS_DLL_SPEC WorldSession
         uint32 m_latency;
         AccountData m_accountData[NUM_ACCOUNT_DATA_TYPES];
         uint32 m_Tutorials[8];
-        bool   m_TutorialsChanged;
+        TutorialDataState m_tutorialState;
         AddonsList m_addonsList;
         ACE_Based::LockedQueue<WorldPacket*, ACE_Thread_Mutex> _recvQueue;
 };

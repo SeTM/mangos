@@ -77,8 +77,9 @@ enum WorldTimers
     WUPDATE_UPTIME      = 4,
     WUPDATE_CORPSES     = 5,
     WUPDATE_EVENTS      = 6,
-    WUPDATE_BROADCAST   = 7,
-    WUPDATE_COUNT       = 8
+    WUPDATE_DELETECHARS = 7,
+    WUPDATE_BROADCAST   = 8,
+    WUPDATE_COUNT       = 9
 };
 
 /// Configuration elements
@@ -129,6 +130,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_GROUP_VISIBILITY,
     CONFIG_UINT32_MAIL_DELIVERY_DELAY,
     CONFIG_UINT32_UPTIME_UPDATE,
+    CONFIG_UINT32_AUCTION_DEPOSIT_MIN,
     CONFIG_UINT32_SKILL_CHANCE_ORANGE,
     CONFIG_UINT32_SKILL_CHANCE_YELLOW,
     CONFIG_UINT32_SKILL_CHANCE_GREEN,
@@ -149,6 +151,9 @@ enum eConfigUInt32Values
     CONFIG_UINT32_WORLD_BOSS_LEVEL_DIFF,
     CONFIG_UINT32_QUEST_LOW_LEVEL_HIDE_DIFF,
     CONFIG_UINT32_QUEST_HIGH_LEVEL_HIDE_DIFF,
+    CONFIG_UINT32_QUEST_DAILY_RESET_HOUR,
+    CONFIG_UINT32_QUEST_WEEKLY_RESET_WEEK_DAY,
+    CONFIG_UINT32_QUEST_WEEKLY_RESET_HOUR,
     CONFIG_UINT32_CHAT_STRICT_LINK_CHECKING_SEVERITY,
     CONFIG_UINT32_CHAT_STRICT_LINK_CHECKING_KICK,
     CONFIG_UINT32_CORPSE_DECAY_NORMAL,
@@ -174,8 +179,15 @@ enum eConfigUInt32Values
     CONFIG_UINT32_TIMERBAR_BREATH_MAX,
     CONFIG_UINT32_TIMERBAR_FIRE_GMLEVEL,
     CONFIG_UINT32_TIMERBAR_FIRE_MAX,
-    CONFIG_UINT32_BROADCAST_INTERVAL,  // Broadcaster
-    CONFIG_UINT32_BROADCAST_POSITION,  // Broadcaster
+    CONFIG_UINT32_MIN_LEVEL_STAT_SAVE,
+    CONFIG_UINT32_CHARDELETE_KEEP_DAYS,
+    CONFIG_UINT32_CHARDELETE_METHOD,
+    CONFIG_UINT32_CHARDELETE_MIN_LEVEL,
+
+    /* Broadcaster */
+    CONFIG_UINT32_BROADCAST_INTERVAL,
+    CONFIG_UINT32_BROADCAST_POSITION,
+
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -183,6 +195,8 @@ enum eConfigUInt32Values
 enum eConfigInt32Values
 {
     CONFIG_INT32_DEATH_SICKNESS_LEVEL = 0,
+    CONFIG_INT32_ARENA_STARTRATING,
+    CONFIG_INT32_ARENA_STARTPERSONALRATING,
     CONFIG_INT32_VALUE_COUNT
 };
 
@@ -196,6 +210,7 @@ enum eConfigFloatValues
     CONFIG_FLOAT_RATE_POWER_RUNICPOWER_INCOME,
     CONFIG_FLOAT_RATE_POWER_RUNICPOWER_LOSS,
     CONFIG_FLOAT_RATE_POWER_FOCUS,
+    CONFIG_FLOAT_RATE_POWER_ENERGY,
     CONFIG_FLOAT_RATE_SKILL_DISCOVERY,
     CONFIG_FLOAT_RATE_DROP_ITEM_POOR,
     CONFIG_FLOAT_RATE_DROP_ITEM_NORMAL,
@@ -284,6 +299,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_ALWAYS_MAX_SKILL_FOR_LEVEL,
     CONFIG_BOOL_WEATHER,
     CONFIG_BOOL_EVENT_ANNOUNCE,
+    CONFIG_BOOL_QUEST_IGNORE_RAID,
     CONFIG_BOOL_DETECT_POS_COLLISION,
     CONFIG_BOOL_RESTRICTED_LFG_CHANNEL,
     CONFIG_BOOL_SILENTLY_GM_JOIN_TO_CHANNEL,
@@ -292,6 +308,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_CHAT_STRICT_LINK_CHECKING_SEVERITY,
     CONFIG_BOOL_CHAT_STRICT_LINK_CHECKING_KICK,
     CONFIG_BOOL_ADDON_CHANNEL,
+    CONFIG_BOOL_CORPSE_EMPTY_LOOT_SHOW,
     CONFIG_BOOL_DEATH_CORPSE_RECLAIM_DELAY_PVP,
     CONFIG_BOOL_DEATH_CORPSE_RECLAIM_DELAY_PVE,
     CONFIG_BOOL_DEATH_BONES_WORLD,
@@ -305,22 +322,42 @@ enum eConfigBoolValues
     CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_JOIN,
     CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_EXIT,
     CONFIG_BOOL_KICK_PLAYER_ON_BAD_PACKET,
-	CONFIG_BOOL_BROADCAST_ENABLED, // Broadcaster
+    CONFIG_BOOL_STATS_SAVE_ONLY_ON_LOGOUT,
+    CONFIG_BOOL_CLEAN_CHARACTER_DB,
+    CONFIG_BOOL_VMAP_INDOOR_CHECK,
+
+    CONFIG_BOOL_BROADCAST_ENABLED, // Broadcaster
+
     CONFIG_BOOL_VALUE_COUNT
 };
 
-/// Type of server
+/// Can be used in SMSG_AUTH_RESPONSE packet
+enum BillingPlanFlags
+{
+    SESSION_NONE            = 0x00,
+    SESSION_UNUSED          = 0x01,
+    SESSION_RECURRING_BILL  = 0x02,
+    SESSION_FREE_TRIAL      = 0x04,
+    SESSION_IGR             = 0x08,
+    SESSION_USAGE           = 0x10,
+    SESSION_TIME_MIXTURE    = 0x20,
+    SESSION_RESTRICTED      = 0x40,
+    SESSION_ENABLE_CAIS     = 0x80,
+};
+
+/// Type of server, this is values from second column of Cfg_Configs.dbc (1.12.1 have another numeration)
 enum RealmType
 {
-    REALM_TYPE_NORMAL = 0,
-    REALM_TYPE_PVP = 1,
-    REALM_TYPE_NORMAL2 = 4,
-    REALM_TYPE_RP = 6,
-    REALM_TYPE_RPPVP = 8,
-    REALM_TYPE_FFA_PVP = 16                                 // custom, free for all pvp mode like arena PvP in all zones except rest activated places and sanctuaries
+    REALM_TYPE_NORMAL   = 0,
+    REALM_TYPE_PVP      = 1,
+    REALM_TYPE_NORMAL2  = 4,
+    REALM_TYPE_RP       = 6,
+    REALM_TYPE_RPPVP    = 8,
+    REALM_TYPE_FFA_PVP  = 16                                // custom, free for all pvp mode like arena PvP in all zones except rest activated places and sanctuaries
                                                             // replaced by REALM_PVP in realm list
 };
 
+/// This is values from first column of Cfg_Categories.dbc (1.12.1 have another numeration)
 enum RealmZone
 {
     REALM_ZONE_UNKNOWN       = 0,                           // any language
@@ -352,7 +389,16 @@ enum RealmZone
     REALM_ZONE_TEST_SERVER   = 26,                          // any language
     REALM_ZONE_TOURNAMENT_27 = 27,                          // basic-Latin at create, any at login
     REALM_ZONE_QA_SERVER     = 28,                          // any language
-    REALM_ZONE_CN9           = 29                           // basic-Latin at create, any at login
+    REALM_ZONE_CN9           = 29,                          // basic-Latin at create, any at login
+    REALM_ZONE_TEST_SERVER_2 = 30,                          // any language
+    // in 3.x
+    REALM_ZONE_CN10          = 31,                          // basic-Latin at create, any at login
+    REALM_ZONE_CTC           = 32,
+    REALM_ZONE_CNC           = 33,
+    REALM_ZONE_CN1_4         = 34,                          // basic-Latin at create, any at login
+    REALM_ZONE_CN2_6_9       = 35,                          // basic-Latin at create, any at login
+    REALM_ZONE_CN3_7         = 36,                          // basic-Latin at create, any at login
+    REALM_ZONE_CN5_8         = 37                           // basic-Latin at create, any at login
 };
 
 enum BroadcastLocation
@@ -363,7 +409,11 @@ enum BroadcastLocation
 };
 
 // DB scripting commands
-#define SCRIPT_COMMAND_TALK                  0              // source = unit, target=any, datalong ( 0=say, 1=whisper, 2=yell, 3=emote text)
+#define SCRIPT_COMMAND_TALK                  0              // source = WorldObject, target = any/none, datalong (see enum ChatType for supported CHAT_TYPE_'s)
+                                                            // datalong2 = creature entry (searching for a buddy, closest to source), datalong3 = creature search radius
+                                                            // data_flags = flag_target_player_as_source    = 0x01
+                                                            //              flag_original_source_as_target  = 0x02
+                                                            //              flag_buddy_as_target            = 0x04
 #define SCRIPT_COMMAND_EMOTE                 1              // source = unit, datalong = anim_id
 #define SCRIPT_COMMAND_FIELD_SET             2              // source = any, datalong = field_id, datalog2 = value
 #define SCRIPT_COMMAND_MOVE_TO               3              // source = Creature, datalog2 = time, x/y/z
@@ -382,6 +432,7 @@ enum BroadcastLocation
 #define SCRIPT_COMMAND_PLAY_SOUND           16              // source = any object, target=any/player, datalong (sound_id), datalong2 (bitmask: 0/1=anyone/target, 0/2=with distance dependent, so 1|2 = 3 is target with distance dependent)
 #define SCRIPT_COMMAND_CREATE_ITEM          17              // source or target must be player, datalong = item entry, datalong2 = amount
 #define SCRIPT_COMMAND_DESPAWN_SELF         18              // source or target must be creature, datalong = despawn delay
+#define SCRIPT_COMMAND_PLAY_MOVIE           19              // target can only be a player, datalog = movie id
 
 /// Storage class for commands issued for delayed execution
 struct CliCommandHolder
@@ -471,6 +522,7 @@ class World
         uint32 GetUptime() const { return uint32(m_gameTime - m_startTime); }
         /// Next daily quests reset time
         time_t GetNextDailyQuestsResetTime() const { return m_NextDailyQuestReset; }
+        time_t GetNextWeeklyQuestsResetTime() const { return m_NextWeeklyQuestReset; }
 
         /// Get the maximum skill level a player can reach
         uint16 GetConfigMaxSkillValue() const
@@ -528,7 +580,7 @@ class World
 
         void KickAll();
         void KickAllLess(AccountTypes sec);
-        BanReturn BanAccount(BanMode mode, std::string nameOrIP, std::string duration, std::string reason, std::string author);
+        BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, std::string author);
         bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
 
         uint32 IncreaseScheduledScriptsCount() { return (uint32)++m_scheduledScripts; }
@@ -571,7 +623,9 @@ class World
         void _UpdateRealmCharCount(QueryResult *resultCharCount, uint32 accountId);
 
         void InitDailyQuestResetTime();
+        void InitWeeklyQuestResetTime();
         void ResetDailyQuests();
+        void ResetWeeklyQuests();
     private:
         void setConfig(eConfigUInt32Values index, char const* fieldname, uint32 defvalue);
         void setConfig(eConfigInt32Values index, char const* fieldname, int32 defvalue);
@@ -641,6 +695,7 @@ class World
 
         // next daily quests reset time
         time_t m_NextDailyQuestReset;
+        time_t m_NextWeeklyQuestReset;
 
         //Player Queue
         Queue m_QueuedPlayer;

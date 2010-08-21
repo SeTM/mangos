@@ -33,6 +33,7 @@
 struct SpellEntry;
 
 class CreatureAI;
+class Group;
 class Quest;
 class Player;
 class WorldSession;
@@ -58,6 +59,7 @@ enum CreatureFlagsExtra
 #endif
 
 #define MAX_KILL_CREDIT 2
+#define MAX_CREATURE_MODEL 4
 
 // from `creature_template` table
 struct CreatureInfo
@@ -65,8 +67,7 @@ struct CreatureInfo
     uint32  Entry;
     uint32  DifficultyEntry[MAX_DIFFICULTY - 1];
     uint32  KillCredit[MAX_KILL_CREDIT];
-    uint32  DisplayID_A[2];
-    uint32  DisplayID_H[2];
+    uint32  ModelId[MAX_CREATURE_MODEL];
     char*   Name;
     char*   SubName;
     char*   IconName;
@@ -189,7 +190,7 @@ struct CreatureData
     uint32 id;                                              // entry in creature_template
     uint16 mapid;
     uint16 phaseMask;
-    uint32 displayid;
+    uint32 modelid_override;                                // overrides any model defined in creature_template
     int32 equipmentId;
     float posX;
     float posY;
@@ -229,7 +230,16 @@ struct CreatureModelInfo
     float bounding_radius;
     float combat_reach;
     uint8 gender;
-    uint32 modelid_other_gender;
+    uint32 modelid_other_gender;                            // The oposite gender for this modelid (male/female)
+    uint32 modelid_alternative;                             // An alternative model. Generally same gender(2)
+};
+
+struct CreatureModelRace
+{
+    uint32 modelid;                                         // Native model/base model the selection is for
+    uint32 racemask;                                        // Races it applies to (and then a player source must exist for selection)
+    uint32 creature_entry;                                  // Modelid from creature_template.entry will be selected
+    uint32 modelid_racial;                                  // Explicit modelid. Used if creature_template entry is not defined
 };
 
 enum InhabitTypeValues
@@ -252,7 +262,7 @@ enum ChatType
     CHAT_TYPE_ZONE_YELL         = 6
 };
 
-//Selection method used by SelectTarget (CreatureEventAI)
+// Selection method used by SelectAttackingTarget
 enum AttackingTarget
 {
     ATTACKING_TARGET_RANDOM = 0,                            //Just selects a random target
@@ -281,7 +291,7 @@ struct VendorItem
     uint32 item;
     uint32 maxcount;                                        // 0 for infinity item amount
     uint32 incrtime;                                        // time for restore items amount if maxcount != 0
-    uint32 ExtendedCost;
+    uint32 ExtendedCost;                                    // index in ItemExtendedCost.dbc
 };
 typedef std::vector<VendorItem*> VendorItemList;
 
@@ -301,8 +311,7 @@ struct VendorItemData
         m_items.push_back(new VendorItem(item, maxcount, ptime, ExtendedCost));
     }
     bool RemoveItem( uint32 item_id );
-    VendorItem const* FindItem(uint32 item_id) const;
-    size_t FindItemSlot(uint32 item_id) const;
+    VendorItem const* FindItemCostPair(uint32 item_id, uint32 extendedCost) const;
 
     void Clear()
     {
@@ -440,7 +449,6 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         bool AIM_Initialize();
 
-        void AI_SendMoveToPacket(float x, float y, float z, uint32 time, SplineFlags MovementFlags, SplineType type);
         CreatureAI* AI() { return i_AI; }
 
         void AddSplineFlag(SplineFlags f)
@@ -506,6 +514,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
         CreatureInfo const *GetCreatureInfo() const { return m_creatureInfo; }
         CreatureDataAddon const* GetCreatureAddon() const;
 
+        static uint32 ChooseDisplayId(const CreatureInfo *cinfo, const CreatureData *data = NULL);
+
         std::string GetAIName() const;
         std::string GetScriptName() const;
         uint32 GetScriptId() const;
@@ -531,11 +541,18 @@ class MANGOS_DLL_SPEC Creature : public Unit
         Loot loot;
         bool lootForPickPocketed;
         bool lootForBody;
-        Player *GetLootRecipient() const;
-        bool hasLootRecipient() const { return m_lootRecipient!=0; }
+        bool lootForSkin;
 
-        void SetLootRecipient (Unit* unit);
+        void PrepareBodyLootState();
+        ObjectGuid GetLootRecipientGuid() const { return m_lootRecipientGuid; }
+        uint32 GetLootGroupRecipientId() const { return m_lootGroupRecipientId; }
+        Player* GetLootRecipient() const;                   // use group cases as prefered
+        Group* GetGroupLootRecipient() const;
+        bool HasLootRecipient() const { return m_lootGroupRecipientId || !m_lootRecipientGuid.IsEmpty(); }
+        bool IsGroupLootRecipient() const { return m_lootGroupRecipientId; }
+        void SetLootRecipient(Unit* unit);
         void AllLootRemovedFromCorpse();
+        Player* GetOriginalLootRecipient() const;           // ignore group changes/etc, not for looting
 
         SpellEntry const *reachWithSpellAttack(Unit *pVictim);
         SpellEntry const *reachWithSpellCure(Unit *pVictim);
@@ -584,12 +601,13 @@ class MANGOS_DLL_SPEC Creature : public Unit
         float GetRespawnRadius() const { return m_respawnradius; }
         void SetRespawnRadius(float dist) { m_respawnradius = dist; }
 
-        uint32 m_groupLootTimer;                            // (msecs)timer used for group loot
-        uint32 m_groupLootId;                               // used to find group which is looting corpse
+        void StartGroupLoot(Group* group, uint32 timer);
 
         void SendZoneUnderAttackMessage(Player* attacker);
 
         void SetInCombatWithZone();
+
+        Unit* SelectAttackingTarget(AttackingTarget target, uint32 position) const;
 
         bool hasQuest(uint32 quest_id) const;
         bool hasInvolvedQuest(uint32 quest_id)  const;
@@ -615,7 +633,6 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         void SetDeadByDefault (bool death_state) { m_isDeadByDefault = death_state; }
 
-        bool isActiveObject() const { return m_isActiveObject || HasAuraType(SPELL_AURA_BIND_SIGHT) || HasAuraType(SPELL_AURA_FAR_SIGHT); }
         void SetActiveObjectState(bool on);
 
         void SetNeedNotify() { m_needNotify = true; }
@@ -627,6 +644,10 @@ class MANGOS_DLL_SPEC Creature : public Unit
         bool InitEntry(uint32 entry, uint32 team=ALLIANCE, const CreatureData* data=NULL);
         void RelocationNotify();
 
+        uint32 m_groupLootTimer;                            // (msecs)timer used for group loot
+        uint32 m_groupLootId;                               // used to find group which is looting corpse
+        void StopGroupLoot();
+
         // vendor items
         VendorItemCounts m_vendorItemCounts;
 
@@ -636,7 +657,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
         static float _GetDamageMod(int32 Rank);
 
         uint32 m_lootMoney;
-        uint64 m_lootRecipient;
+        ObjectGuid m_lootRecipientGuid;                     // player who will have rights for looting if m_lootGroupRecipient==0 or group disbanded
+        uint32 m_lootGroupRecipientId;                      // group who will have rights for looting if set and exist
 
         /// Timers
         uint32 m_deathTimer;                                // (msecs)timer for death or corpse disappearance
@@ -675,23 +697,21 @@ class MANGOS_DLL_SPEC Creature : public Unit
     private:
         GridReference<Creature> m_gridRef;
         CreatureInfo const* m_creatureInfo;                 // in difficulty mode > 0 can different from ObjMgr::GetCreatureTemplate(GetEntry())
-        bool m_isActiveObject;
         SplineFlags m_splineFlags;
 };
 
 class AssistDelayEvent : public BasicEvent
 {
     public:
-        AssistDelayEvent(const uint64& victim, Unit& owner) : BasicEvent(), m_victim(victim), m_owner(owner) { }
+        AssistDelayEvent(ObjectGuid victim, Unit& owner, std::list<Creature*> const& assistants);
 
         bool Execute(uint64 e_time, uint32 p_time);
-        void AddAssistant(const uint64& guid) { m_assistants.push_back(guid); }
     private:
         AssistDelayEvent();
 
-        uint64            m_victim;
-        std::list<uint64> m_assistants;
-        Unit&             m_owner;
+        ObjectGuid              m_victimGuid;
+        std::vector<ObjectGuid> m_assistantGuids;
+        Unit&                   m_owner;
 };
 
 class ForcedDespawnDelayEvent : public BasicEvent

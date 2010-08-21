@@ -206,7 +206,7 @@ bool IsIPAddress(char const* ipaddress)
 
     // Let the big boys do it.
     // Drawback: all valid ip address formats are recognized e.g.: 12.23,121234,0xABCD)
-    return inet_addr(ipaddress) != INADDR_NONE;
+    return ACE_OS::inet_addr(ipaddress) != INADDR_NONE;
 }
 
 /// create PID file
@@ -297,7 +297,8 @@ bool Utf8toWStr(const std::string& utf8str, std::wstring& wstr)
         size_t len = utf8::distance(utf8str.c_str(),utf8str.c_str()+utf8str.size());
         wstr.resize(len);
 
-        utf8::utf8to16(utf8str.c_str(),utf8str.c_str()+utf8str.size(),&wstr[0]);
+        if (len)
+            utf8::utf8to16(utf8str.c_str(),utf8str.c_str()+utf8str.size(),&wstr[0]);
     }
     catch(std::exception)
     {
@@ -487,4 +488,3 @@ void hexEncodeByteArray(uint8* bytes, uint32 arrayLen, std::string& result)
     }
     result = ss.str();
 }
-

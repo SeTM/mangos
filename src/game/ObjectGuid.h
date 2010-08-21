@@ -22,6 +22,8 @@
 #include "Common.h"
 #include "ByteBuffer.h"
 
+#include <functional>
+
 enum TypeID
 {
     TYPEID_OBJECT        = 0,
@@ -40,7 +42,7 @@ enum TypeMask
 {
     TYPEMASK_OBJECT         = 0x0001,
     TYPEMASK_ITEM           = 0x0002,
-    TYPEMASK_CONTAINER      = 0x0006,                       // TYPEMASK_ITEM | 0x0004
+    TYPEMASK_CONTAINER      = 0x0004,
     TYPEMASK_UNIT           = 0x0008,                       // players also have it
     TYPEMASK_PLAYER         = 0x0010,
     TYPEMASK_GAMEOBJECT     = 0x0020,
@@ -51,31 +53,30 @@ enum TypeMask
     TYPEMASK_CREATURE_OR_GAMEOBJECT = TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT,
     TYPEMASK_CREATURE_GAMEOBJECT_OR_ITEM = TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT | TYPEMASK_ITEM,
     TYPEMASK_CREATURE_GAMEOBJECT_PLAYER_OR_ITEM = TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT | TYPEMASK_ITEM | TYPEMASK_PLAYER,
+
+    TYPEMASK_WORLDOBJECT = TYPEMASK_UNIT | TYPEMASK_PLAYER | TYPEMASK_GAMEOBJECT | TYPEMASK_DYNAMICOBJECT | TYPEMASK_CORPSE,
 };
 
 enum HighGuid
 {
-    HIGHGUID_ITEM           = 0x4000,                       // blizz 4000
-    HIGHGUID_CONTAINER      = 0x4000,                       // blizz 4000
-    HIGHGUID_PLAYER         = 0x0000,                       // blizz 0000
-    HIGHGUID_GAMEOBJECT     = 0xF110,                       // blizz F110
-    HIGHGUID_TRANSPORT      = 0xF120,                       // blizz F120 (for GAMEOBJECT_TYPE_TRANSPORT)
-    HIGHGUID_UNIT           = 0xF130,                       // blizz F130
-    HIGHGUID_PET            = 0xF140,                       // blizz F140
-    HIGHGUID_VEHICLE        = 0xF150,                       // blizz F550
-    HIGHGUID_DYNAMICOBJECT  = 0xF100,                       // blizz F100
-    HIGHGUID_CORPSE         = 0xF101,                       // blizz F100
+    HIGHGUID_ITEM           = 0x4700,                       // blizz 4700
+    HIGHGUID_CONTAINER      = 0x4700,                       // blizz 4700
+    HIGHGUID_PLAYER         = 0x0000,                       // blizz 0700 (temporary reverted back to 0 high guid
+                                                            // in result unknown source visibility player with
+                                                            // player problems. please reapply only after its resolve)
+    HIGHGUID_GAMEOBJECT     = 0xF110,                       // blizz F110/F510
+    HIGHGUID_TRANSPORT      = 0xF120,                       // blizz F120/F520 (for GAMEOBJECT_TYPE_TRANSPORT)
+    HIGHGUID_UNIT           = 0xF130,                       // blizz F130/F530
+    HIGHGUID_PET            = 0xF140,                       // blizz F140/F540
+    HIGHGUID_VEHICLE        = 0xF150,                       // blizz F150/F550
+    HIGHGUID_DYNAMICOBJECT  = 0xF100,                       // blizz F100/F500
+    HIGHGUID_CORPSE         = 0xF500,                       // blizz F100/F500 used second variant to resolve conflict with HIGHGUID_DYNAMICOBJECT
     HIGHGUID_MO_TRANSPORT   = 0x1FC0,                       // blizz 1FC0 (for GAMEOBJECT_TYPE_MO_TRANSPORT)
 };
 
 //*** Must be replaced by ObjectGuid use ***
 #define IS_PLAYER_GUID(Guid)         ( GUID_HIPART(Guid) == HIGHGUID_PLAYER && Guid!=0 )
                                                             // special case for empty guid need check
-// l - OBJECT_FIELD_GUID
-// e - OBJECT_FIELD_ENTRY for GO (except GAMEOBJECT_TYPE_MO_TRANSPORT) and creatures or UNIT_FIELD_PETNUMBER for pets
-// h - OBJECT_FIELD_GUID + 1
-#define MAKE_NEW_GUID(l, e, h)   uint64( uint64(l) | ( uint64(e) << 24 ) | ( uint64(h) << 48 ) )
-
 #define GUID_HIPART(x)   (uint32)((uint64(x) >> 48) & 0x0000FFFF)
 
 // We have different low and middle part size for different guid types
@@ -119,13 +120,16 @@ class MANGOS_DLL_SPEC ObjectGuid
     public:                                                 // constructors
         ObjectGuid() : m_guid(0) {}
         ObjectGuid(uint64 const& guid) : m_guid(guid) {}    // NOTE: must be explicit in future for more strict control type conversions
-        ObjectGuid(HighGuid hi, uint32 entry, uint32 counter) : m_guid(uint64(counter) | (uint64(entry) << 24) | (uint64(hi) << 48)) {}
-        ObjectGuid(HighGuid hi, uint32 counter) : m_guid(uint64(counter) | (uint64(hi) << 48)) {}
+        ObjectGuid(HighGuid hi, uint32 entry, uint32 counter) : m_guid(counter ? uint64(counter) | (uint64(entry) << 24) | (uint64(hi) << 48) : 0) {}
+        ObjectGuid(HighGuid hi, uint32 counter) : m_guid(counter ? uint64(counter) | (uint64(hi) << 48) : 0) {}
+    private:
+        ObjectGuid(uint32 const&);                          // no implementation, used for catch wrong type assign
 
     public:                                                 // modifiers
         PackedGuidReader ReadAsPacked() { return PackedGuidReader(*this); }
 
         void Set(uint64 const& guid) { m_guid = guid; }
+        void Clear() { m_guid = 0; }
 
         // Possible removed in future for more strict control type conversions
         void operator= (uint64 const& guid) { m_guid = guid; }
@@ -269,5 +273,26 @@ ByteBuffer& operator<< (ByteBuffer& buf, PackedGuid const& guid);
 ByteBuffer& operator>> (ByteBuffer& buf, PackedGuidReader const& guid);
 
 inline PackedGuid ObjectGuid::WriteAsPacked() const { return PackedGuid(*this); }
+
+HASH_NAMESPACE_START
+
+    template<>
+    class hash<ObjectGuid>
+    {
+        public:
+
+            size_t operator() (ObjectGuid const& key) const
+            {
+                return hash<uint64>()(key.GetRawValue());
+            }
+    };
+
+    // for pre-TR1 Visual Studio versions (VS90 SP1 or early)
+    inline size_t hash_value(ObjectGuid const& key)
+    {
+        return hash_value(key.GetRawValue());
+    }
+
+HASH_NAMESPACE_END
 
 #endif

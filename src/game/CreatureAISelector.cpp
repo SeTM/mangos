@@ -82,7 +82,7 @@ namespace FactorySelector
         // select NullCreatureAI if not another cases
         ainame = (ai_factory == NULL) ? "NullCreatureAI" : ai_factory->key();
 
-        DEBUG_LOG("Creature %u used AI is %s.", creature->GetGUIDLow(), ainame.c_str() );
+        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Creature %u used AI is %s.", creature->GetGUIDLow(), ainame.c_str() );
         return ( ai_factory == NULL ? new NullCreatureAI(creature) : ai_factory->Create(creature) );
     }
 
@@ -90,7 +90,8 @@ namespace FactorySelector
     {
         MovementGeneratorRegistry &mv_registry(MovementGeneratorRepository::Instance());
         ASSERT( creature->GetCreatureInfo() != NULL );
-        const MovementGeneratorCreator *mv_factory = mv_registry.GetRegistryItem( creature->GetDefaultMovementType());
+        MovementGeneratorCreator const * mv_factory = mv_registry.GetRegistryItem(
+            IS_PLAYER_GUID(creature->GetOwnerGUID()) ? FOLLOW_MOTION_TYPE : creature->GetDefaultMovementType());
 
         /* if( mv_factory == NULL  )
         {

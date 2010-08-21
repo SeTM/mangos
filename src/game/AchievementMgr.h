@@ -23,6 +23,7 @@
 #include "Database/DatabaseEnv.h"
 #include "DBCEnums.h"
 #include "DBCStores.h"
+#include "SharedDefines.h"
 
 #include <map>
 #include <string>
@@ -203,6 +204,7 @@ typedef std::map<uint32,AchievementCriteriaRequirementSet> AchievementCriteriaRe
 
 struct AchievementReward
 {
+    Gender gender;
     uint32 titleId[2];
     uint32 itemId;
     uint32 sender;
@@ -210,15 +212,16 @@ struct AchievementReward
     std::string text;
 };
 
-typedef std::map<uint32,AchievementReward> AchievementRewards;
+typedef std::multimap<uint32,AchievementReward> AchievementRewards;
 
 struct AchievementRewardLocale
 {
+    Gender gender;
     std::vector<std::string> subject;
     std::vector<std::string> text;
 };
 
-typedef std::map<uint32,AchievementRewardLocale> AchievementRewardLocales;
+typedef std::multimap<uint32,AchievementRewardLocale> AchievementRewardLocales;
 
 
 struct CompletedAchievementData
@@ -245,20 +248,42 @@ class AchievementMgr
         void LoadFromDB(QueryResult *achievementResult, QueryResult *criteriaResult);
         void SaveToDB();
         void ResetAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1=0, uint32 miscvalue2=0);
+        void StartTimedAchievementCriteria(AchievementCriteriaTypes type, uint32 timedRequirementId, time_t startTime = 0);
         void UpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1=0, uint32 miscvalue2=0, Unit *unit=NULL, uint32 time=0);
         void CheckAllAchievementCriteria();
         void SendAllAchievementData();
         void SendRespondInspectAchievements(Player* player);
-        Player* GetPlayer() { return m_player;}
+
+        Player* GetPlayer() const { return m_player;}
+
+        CompletedAchievementData const* GetCompleteData(uint32 achievement_id) const
+        {
+            CompletedAchievementMap::const_iterator itr = m_completedAchievements.find(achievement_id);
+            return itr != m_completedAchievements.end() ? &itr->second : NULL;
+        }
+
+        bool HasAchievement(uint32 achievement_id) const { return GetCompleteData(achievement_id) != NULL; }
+        CompletedAchievementMap const& GetCompletedAchievements() const { return m_completedAchievements; }
+        bool IsCompletedCriteria(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement) const;
+
+        uint32 GetCriteriaProgressCounter(AchievementCriteriaEntry const* entry) const
+        {
+            CriteriaProgressMap::const_iterator iter = m_criteriaProgress.find(entry->ID);
+            return iter != m_criteriaProgress.end() ? iter->second.counter : 0;
+        }
+
+        static uint32 GetCriteriaProgressMaxCounter(AchievementCriteriaEntry const* entry);
+
+        // Use PROGRESS_SET only for reset/downgrade criteria progress
+        enum ProgressType { PROGRESS_SET, PROGRESS_ACCUMULATE, PROGRESS_HIGHEST };
+        void SetCriteriaProgress(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement, uint32 changeValue, ProgressType ptype);
 
     private:
-        enum ProgressType { PROGRESS_SET, PROGRESS_ACCUMULATE, PROGRESS_HIGHEST };
         void SendAchievementEarned(AchievementEntry const* achievement);
         void SendCriteriaUpdate(uint32 id, CriteriaProgress const* progress);
-        void SetCriteriaProgress(AchievementCriteriaEntry const* entry, uint32 changeValue, ProgressType ptype = PROGRESS_SET);
         void CompletedCriteriaFor(AchievementEntry const* achievement);
         void CompletedAchievement(AchievementEntry const* entry);
-        bool IsCompletedCriteria(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement);
+        void IncompletedAchievement(AchievementEntry const* entry);
         bool IsCompletedAchievement(AchievementEntry const* entry);
         void CompleteAchievementsWithRefs(AchievementEntry const* entry);
         void BuildAllDataPacket(WorldPacket *data);
@@ -284,16 +309,26 @@ class AchievementGlobalMgr
             return itr != m_AchievementListByReferencedId.end() ? &itr->second : NULL;
         }
 
-        AchievementReward const* GetAchievementReward(AchievementEntry const* achievement) const
+        AchievementReward const* GetAchievementReward(AchievementEntry const* achievement, uint8 gender) const
         {
-            AchievementRewards::const_iterator iter = m_achievementRewards.find(achievement->ID);
-            return iter!=m_achievementRewards.end() ? &iter->second : NULL;
+            AchievementRewards::const_iterator iter_low = m_achievementRewards.lower_bound(achievement->ID);
+            AchievementRewards::const_iterator iter_up  = m_achievementRewards.upper_bound(achievement->ID);
+            for (AchievementRewards::const_iterator iter = iter_low; iter != iter_up; ++iter)
+                if(iter->second.gender == GENDER_NONE || uint8(iter->second.gender) == gender)
+                    return &iter->second;
+
+            return NULL;
         }
 
-        AchievementRewardLocale const* GetAchievementRewardLocale(AchievementEntry const* achievement) const
+        AchievementRewardLocale const* GetAchievementRewardLocale(AchievementEntry const* achievement, uint8 gender) const
         {
-            AchievementRewardLocales::const_iterator iter = m_achievementRewardLocales.find(achievement->ID);
-            return iter!=m_achievementRewardLocales.end() ? &iter->second : NULL;
+            AchievementRewardLocales::const_iterator iter_low = m_achievementRewardLocales.lower_bound(achievement->ID);
+            AchievementRewardLocales::const_iterator iter_up  = m_achievementRewardLocales.upper_bound(achievement->ID);
+            for (AchievementRewardLocales::const_iterator iter = iter_low; iter != iter_up; ++iter)
+                if(iter->second.gender == GENDER_NONE || uint8(iter->second.gender) == gender)
+                    return &iter->second;
+
+            return NULL;
         }
 
         AchievementCriteriaRequirementSet const* GetCriteriaRequirementSet(AchievementCriteriaEntry const *achievementCriteria)

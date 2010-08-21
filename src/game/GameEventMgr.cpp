@@ -25,6 +25,7 @@
 #include "Language.h"
 #include "Log.h"
 #include "MapManager.h"
+#include "BattleGroundMgr.h"
 #include "Policies/SingletonImp.h"
 
 INSTANTIATE_SINGLETON_1(GameEventMgr);
@@ -143,7 +144,7 @@ void GameEventMgr::LoadFromDB()
             pGameEvent.end          = time_t(endtime);
             pGameEvent.occurence    = fields[3].GetUInt32();
             pGameEvent.length       = fields[4].GetUInt32();
-            pGameEvent.holiday_id   = fields[5].GetUInt32();
+            pGameEvent.holiday_id   = HolidayIds(fields[5].GetUInt32());
 
 
             if(pGameEvent.length==0)                            // length>0 is validity check
@@ -152,12 +153,12 @@ void GameEventMgr::LoadFromDB()
                 continue;
             }
 
-            if(pGameEvent.holiday_id)
+            if(pGameEvent.holiday_id != HOLIDAY_NONE)
             {
                 if(!sHolidaysStore.LookupEntry(pGameEvent.holiday_id))
                 {
-                    sLog.outErrorDb("`game_event` game event id (%i) have not existed holiday id %u.",event_id,pGameEvent.holiday_id);
-                    pGameEvent.holiday_id = 0;
+                    sLog.outErrorDb("`game_event` game event id (%i) have nonexistent holiday id %u.",event_id,pGameEvent.holiday_id);
+                    pGameEvent.holiday_id = HOLIDAY_NONE;
                 }
             }
 
@@ -169,6 +170,13 @@ void GameEventMgr::LoadFromDB()
         sLog.outString();
         sLog.outString( ">> Loaded %u game events", count );
     }
+
+    std::map<uint16,int16> pool2event;                      // for check unique spawn event associated with pool 
+    std::map<uint32,int16> creature2event;                  // for check unique spawn event associated with creature 
+    std::map<uint32,int16> go2event;                        // for check unique spawn event associated with gameobject
+
+    // list only positive event top pools, filled at creature/gameobject loading
+    mGameEventSpawnPoolIds.resize(mGameEvent.size());
 
     mGameEventCreatureGuids.resize(mGameEvent.size()*2-1);
     //                                   1              2
@@ -197,6 +205,12 @@ void GameEventMgr::LoadFromDB()
             uint32 guid    = fields[0].GetUInt32();
             int16 event_id = fields[1].GetInt16();
 
+            if (event_id == 0)
+            {
+                sLog.outErrorDb("`game_event_creature` game event id (%i) not allowed",event_id);
+                continue;
+            }
+
             int32 internal_event_id = mGameEvent.size() + event_id - 1;
 
             if(internal_event_id < 0 || (size_t)internal_event_id >= mGameEventCreatureGuids.size())
@@ -206,6 +220,32 @@ void GameEventMgr::LoadFromDB()
             }
 
             ++count;
+
+            // spawn objects at event can be grouped in pools and then affected pools have stricter requirements for this case
+            if (event_id > 0)                   
+            {
+                creature2event[guid] = event_id;
+
+                // not list explicitly creatures from pools in event creature list
+                if (uint16 topPoolId =  sPoolMgr.IsPartOfTopPool<Creature>(guid))
+                {
+                    int16& eventRef = pool2event[topPoolId];
+                    if (eventRef != 0)
+                    {
+                        if (eventRef != event_id)
+                            sLog.outErrorDb("`game_event_creature` have creature (GUID: %u) for event %i from pool or subpool of pool (ID: %u) but pool have already content from event %i. Pool don't must have content for different events!", guid, event_id, topPoolId, eventRef);
+                    }
+                    else
+                    {
+                        eventRef = event_id;
+                        mGameEventSpawnPoolIds[event_id].push_back(topPoolId);
+                        sPoolMgr.RemoveAutoSpawnForPool(topPoolId);
+                    }
+
+                    continue;
+                }
+            }
+
             GuidList& crelist = mGameEventCreatureGuids[internal_event_id];
             crelist.push_back(guid);
 
@@ -243,6 +283,12 @@ void GameEventMgr::LoadFromDB()
             uint32 guid    = fields[0].GetUInt32();
             int16 event_id = fields[1].GetInt16();
 
+            if (event_id == 0)
+            {
+                sLog.outErrorDb("`game_event_gameobject` game event id (%i) not allowed",event_id);
+                continue;
+            }
+
             int32 internal_event_id = mGameEvent.size() + event_id - 1;
 
             if(internal_event_id < 0 || (size_t)internal_event_id >= mGameEventGameobjectGuids.size())
@@ -252,6 +298,32 @@ void GameEventMgr::LoadFromDB()
             }
 
             ++count;
+
+            // spawn objects at event can be grouped in pools and then affected pools have stricter requirements for this case
+            if (event_id > 0)                   
+            {
+                go2event[guid] = event_id;
+
+                // not list explicitly gameobjects from pools in event gameobject list
+                if (uint16 topPoolId =  sPoolMgr.IsPartOfTopPool<GameObject>(guid))
+                {
+                    int16& eventRef = pool2event[topPoolId];
+                    if (eventRef != 0)
+                    {
+                        if (eventRef != event_id)
+                            sLog.outErrorDb("`game_event_gameobject` have gameobject (GUID: %u) for event %i from pool or subpool of pool (ID: %u) but pool have already content from event %i. Pool don't must have content for different events!", guid, event_id, topPoolId, eventRef);
+                    }
+                    else
+                    {
+                        eventRef = event_id;
+                        mGameEventSpawnPoolIds[event_id].push_back(topPoolId);
+                        sPoolMgr.RemoveAutoSpawnForPool(topPoolId);
+                    }
+
+                    continue;
+                }
+            }
+
             GuidList& golist = mGameEventGameobjectGuids[internal_event_id];
             golist.push_back(guid);
 
@@ -260,6 +332,15 @@ void GameEventMgr::LoadFromDB()
 
         sLog.outString();
         sLog.outString( ">> Loaded %u gameobjects in game events", count );
+    }
+
+    // now recheck that all eventPools linked with events after our skip pools with parents
+    for(std::map<uint16,int16>::const_iterator itr = pool2event.begin(); itr != pool2event.end();  ++itr)
+    {
+        uint16 pool_id = itr->first;
+        int16 event_id = itr->second;
+
+        sPoolMgr.CheckEventLinkAndReport(pool_id, event_id, creature2event, go2event);
     }
 
     mGameEventModelEquip.resize(mGameEvent.size());
@@ -364,64 +445,13 @@ void GameEventMgr::LoadFromDB()
         sLog.outString();
         sLog.outString( ">> Loaded %u quests additions in game events", count );
     }
-
-    mGameEventPoolIds.resize(mGameEvent.size()*2-1);
-    //                                   1                    2
-    result = WorldDatabase.Query("SELECT pool_template.entry, game_event_pool.event "
-        "FROM pool_template JOIN game_event_pool ON pool_template.entry = game_event_pool.pool_entry");
-
-    count = 0;
-    if( !result )
-    {
-        barGoLink bar2(1);
-        bar2.step();
-
-        sLog.outString();
-        sLog.outString(">> Loaded %u pools in game events", count );
-    }
-    else
-    {
-
-        barGoLink bar2( (int)result->GetRowCount() );
-        do
-        {
-            Field *fields = result->Fetch();
-
-            bar2.step();
-
-            uint32 entry   = fields[0].GetUInt16();
-            int16 event_id = fields[1].GetInt16();
-
-            int32 internal_event_id = mGameEvent.size() + event_id - 1;
-
-            if (internal_event_id < 0 || (size_t)internal_event_id >= mGameEventPoolIds.size())
-            {
-                sLog.outErrorDb("`game_event_pool` game event id (%i) is out of range compared to max event id in `game_event`",event_id);
-                continue;
-            }
-
-            if (!sPoolMgr.CheckPool(entry))
-            {
-                sLog.outErrorDb("Pool Id (%u) has all creatures or gameobjects with explicit chance sum <>100 and no equal chance defined. The pool system cannot pick one to spawn.", entry);
-                continue;
-            }
-
-            ++count;
-            IdList& poollist = mGameEventPoolIds[internal_event_id];
-            poollist.push_back(entry);
-
-        } while( result->NextRow() );
-        sLog.outString();
-        sLog.outString( ">> Loaded %u pools in game events", count );
-        delete result;
-    }
 }
 
 uint32 GameEventMgr::Initialize()                           // return the next event delay in ms
 {
     m_ActiveEvents.clear();
     uint32 delay = Update();
-    sLog.outBasic("Game Event system initialized." );
+    BASIC_LOG("Game Event system initialized." );
     m_IsGameEventsInit = true;
     return delay;
 }
@@ -435,13 +465,13 @@ uint32 GameEventMgr::Update()                               // return the next e
         //sLog.outErrorDb("Checking event %u",itr);
         if (CheckOneGameEvent(itr))
         {
-            //sLog.outDebug("GameEvent %u is active",itr->first);
+            //DEBUG_LOG("GameEvent %u is active",itr->first);
             if (!IsActiveEvent(itr))
                 StartEvent(itr);
         }
         else
         {
-            //sLog.outDebug("GameEvent %u is not active",itr->first);
+            //DEBUG_LOG("GameEvent %u is not active",itr->first);
             if (IsActiveEvent(itr))
                 StopEvent(itr);
             else
@@ -454,6 +484,7 @@ uint32 GameEventMgr::Update()                               // return the next e
 
                     // disable any event specific quest (for cases where creature is spawned, but event not active).
                     UpdateEventQuests(itr, false);
+                    UpdateWorldStates(itr, false);
                 }
             }
         }
@@ -461,7 +492,7 @@ uint32 GameEventMgr::Update()                               // return the next e
         if (calcDelay < nextEventDelay)
             nextEventDelay = calcDelay;
     }
-    sLog.outBasic("Next game event check in %u seconds.", nextEventDelay + 1);
+    BASIC_LOG("Next game event check in %u seconds.", nextEventDelay + 1);
     return (nextEventDelay + 1) * IN_MILLISECONDS;           // Add 1 second to be sure event has started/stopped at next call
 }
 
@@ -477,6 +508,7 @@ void GameEventMgr::UnApplyEvent(uint16 event_id)
     ChangeEquipOrModel(event_id, false);
     // Remove quests that are events only to non event npc
     UpdateEventQuests(event_id, false);
+    UpdateWorldStates(event_id, false);
 }
 
 void GameEventMgr::ApplyNewEvent(uint16 event_id)
@@ -494,6 +526,7 @@ void GameEventMgr::ApplyNewEvent(uint16 event_id)
     ChangeEquipOrModel(event_id, true);
     // Add quests that are events only to non event npc
     UpdateEventQuests(event_id, true);
+    UpdateWorldStates(event_id, true);
 }
 
 void GameEventMgr::GameEventSpawn(int16 event_id)
@@ -512,6 +545,18 @@ void GameEventMgr::GameEventSpawn(int16 event_id)
         CreatureData const* data = sObjectMgr.GetCreatureData(*itr);
         if (data)
         {
+            // negative event id for pool element meaning allow be used in next pool spawn 
+            if (event_id < 0)
+            {
+                if (uint16 pool_id = sPoolMgr.IsPartOfAPool<Creature>(*itr))
+                {
+                    // will have chance at next pool update
+                    sPoolMgr.SetExcludeObject<Creature>(pool_id, *itr, false);
+                    sPoolMgr.UpdatePool<Creature>(pool_id);
+                    continue;
+                }
+            }
+
             sObjectMgr.AddCreatureToGrid(*itr, data);
 
             // Spawn if necessary (loaded grids only)
@@ -520,7 +565,7 @@ void GameEventMgr::GameEventSpawn(int16 event_id)
             if(!map->Instanceable() && map->IsLoaded(data->posX,data->posY))
             {
                 Creature* pCreature = new Creature;
-                //sLog.outDebug("Spawning creature %u",*itr);
+                //DEBUG_LOG("Spawning creature %u",*itr);
                 if (!pCreature->LoadFromDB(*itr, map))
                 {
                     delete pCreature;
@@ -545,15 +590,28 @@ void GameEventMgr::GameEventSpawn(int16 event_id)
         GameObjectData const* data = sObjectMgr.GetGOData(*itr);
         if (data)
         {
+            // negative event id for pool element meaning allow be used in next pool spawn 
+            if (event_id < 0)
+            {
+                if (uint16 pool_id = sPoolMgr.IsPartOfAPool<GameObject>(*itr))
+                {
+                    // will have chance at next pool update
+                    sPoolMgr.SetExcludeObject<GameObject>(pool_id, *itr, false);
+                    sPoolMgr.UpdatePool<GameObject>(pool_id);
+                    continue;
+                }
+            }
+
             sObjectMgr.AddGameobjectToGrid(*itr, data);
+
             // Spawn if necessary (loaded grids only)
-            // this base map checked as non-instanced and then only existed
+            // this base map checked as non-instanced and then only existing
             Map* map = const_cast<Map*>(sMapMgr.CreateBaseMap(data->mapid));
             // We use current coords to unspawn, not spawn coords since creature can have changed grid
             if(!map->Instanceable() && map->IsLoaded(data->posX, data->posY))
             {
                 GameObject* pGameobject = new GameObject;
-                //sLog.outDebug("Spawning gameobject %u", *itr);
+                //DEBUG_LOG("Spawning gameobject %u", *itr);
                 if (!pGameobject->LoadFromDB(*itr, map))
                 {
                     delete pGameobject;
@@ -567,14 +625,17 @@ void GameEventMgr::GameEventSpawn(int16 event_id)
         }
     }
 
-    if (internal_event_id < 0 || (size_t)internal_event_id >= mGameEventPoolIds.size())
+    if (event_id > 0)
     {
-        sLog.outError("GameEventMgr::GameEventSpawn attempt access to out of range mGameEventPoolIds element %i (size: " SIZEFMTD ")",internal_event_id,mGameEventPoolIds.size());
-        return;
-    }
+        if((size_t)event_id >= mGameEventSpawnPoolIds.size())
+        {
+            sLog.outError("GameEventMgr::GameEventSpawn attempt access to out of range mGameEventSpawnPoolIds element %i (size: " SIZEFMTD ")", event_id, mGameEventSpawnPoolIds.size());
+            return;
+        }
 
-    for (IdList::iterator itr = mGameEventPoolIds[internal_event_id].begin();itr != mGameEventPoolIds[internal_event_id].end();++itr)
-        sPoolMgr.SpawnPool(*itr, true);
+        for (IdList::iterator itr = mGameEventSpawnPoolIds[event_id].begin();itr != mGameEventSpawnPoolIds[event_id].end();++itr)
+            sPoolMgr.SpawnPool(*itr, true);
+    }
 }
 
 void GameEventMgr::GameEventUnspawn(int16 event_id)
@@ -592,6 +653,17 @@ void GameEventMgr::GameEventUnspawn(int16 event_id)
         // Remove the creature from grid
         if( CreatureData const* data = sObjectMgr.GetCreatureData(*itr) )
         {
+            // negative event id for pool element meaning unspawn in pool and exclude for next spawns
+            if (event_id < 0)
+            {
+                if (uint16 poolid = sPoolMgr.IsPartOfAPool<Creature>(*itr))
+                {
+                    sPoolMgr.SetExcludeObject<Creature>(poolid, *itr, true);
+                    sPoolMgr.UpdatePool<Creature>(poolid, *itr);
+                    continue;
+                }
+            }
+
             sObjectMgr.RemoveCreatureFromGrid(*itr, data);
 
             if (Creature* pCreature = ObjectAccessor::GetCreatureInWorld(ObjectGuid(HIGHGUID_UNIT, data->id, *itr)))
@@ -610,21 +682,36 @@ void GameEventMgr::GameEventUnspawn(int16 event_id)
         // Remove the gameobject from grid
         if(GameObjectData const* data = sObjectMgr.GetGOData(*itr))
         {
+            // negative event id for pool element meaning unspawn in pool and exclude for next spawns
+            if (event_id < 0)
+            {
+                if (uint16 poolid = sPoolMgr.IsPartOfAPool<GameObject>(*itr))
+                {
+                    sPoolMgr.SetExcludeObject<GameObject>(poolid, *itr, true);
+                    sPoolMgr.UpdatePool<GameObject>(poolid, *itr);
+                    continue;
+                }
+            }
+
             sObjectMgr.RemoveGameobjectFromGrid(*itr, data);
 
             if( GameObject* pGameobject = ObjectAccessor::GetGameObjectInWorld(ObjectGuid(HIGHGUID_GAMEOBJECT, data->id, *itr)) )
                 pGameobject->AddObjectToRemoveList();
         }
     }
-    if (internal_event_id < 0 || (size_t)internal_event_id >= mGameEventPoolIds.size())
-    {
-        sLog.outError("GameEventMgr::GameEventUnspawn attempt access to out of range mGameEventPoolIds element %i (size: " SIZEFMTD ")",internal_event_id,mGameEventPoolIds.size());
-        return;
-    }
 
-    for (IdList::iterator itr = mGameEventPoolIds[internal_event_id].begin();itr != mGameEventPoolIds[internal_event_id].end();++itr)
+    if (event_id > 0)
     {
-        sPoolMgr.DespawnPool(*itr);
+        if ((size_t)event_id >= mGameEventSpawnPoolIds.size())
+        {
+            sLog.outError("GameEventMgr::GameEventUnspawn attempt access to out of range mGameEventSpawnPoolIds element %i (size: " SIZEFMTD ")", event_id, mGameEventSpawnPoolIds.size());
+            return;
+        }
+
+        for (IdList::iterator itr = mGameEventSpawnPoolIds[event_id].begin();itr != mGameEventSpawnPoolIds[event_id].end();++itr)
+        {
+            sPoolMgr.DespawnPool(*itr);
+        }
     }
 }
 
@@ -652,8 +739,6 @@ void GameEventMgr::ChangeEquipOrModel(int16 event_id, bool activate)
                     {
                         pCreature->SetDisplayId(itr->second.modelid);
                         pCreature->SetNativeDisplayId(itr->second.modelid);
-                        pCreature->SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS,minfo->bounding_radius);
-                        pCreature->SetFloatValue(UNIT_FIELD_COMBATREACH,minfo->combat_reach );
                     }
                 }
             }
@@ -667,8 +752,6 @@ void GameEventMgr::ChangeEquipOrModel(int16 event_id, bool activate)
                     {
                         pCreature->SetDisplayId(itr->second.modelid_prev);
                         pCreature->SetNativeDisplayId(itr->second.modelid_prev);
-                        pCreature->SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS,minfo->bounding_radius);
-                        pCreature->SetFloatValue(UNIT_FIELD_COMBATREACH,minfo->combat_reach );
                     }
                 }
             }
@@ -679,7 +762,7 @@ void GameEventMgr::ChangeEquipOrModel(int16 event_id, bool activate)
             if (data2 && activate)
             {
                 CreatureInfo const *cinfo = ObjectMgr::GetCreatureTemplate(data2->id);
-                uint32 display_id = sObjectMgr.ChooseDisplayId(0,cinfo,data2);
+                uint32 display_id = Creature::ChooseDisplayId(cinfo,data2);
                 CreatureModelInfo const *minfo = sObjectMgr.GetCreatureModelRandomGender(display_id);
                 if (minfo)
                     display_id = minfo->modelid;
@@ -696,12 +779,12 @@ void GameEventMgr::ChangeEquipOrModel(int16 event_id, bool activate)
         CreatureData& data2 = sObjectMgr.NewOrExistCreatureData(itr->first);
         if (activate)
         {
-            data2.displayid = itr->second.modelid;
+            data2.modelid_override = itr->second.modelid;
             data2.equipmentId = itr->second.equipment_id;
         }
         else
         {
-            data2.displayid = itr->second.modelid_prev;
+            data2.modelid_override = itr->second.modelid_prev;
             data2.equipmentId = itr->second.equipement_id_prev;
         }
     }
@@ -733,6 +816,58 @@ void GameEventMgr::UpdateEventQuests(uint16 event_id, bool Activate)
     }
 }
 
+void GameEventMgr::UpdateWorldStates(uint16 event_id, bool Activate)
+{
+    GameEventData const& event = mGameEvent[event_id];
+    if (event.holiday_id != HOLIDAY_NONE)
+    {
+        BattleGroundTypeId bgTypeId = BattleGroundMgr::WeekendHolidayIdToBGType(event.holiday_id);
+        if (bgTypeId != BATTLEGROUND_TYPE_NONE)
+        {
+            BattlemasterListEntry const * bl = sBattlemasterListStore.LookupEntry(bgTypeId);
+            if (bl && bl->HolidayWorldStateId)
+            {
+                WorldPacket data;
+                sBattleGroundMgr.BuildUpdateWorldStatePacket(&data, bl->HolidayWorldStateId, Activate ? 1 : 0);
+                sWorld.SendGlobalMessage(&data);
+            }
+        }
+    }
+}
+
+// Get the Game Event ID for Creature by guid
+template <>
+int16 GameEventMgr::GetGameEventId<Creature>(uint32 guid_or_poolid)
+{
+    for (uint16 i = 0; i < mGameEventCreatureGuids.size(); i++) // 0 <= i <= 2*(S := mGameEvent.size()) - 2
+        for (GuidList::const_iterator itr = mGameEventCreatureGuids[i].begin(); itr != mGameEventCreatureGuids[i].end(); itr++)
+            if (*itr == guid_or_poolid)
+                    return i + 1 - mGameEvent.size();       // -S *1 + 1 <= . <= 1*S - 1
+    return 0;
+}
+
+// Get the Game Event ID for GameObject by guid
+template <>
+int16 GameEventMgr::GetGameEventId<GameObject>(uint32 guid_or_poolid)
+{
+    for (uint16 i = 0; i < mGameEventGameobjectGuids.size(); i++)
+        for (GuidList::const_iterator itr = mGameEventGameobjectGuids[i].begin(); itr != mGameEventGameobjectGuids[i].end(); itr++)
+            if (*itr == guid_or_poolid)
+                return i + 1 - mGameEvent.size();       // -S *1 + 1 <= . <= 1*S - 1
+    return 0;
+}
+
+// Get the Game Event ID for Pool by pool ID
+template <>
+int16 GameEventMgr::GetGameEventId<Pool>(uint32 guid_or_poolid)
+{
+    for (uint16 i = 0; i < mGameEventSpawnPoolIds.size(); i++)
+        for (IdList::const_iterator itr = mGameEventSpawnPoolIds[i].begin(); itr != mGameEventSpawnPoolIds[i].end(); itr++)
+            if (*itr == guid_or_poolid)
+                return i;
+    return 0;
+}
+
 GameEventMgr::GameEventMgr()
 {
     m_IsGameEventsInit = false;
@@ -740,6 +875,9 @@ GameEventMgr::GameEventMgr()
 
 MANGOS_DLL_SPEC bool IsHolidayActive( HolidayIds id )
 {
+    if (id == HOLIDAY_NONE)
+        return false;
+
     GameEventMgr::GameEventDataMap const& events = sGameEventMgr.GetEventMap();
     GameEventMgr::ActiveEvents const& ae = sGameEventMgr.GetActiveEventList();
 

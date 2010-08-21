@@ -37,16 +37,16 @@
 #include <set>
 
 #define FLIGHT_TRAVEL_UPDATE  100
-#define STOP_TIME_FOR_PLAYER  3 * 60 * 1000                         // 3 Minutes
+#define STOP_TIME_FOR_PLAYER  3 * MINUTE * IN_MILLISECONDS  // 3 Minutes
 
-template<class T, class P = Path>
+template<class T, class P>
 class MANGOS_DLL_SPEC PathMovementBase
 {
     public:
         PathMovementBase() : i_currentNode(0) {}
         virtual ~PathMovementBase() {};
 
-        bool MovementInProgress(void) const { return i_currentNode < i_path.Size(); }
+        bool MovementInProgress(void) const { return i_currentNode < i_path->size(); }
 
         // template pattern, not defined .. override required
         void LoadPath(T &);
@@ -74,7 +74,7 @@ class MANGOS_DLL_SPEC WaypointMovementGenerator<Creature>
 public PathMovementBase<Creature, WaypointPath const*>
 {
     public:
-        WaypointMovementGenerator(Creature &) : i_nextMoveTime(0), b_StoppedByPlayer(false) {}
+        WaypointMovementGenerator(Creature &) : i_nextMoveTime(0), m_isArrivalDone(false), m_isStoppedByPlayer(false) {}
         ~WaypointMovementGenerator() { i_path = NULL; }
         void Initialize(Creature &u);
         void Interrupt(Creature &);
@@ -90,8 +90,8 @@ public PathMovementBase<Creature, WaypointPath const*>
         void LoadPath(Creature &c);
 
         // Player stoping creature
-        bool IsStoppedByPlayer() { return b_StoppedByPlayer; }
-        void SetStoppedByPlayer(bool val) { b_StoppedByPlayer = val; }
+        bool IsStoppedByPlayer() { return m_isStoppedByPlayer; }
+        void SetStoppedByPlayer(bool val) { m_isStoppedByPlayer = val; }
 
         // allow use for overwrite empty implementation
         bool GetDestination(float& x, float& y, float& z) const { return PathMovementBase<Creature, WaypointPath const*>::GetDestination(x,y,z); }
@@ -99,10 +99,9 @@ public PathMovementBase<Creature, WaypointPath const*>
         bool GetResetPosition(Creature&, float& x, float& y, float& z);
 
     private:
-
         TimeTrackerSmall i_nextMoveTime;
-        std::vector<bool> i_hasDone;
-        bool b_StoppedByPlayer;
+        bool m_isArrivalDone;
+        bool m_isStoppedByPlayer;
 };
 
 /** FlightPathMovementGenerator generates movement of the player for the paths
@@ -110,12 +109,14 @@ public PathMovementBase<Creature, WaypointPath const*>
  */
 class MANGOS_DLL_SPEC FlightPathMovementGenerator
 : public MovementGeneratorMedium< Player, FlightPathMovementGenerator >,
-public PathMovementBase<Player>
+public PathMovementBase<Player,TaxiPathNodeList const*>
 {
-    uint32 i_pathId;
-    std::vector<uint32> i_mapIds;
     public:
-        explicit FlightPathMovementGenerator(uint32 id, uint32 startNode = 0) : i_pathId(id) { i_currentNode = startNode; }
+        explicit FlightPathMovementGenerator(TaxiPathNodeList const& pathnodes, uint32 startNode = 0)
+        {
+            i_path = &pathnodes;
+            i_currentNode = startNode;
+        }
         void Initialize(Player &);
         void Finalize(Player &);
         void Interrupt(Player &);
@@ -123,15 +124,14 @@ public PathMovementBase<Player>
         bool Update(Player &, const uint32 &);
         MovementGeneratorType GetMovementGeneratorType() const { return FLIGHT_MOTION_TYPE; }
 
-        void LoadPath(Player &);
-
-        Path& GetPath() { return i_path; }
+        TaxiPathNodeList const& GetPath() { return *i_path; }
         uint32 GetPathAtMapEnd() const;
-        bool HasArrived() const { return (i_currentNode >= i_path.Size()); }
+        bool HasArrived() const { return (i_currentNode >= i_path->size()); }
         void SetCurrentNodeAfterTeleport();
         void SkipCurrentNode() { ++i_currentNode; }
+        void DoEventIfAny(Player& player, TaxiPathNodeEntry const& node, bool departure);
 
         // allow use for overwrite empty implementation
-        bool GetDestination(float& x, float& y, float& z) const { return PathMovementBase<Player>::GetDestination(x,y,z); }
+        bool GetDestination(float& x, float& y, float& z) const { return PathMovementBase<Player,TaxiPathNodeList const*>::GetDestination(x,y,z); }
 };
 #endif

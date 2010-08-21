@@ -176,6 +176,11 @@ inline bool isEastAsianCharacter(wchar_t wchar)
     return false;
 }
 
+inline bool isWhiteSpace(char c)
+{
+    return ::isspace(int(c)) != 0;
+}
+
 inline bool isNumeric(wchar_t wchar)
 {
     return (wchar >= L'0' && wchar <=L'9');
@@ -189,6 +194,33 @@ inline bool isNumeric(char c)
 inline bool isNumericOrSpace(wchar_t wchar)
 {
     return isNumeric(wchar) || wchar == L' ';
+}
+
+inline bool isNumeric(char const* str)
+{
+    for(char const* c = str; *c; ++c)
+        if (!isNumeric(*c))
+            return false;
+
+    return true;
+}
+
+inline bool isNumeric(std::string const& str)
+{
+    for(std::string::const_iterator itr = str.begin(); itr != str.end(); ++itr)
+        if (!isNumeric(*itr))
+            return false;
+
+    return true;
+}
+
+inline bool isNumeric(std::wstring const& str)
+{
+    for(std::wstring::const_iterator itr = str.begin(); itr != str.end(); ++itr)
+        if (!isNumeric(*itr))
+            return false;
+
+    return true;
 }
 
 inline bool isBasicLatinString(std::wstring wstr, bool numericOrSpace)

@@ -153,7 +153,7 @@ void LootStore::LoadLootTable()
                 }
             }
             // else is empty - template Id and iter are the same
-            // finally iter refers to already existed or just created <entry, LootTemplate>
+            // finally iter refers to already existing or just created <entry, LootTemplate>
 
             // Adds current row to the template
             tab->second->AddEntry(storeitem);
@@ -337,7 +337,18 @@ LootItem::LootItem(LootStoreItem const& li)
 bool LootItem::AllowedForPlayer(Player const * player) const
 {
     // DB conditions check
-    if ( !sObjectMgr.IsPlayerMeetToCondition(player,conditionId) )
+    if (!sObjectMgr.IsPlayerMeetToCondition(player,conditionId))
+        return false;
+
+    ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
+    if (!pProto)
+        return false;
+
+    // not show loot for not own team
+    if ((pProto->Flags2 & ITEM_FLAGS2_HORDE_ONLY) && player->GetTeam() != HORDE)
+        return false;
+
+    if ((pProto->Flags2 & ITEM_FLAGS2_ALLIANCE_ONLY) && player->GetTeam() != ALLIANCE)
         return false;
 
     if ( needs_quest )
@@ -349,8 +360,7 @@ bool LootItem::AllowedForPlayer(Player const * player) const
     else
     {
         // Not quest only drop (check quest starting items for already accepted non-repeatable quests)
-        ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
-        if (pProto && pProto->StartQuest && player->GetQuestStatus(pProto->StartQuest) != QUEST_STATUS_NONE && !player->HasQuestForItem(itemid))
+        if (pProto->StartQuest && player->GetQuestStatus(pProto->StartQuest) != QUEST_STATUS_NONE && !player->HasQuestForItem(itemid))
             return false;
     }
 
@@ -724,11 +734,11 @@ ByteBuffer& operator<<(ByteBuffer& b, LootView const& lv)
         case ALL_PERMISSION:
         case MASTER_PERMISSION:
         {
-            uint8 slot_type = (lv.permission==MASTER_PERMISSION) ? 2 : 0;
             for (uint8 i = 0; i < l.items.size(); ++i)
             {
                 if (!l.items[i].is_looted && !l.items[i].freeforall && !l.items[i].conditionId && l.items[i].AllowedForPlayer(lv.viewer))
                 {
+                    uint8 slot_type = (lv.permission==MASTER_PERMISSION && !l.items[i].is_underthreshold) ? 2 : 0;
                     b << uint8(i) << l.items[i];            //only send one-player loot items now, free for all will be sent later
                     b << uint8(slot_type);                  // 0 - get 2 - master selection
                     ++itemsShown;

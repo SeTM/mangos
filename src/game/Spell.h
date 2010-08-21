@@ -23,39 +23,17 @@
 #include "SharedDefines.h"
 #include "DBCEnums.h"
 #include "ObjectGuid.h"
+#include "LootMgr.h"
+#include "Unit.h"
+#include "Player.h"
 
 class WorldSession;
-class Unit;
+class WorldPacket;
 class DynamicObj;
-class Player;
+class Item;
 class GameObject;
 class Group;
 class Aura;
-
-enum SpellCastTargetFlags
-{
-    TARGET_FLAG_SELF            = 0x00000000,
-    TARGET_FLAG_UNUSED1         = 0x00000001,               // not used in any spells as of 3.0.3 (can be set dynamically)
-    TARGET_FLAG_UNIT            = 0x00000002,               // pguid
-    TARGET_FLAG_UNUSED2         = 0x00000004,               // not used in any spells as of 3.0.3 (can be set dynamically)
-    TARGET_FLAG_UNUSED3         = 0x00000008,               // not used in any spells as of 3.0.3 (can be set dynamically)
-    TARGET_FLAG_ITEM            = 0x00000010,               // pguid
-    TARGET_FLAG_SOURCE_LOCATION = 0x00000020,               // 3 float
-    TARGET_FLAG_DEST_LOCATION   = 0x00000040,               // 3 float
-    TARGET_FLAG_OBJECT_UNK      = 0x00000080,               // used in 7 spells only
-    TARGET_FLAG_UNIT_UNK        = 0x00000100,               // looks like self target (480 spells)
-    TARGET_FLAG_PVP_CORPSE      = 0x00000200,               // pguid
-    TARGET_FLAG_UNIT_CORPSE     = 0x00000400,               // 10 spells (gathering professions)
-    TARGET_FLAG_OBJECT          = 0x00000800,               // pguid, 2 spells
-    TARGET_FLAG_TRADE_ITEM      = 0x00001000,               // pguid, 0 spells
-    TARGET_FLAG_STRING          = 0x00002000,               // string, 0 spells
-    TARGET_FLAG_UNK1            = 0x00004000,               // 199 spells, opening object/lock
-    TARGET_FLAG_CORPSE          = 0x00008000,               // pguid, resurrection spells
-    TARGET_FLAG_UNK2            = 0x00010000,               // pguid, not used in any spells as of 3.0.3 (can be set dynamically)
-    TARGET_FLAG_GLYPH           = 0x00020000,               // used in glyph spells
-    TARGET_FLAG_UNK3            = 0x00040000,               // 
-    TARGET_FLAG_UNK4            = 0x00080000                // uint32, loop { vec3, guid -> if guid == 0 break }
-};
 
 enum SpellCastFlags
 {
@@ -170,6 +148,7 @@ class SpellCastTargets
         Item* getItemTarget() const { return m_itemTarget; }
         uint32 getItemTargetEntry() const { return m_itemTargetEntry; }
         void setItemTarget(Item* item);
+        void setTradeItemTarget(Player* caster);
         void updateTradeSlotItem()
         {
             if(m_itemTarget && (m_targetMask & TARGET_FLAG_TRADE_ITEM))
@@ -230,7 +209,8 @@ enum SpellTargets
     SPELL_TARGETS_NOT_FRIENDLY,
     SPELL_TARGETS_NOT_HOSTILE,
     SPELL_TARGETS_FRIENDLY,
-    SPELL_TARGETS_AOE_DAMAGE
+    SPELL_TARGETS_AOE_DAMAGE,
+    SPELL_TARGETS_ALL
 };
 
 #define SPELL_SPELL_CHANNEL_UPDATE_INTERVAL (1*IN_MILLISECONDS)
@@ -331,6 +311,7 @@ class Spell
         void EffectDispelMechanic(SpellEffectIndex eff_idx);
         void EffectSummonDeadPet(SpellEffectIndex eff_idx);
         void EffectSummonAllTotems(SpellEffectIndex eff_idx);
+        void EffectBreakPlayerTargeting (SpellEffectIndex eff_idx);
         void EffectDestroyAllTotems(SpellEffectIndex eff_idx);
         void EffectDurabilityDamage(SpellEffectIndex eff_idx);
         void EffectSkill(SpellEffectIndex eff_idx);
@@ -358,7 +339,7 @@ class Spell
         void EffectSpecCount(SpellEffectIndex eff_idx);
         void EffectActivateSpec(SpellEffectIndex eff_idx);
 
-        Spell( Unit* Caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );
+        Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );
         ~Spell();
 
         void prepare(SpellCastTargets const* targets, Aura* triggeredByAura = NULL);
@@ -386,7 +367,7 @@ class Spell
         SpellCastResult CheckOrTakeRunePower(bool take);
         SpellCastResult CheckCasterAuras() const;
 
-        int32 CalculateDamage(SpellEffectIndex i, Unit* target) { return m_caster->CalculateSpellDamage(m_spellInfo,i,m_currentBasePoints[i],target); }
+        int32 CalculateDamage(SpellEffectIndex i, Unit* target) { return m_caster->CalculateSpellDamage(target, m_spellInfo, i, &m_currentBasePoints[i]); }
         int32 CalculatePowerCost();
 
         bool HaveTargetsForEffect(SpellEffectIndex effect) const;
@@ -409,7 +390,7 @@ class Spell
         void FillTargetMap();
         void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList &targetUnitMap);
 
-        void FillAreaTargets(UnitList &targetUnitMap, float x, float y, float radius, SpellNotifyPushType pushType, SpellTargets spellTargets);
+        void FillAreaTargets(UnitList &targetUnitMap, float x, float y, float radius, SpellNotifyPushType pushType, SpellTargets spellTargets, WorldObject* originalCaster = NULL);
         void FillRaidOrPartyTargets(UnitList &targetUnitMap, Unit* member, Unit* center, float radius, bool raid, bool withPets, bool withcaster);
         void FillRaidOrPartyManaPriorityTargets(UnitList &targetUnitMap, Unit* member, Unit* center, float radius, uint32 count, bool raid, bool withPets, bool withcaster);
         void FillRaidOrPartyHealthPriorityTargets(UnitList &targetUnitMap, Unit* member, Unit* center, float radius, uint32 count, bool raid, bool withPets, bool withcaster);
@@ -436,7 +417,7 @@ class Spell
         //void HandleAddAura(Unit* Target);
 
         SpellEntry const* m_spellInfo;
-        int32 m_currentBasePoints[3];                       // cache SpellEntry::EffectBasePoints and use for set custom base points
+        int32 m_currentBasePoints[MAX_EFFECT_INDEX];        // cache SpellEntry::CalculateSimpleValue and use for set custom base points
         Item* m_CastItem;
         uint8 m_cast_count;
         uint32 m_glyphIndex;
@@ -474,7 +455,9 @@ class Spell
         // caster types:
         // formal spell caster, in game source of spell affects cast
         Unit* GetCaster() const { return m_caster; }
-        // real source of cast affects, explcit caster, or DoT/HoT applier, or GO owner, etc. Can be NULL
+        // real source of cast affects, explcit caster, or DoT/HoT applier, or GO owner, or wild GO itself. Can be NULL
+        WorldObject* GetAffectiveCasterObject() const;
+        // limited version returning NULL in cases not Unit* caster object, need for Aura (auras currently not support non-Unit caster)
         Unit* GetAffectiveCaster() const { return !m_originalCasterGUID.IsEmpty() ? m_originalCaster : m_caster; }
         // m_originalCasterGUID can store GO guid, and in this case this is visual caster
         WorldObject* GetCastingObject() const;
@@ -493,6 +476,9 @@ class Spell
         void CastTriggerSpells();
 
         void CleanupTargetList();
+        void ClearCastItem();
+
+        static void SelectMountByAreaAndSkill(Unit* target, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
     protected:
 
         void SendLoot(uint64 guid, LootType loottype);
@@ -543,6 +529,7 @@ class Spell
         Unit* unitTarget;
         Item* itemTarget;
         GameObject* gameObjTarget;
+        SpellAuraHolder* spellAuraHolder;                   // spell aura holder for current target, created only if spell has aura applying effect
         int32 damage;
 
         // this is set in Spell Hit, but used in Apply Aura handler
@@ -553,16 +540,17 @@ class Spell
         GameObject* focusObject;
 
         // Damage and healing in effects need just calculate
-        int32 m_damage;           // Damge   in effects count here
-        int32 m_healing;          // Healing in effects count here
-        int32 m_healthLeech;      // Health leech in effects for all targets count here
+        int32 m_damage;                                     // Damage   in effects count here
+        int32 m_healing;                                    // Healing in effects count here
+        int32 m_healthLeech;                                // Health leech in effects for all targets count here
 
         //******************************************
         // Spell trigger system
         //******************************************
-        bool   m_canTrigger;                  // Can start trigger (m_IsTriggeredSpell can`t use for this)
-        uint32 m_procAttacker;                // Attacker trigger flags
-        uint32 m_procVictim;                  // Victim   trigger flags
+        bool   m_canTrigger;                                // Can start trigger (m_IsTriggeredSpell can`t use for this)
+        uint8  m_negativeEffectMask;                        // Use for avoid sent negative spell procs for additional positive effects only targets
+        uint32 m_procAttacker;                              // Attacker trigger flags
+        uint32 m_procVictim;                                // Victim   trigger flags
         void   prepareDataForTriggerSystem();
 
         //*****************************************
@@ -573,6 +561,8 @@ class Spell
         {
             ObjectGuid targetGUID;
             uint64 timeDelay;
+            uint32 HitInfo;
+            uint32 damage;
             SpellMissInfo missCondition:8;
             SpellMissInfo reflectResult:8;
             uint8  effectMask:8;
@@ -603,6 +593,9 @@ class Spell
         void AddGOTarget(uint64 goGUID, SpellEffectIndex effIndex);
         void AddItemTarget(Item* target, SpellEffectIndex effIndex);
         void DoAllEffectOnTarget(TargetInfo *target);
+        void HandleDelayedSpellLaunch(TargetInfo *target);
+        void InitializeDamageMultipliers();
+        void ResetEffectDamageAndHeal();
         void DoSpellHitOnUnit(Unit *unit, uint32 effectMask);
         void DoAllEffectOnTarget(GOTargetInfo *target);
         void DoAllEffectOnTarget(ItemTargetInfo *target);
@@ -651,7 +644,7 @@ namespace MaNGOS
         SpellNotifierPlayer(Spell &spell, std::list<Unit*> &data, const uint32 &i, float radius)
             : i_data(data), i_spell(spell), i_index(i), i_radius(radius)
         {
-            i_originalCaster = i_spell.GetCastingObject();
+            i_originalCaster = i_spell.GetAffectiveCasterObject();
         }
 
         void Visit(PlayerMapType &m)
@@ -662,7 +655,7 @@ namespace MaNGOS
             for(PlayerMapType::iterator itr=m.begin(); itr != m.end(); ++itr)
             {
                 Player * pPlayer = itr->getSource();
-                if( !pPlayer->isAlive() || pPlayer->isInFlight())
+                if( !pPlayer->isAlive() || pPlayer->IsTaxiFlying())
                     continue;
 
                 if( i_originalCaster->IsFriendlyTo(pPlayer) )
@@ -686,10 +679,12 @@ namespace MaNGOS
         bool i_playerControled;
 
         SpellNotifierCreatureAndPlayer(Spell &spell, std::list<Unit*> &data, float radius, SpellNotifyPushType type,
-            SpellTargets TargetType = SPELL_TARGETS_NOT_FRIENDLY)
-            : i_data(&data), i_spell(spell), i_push_type(type), i_radius(radius), i_TargetType(TargetType)
+            SpellTargets TargetType = SPELL_TARGETS_NOT_FRIENDLY, WorldObject* originalCaster = NULL)
+            : i_data(&data), i_spell(spell), i_push_type(type), i_radius(radius), i_TargetType(TargetType),
+            i_originalCaster(originalCaster)
         {
-            i_originalCaster = spell.GetCastingObject();
+            if (!i_originalCaster)
+                i_originalCaster = i_spell.GetAffectiveCasterObject();
             i_playerControled = i_originalCaster  ? i_originalCaster->IsControlledByPlayer() : false;
         }
 
@@ -704,7 +699,7 @@ namespace MaNGOS
             {
                 // there are still more spells which can be casted on dead, but
                 // they are no AOE and don't have such a nice SPELL_ATTR flag
-                if ( !itr->getSource()->isTargetableForAttack(i_spell.m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_CAST_ON_DEAD)
+                if ( (i_TargetType != SPELL_TARGETS_ALL && !itr->getSource()->isTargetableForAttack(i_spell.m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_CAST_ON_DEAD))
                     // mostly phase check
                     || !itr->getSource()->IsInMap(i_originalCaster))
                     continue;
@@ -744,6 +739,8 @@ namespace MaNGOS
                         }
                     }
                     break;
+                    case SPELL_TARGETS_ALL:
+                        break;
                     default: continue;
                 }
 
@@ -790,6 +787,7 @@ namespace MaNGOS
         template<> inline void Visit(CorpseMapType & ) {}
         template<> inline void Visit(GameObjectMapType & ) {}
         template<> inline void Visit(DynamicObjectMapType & ) {}
+        template<> inline void Visit(CameraMapType & ) {}
         #endif
     };
 
@@ -797,6 +795,7 @@ namespace MaNGOS
     template<> inline void SpellNotifierCreatureAndPlayer::Visit(CorpseMapType& ) {}
     template<> inline void SpellNotifierCreatureAndPlayer::Visit(GameObjectMapType& ) {}
     template<> inline void SpellNotifierCreatureAndPlayer::Visit(DynamicObjectMapType& ) {}
+    template<> inline void SpellNotifierCreatureAndPlayer::Visit(CameraMapType& ) {}
     #endif
 }
 
