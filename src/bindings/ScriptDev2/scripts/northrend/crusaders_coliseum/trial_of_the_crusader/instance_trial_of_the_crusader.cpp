@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
@@ -53,6 +53,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
     uint64 m_uiRinnGUID;
     uint64 m_uiLich0GUID;
     uint64 m_uiLich1GUID;
+    uint64 m_uiTwinvalkyrias;
 
     uint64 m_uiGormokGUID;
     uint64 m_uiAcidmawGUID;
@@ -138,6 +139,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         m_uiDataDamageEydis = 0;
         m_uiLich0GUID = 0;
         m_uiLich1GUID = 0;
+        m_uiTwinvalkyrias = 0;
 
         m_auiNorthrendBeasts = NOT_STARTED;
 
@@ -208,6 +210,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
          case NPC_RINN:        m_uiRinnGUID = pCreature->GetGUID(); break;
          case NPC_LICH_KING_0: m_uiLich0GUID = pCreature->GetGUID(); break;
          case NPC_LICH_KING_1: m_uiLich1GUID = pCreature->GetGUID(); break;
+         case NPC_TWINVALKYRIAS: m_uiTwinvalkyrias = pCreature->GetGUID(); break;
 
          case NPC_GORMOK: m_uiGormokGUID = pCreature->GetGUID(); break;
          case NPC_ACIDMAW: m_uiAcidmawGUID = pCreature->GetGUID(); break;

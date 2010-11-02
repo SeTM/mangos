@@ -69,9 +69,235 @@ enum BossSpells
     SPELL_UNLEASHED_LIGHT  = 65795,
 };
 
-struct MANGOS_DLL_DECL boss_fjolaAI : public BSWScriptedAI
+#define ERROR_INST_DATA           "SD ERROR: Instance Data for IC not set properly; Twin Valkyrias event will not function properly."
+
+struct MANGOS_DLL_DECL mob_twin_valkyrAI : public BSWScriptedAI
 {
-    boss_fjolaAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    mob_twin_valkyrAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+
+        for(uint8 i = 0; i < 2; ++i)
+            Valkyrias[i] = 0;
+
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+
+    uint64 Valkyrias[2];
+
+    uint32 CheckTimer;
+    uint32 EndEventTimer;
+
+    uint8 DeathCount;
+
+    bool EventBegun;
+
+    void Reset()
+    {
+        CheckTimer    = 2000;
+        EndEventTimer = 0;
+
+        DeathCount = 0;
+
+        for(uint8 i = 0; i < 2; ++i)
+        {
+            if (Creature* pMember = m_creature->GetMap()->GetCreature(Valkyrias[i]))
+                pMember->AI()->EnterEvadeMode();
+        }
+
+        EventBegun = false;
+
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->SetDisplayId(11686);
+
+        if (m_pInstance)
+        {
+            //if already done, not do anything
+            if (m_pInstance->GetData(TYPE_VALKIRIES) == DONE)
+                return;
+
+            m_pInstance->SetData(TYPE_VALKIRIES, NOT_STARTED);
+        }
+    }
+
+    void AttackStart(Unit* who) {}
+    void MoveInLineOfSight(Unit* who) {}
+
+    void StartEvent(Unit *target)
+    {
+        if (!m_pInstance)
+            return;
+
+        if (target && target->isAlive() && !EventBegun)
+        {
+            Valkyrias[0] = m_pInstance->GetData64(NPC_LIGHTBANE);
+            Valkyrias[1] = m_pInstance->GetData64(NPC_DARKBANE);
+            
+            for(uint8 i = 0; i < 2; ++i)
+            {
+                if (Valkyrias[i])
+                {
+                    Creature* pMember = m_creature->GetMap()->GetCreature(Valkyrias[i]);
+                    if (pMember && pMember->isAlive())
+                        pMember->AI()->AttackStart(target);
+                }
+            }
+
+            m_pInstance->SetData(TYPE_VALKIRIES, IN_PROGRESS);
+
+            EventBegun = true;
+        }
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!EventBegun)
+            return;
+
+        if (EndEventTimer)
+        {
+            if (EndEventTimer <= diff)
+            {
+                if (DeathCount > 1)
+                {
+                    if (m_pInstance)
+                        m_pInstance->SetData(TYPE_VALKIRIES, DONE);
+
+                    m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    return;
+                }
+
+                Creature* pMember = m_creature->GetMap()->GetCreature(Valkyrias[DeathCount]);
+                if (pMember && pMember->isAlive())
+                    pMember->DealDamage(pMember, pMember->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+
+                ++DeathCount;
+                EndEventTimer = 1500;
+            }else EndEventTimer -= diff;
+        }
+
+        if (CheckTimer)
+        {
+            if (CheckTimer <= diff)
+            {
+                uint8 EvadeCheck = 0;
+                for(uint8 i = 0; i < 2; ++i)
+                {
+                    if (Valkyrias[i])
+                    {
+                        if (Creature* Member = m_creature->GetMap()->GetCreature(Valkyrias[i]))
+                        {
+                            // This is the evade/death check.
+                            if (Member->isAlive() && !Member->SelectHostileTarget())
+                                ++EvadeCheck;               //If all members evade, we reset so that players can properly reset the event
+                            else if (!Member->isAlive())    //If even one member dies, kill the rest, set instance data, and kill self.
+                            {
+                                EndEventTimer = 1000;
+                                CheckTimer = 0;
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                if (EvadeCheck > 1)
+                    Reset();
+
+                CheckTimer = 2000;
+            }else CheckTimer -= diff;
+        }
+    }
+};
+
+struct MANGOS_DLL_DECL boss_twin_valkyrAI : public BSWScriptedAI
+{
+    boss_twin_valkyrAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+
+        for(uint8 i = 0; i < 2; ++i)
+            Valkyrias[i] = 0;
+
+        LoadedGUIDs = false;
+    }
+
+    ScriptedInstance* m_pInstance;
+
+    uint64 Valkyrias[2];
+
+    bool LoadedGUIDs;
+
+    void Aggro(Unit* pWho)
+    {
+        if (m_pInstance)
+        {
+            if (Creature* pController = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TWINVALKYRIAS)))
+            {
+                if (mob_twin_valkyrAI* pControlAI = dynamic_cast<mob_twin_valkyrAI*>(pController->AI()))
+                    pControlAI->StartEvent(pWho);
+            }
+        }
+        else
+        {
+            error_log(ERROR_INST_DATA);
+            EnterEvadeMode();
+        }
+
+        m_creature->SetInCombatWithZone();
+
+        // Load GUIDs on first aggro because the creature guids are only set as the creatures are created in world-
+        // this means that for each creature, it will attempt to LoadGUIDs even though some of the other creatures are
+        // not in world, and thus have no GUID set in the instance data system. Putting it in aggro ensures that all the creatures
+        // have been loaded and have their GUIDs set in the instance data system.
+        if (!LoadedGUIDs)
+            LoadGUIDs();
+    }
+
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        if(pDoneBy->GetGUID() == m_creature->GetGUID()) 
+            return;
+
+        if(pDoneBy->GetTypeId() == TYPEID_PLAYER)
+        {
+            if(pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
+                m_creature->GetGUID() == Valkyrias[0] ? uiDamage /= 2 : uiDamage += uiDamage/2; // if Light target deal 0.5 damage
+            else if(pDoneBy->HasAura(SPELL_DARK_ESSENCE))
+                m_creature->GetGUID() == Valkyrias[1] ? uiDamage /= 2 : uiDamage += uiDamage/2;
+        }
+
+        uiDamage /= 2;
+        for(uint8 i = 0; i < 2; ++i)
+        {
+            if (Creature* pValkyria = m_creature->GetMap()->GetCreature(Valkyrias[i]))
+            {
+                if (pValkyria != m_creature && uiDamage < pValkyria->GetHealth())
+                    pValkyria->SetHealth(pValkyria->GetHealth() - uiDamage);
+            }
+        }
+    }
+
+    void LoadGUIDs()
+    {
+        if (!m_pInstance)
+        {
+            error_log(ERROR_INST_DATA);
+            return;
+        }
+
+        Valkyrias[0] = m_pInstance->GetData64(NPC_LIGHTBANE);
+        Valkyrias[1] = m_pInstance->GetData64(NPC_DARKBANE);
+
+        LoadedGUIDs = true;
+    }
+};
+
+struct MANGOS_DLL_DECL boss_fjolaAI : public boss_twin_valkyrAI
+{
+    boss_fjolaAI(Creature* pCreature) : boss_twin_valkyrAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
@@ -131,37 +357,12 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public BSWScriptedAI
         doCast(SPELL_LIGHT_SURGE);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
-    {
-        if (!m_pInstance) 
-            return;
-        if (!m_creature || !m_creature->isAlive())
-            return;
-
-        if(pDoneBy->GetGUID() == m_creature->GetGUID()) 
-            return;
-
-        if(pDoneBy->GetTypeId() == TYPEID_PLAYER)
-        {
-            if(pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
-                uiDamage /= 2;
-            else if(pDoneBy->HasAura(SPELL_DARK_ESSENCE))
-                uiDamage += uiDamage/2;
-        }
-
-        m_pInstance->SetData(DATA_HEALTH_FJOLA, m_creature->GetHealth() >= uiDamage ? m_creature->GetHealth() - uiDamage : 0);
-    }
-
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_pInstance) 
             return;
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        if (m_creature->GetHealth() > m_pInstance->GetData(DATA_HEALTH_EYDIS) &&
-                                      m_pInstance->GetData(DATA_HEALTH_EYDIS) != 0)
-                m_creature->SetHealth(m_pInstance->GetData(DATA_HEALTH_EYDIS));
         
         switch (stage)
         {
@@ -238,9 +439,9 @@ CreatureAI* GetAI_boss_fjola(Creature* pCreature)
     return new boss_fjolaAI(pCreature);
 }
 
-struct MANGOS_DLL_DECL boss_eydisAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL boss_eydisAI : public boss_twin_valkyrAI
 {
-    boss_eydisAI(Creature* pCreature) : BSWScriptedAI(pCreature) 
+    boss_eydisAI(Creature* pCreature) : boss_twin_valkyrAI(pCreature) 
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
@@ -298,33 +499,10 @@ struct MANGOS_DLL_DECL boss_eydisAI : public BSWScriptedAI
         doCast(SPELL_DARK_SURGE);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
-    {
-        if (!m_pInstance) return;
-        if (!m_creature || !m_creature->isAlive())
-            return;
-
-        if(pDoneBy->GetGUID() == m_creature->GetGUID()) return;
-
-        if(pDoneBy->GetTypeId() == TYPEID_PLAYER)
-        {
-            if(pDoneBy->HasAura(SPELL_DARK_ESSENCE))
-                uiDamage /= 2;
-            else if(pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
-                uiDamage += uiDamage/2;
-        }
-
-        m_pInstance->SetData(DATA_HEALTH_EYDIS, m_creature->GetHealth() >= uiDamage ? m_creature->GetHealth() - uiDamage : 0);
-    }
-
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        if (m_creature->GetHealth() > m_pInstance->GetData(DATA_HEALTH_FJOLA) &&
-                                      m_pInstance->GetData(DATA_HEALTH_FJOLA) != 0)
-                m_creature->SetHealth(m_pInstance->GetData(DATA_HEALTH_FJOLA));
 
         switch (stage)
         {
