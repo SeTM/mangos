@@ -417,37 +417,38 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
     {
         switch(uiData)
         {
-        case NPC_BARRENT:  return m_uiBarrentGUID;
-        case NPC_TIRION:   return m_uiTirionGUID;
-        case NPC_FIZZLEBANG: return m_uiFizzlebangGUID;
-        case NPC_GARROSH:  return m_uiGarroshGUID;
-        case NPC_RINN:     return m_uiRinnGUID;
-        case NPC_LICH_KING_0: return m_uiLich0GUID;
-        case NPC_LICH_KING_1: return m_uiLich1GUID;
+        case NPC_BARRENT:           return m_uiBarrentGUID;
+        case NPC_TIRION:            return m_uiTirionGUID;
+        case NPC_FIZZLEBANG:        return m_uiFizzlebangGUID;
+        case NPC_GARROSH:           return m_uiGarroshGUID;
+        case NPC_RINN:              return m_uiRinnGUID;
+        case NPC_LICH_KING_0:       return m_uiLich0GUID;
+        case NPC_LICH_KING_1:       return m_uiLich1GUID;
+        case NPC_TWINVALKYRIAS:     return m_uiTwinvalkyrias;
 
-        case NPC_GORMOK: return m_uiGormokGUID;
-        case NPC_ACIDMAW: return m_uiAcidmawGUID;
-        case NPC_DREADSCALE: return m_uiDreadscaleGUID;
-        case NPC_ICEHOWL: return m_uiIcehowlGUID;
-        case NPC_JARAXXUS: return  m_uiJaraxxusGUID;
-        case NPC_DARKBANE: return m_uiDarkbaneGUID;
-        case NPC_LIGHTBANE: return m_uiLightbaneGUID;
-        case NPC_ANUBARAK: return m_uiAnubarakGUID;
+        case NPC_GORMOK:            return m_uiGormokGUID;
+        case NPC_ACIDMAW:           return m_uiAcidmawGUID;
+        case NPC_DREADSCALE:        return m_uiDreadscaleGUID;
+        case NPC_ICEHOWL:           return m_uiIcehowlGUID;
+        case NPC_JARAXXUS:          return  m_uiJaraxxusGUID;
+        case NPC_DARKBANE:          return m_uiDarkbaneGUID;
+        case NPC_LIGHTBANE:         return m_uiLightbaneGUID;
+        case NPC_ANUBARAK:          return m_uiAnubarakGUID;
 
-        case NPC_CRUSADER_1_1: return m_uiCrusader11Guid;
-        case NPC_CRUSADER_1_2: return m_uiCrusader12Guid;
-        case NPC_CRUSADER_1_3: return m_uiCrusader13Guid;
-        case NPC_CRUSADER_1_4: return m_uiCrusader14Guid;
-        case NPC_CRUSADER_1_5: return m_uiCrusader15Guid;
-        case NPC_CRUSADER_1_6: return m_uiCrusader16Guid;
-        case NPC_CRUSADER_1_7: return m_uiCrusader17Guid;
-        case NPC_CRUSADER_1_8: return m_uiCrusader18Guid;
-        case NPC_CRUSADER_1_9: return m_uiCrusader19Guid;
-        case NPC_CRUSADER_1_10: return m_uiCrusader1aGuid;
-        case NPC_CRUSADER_1_11: return m_uiCrusader1bGuid;
-        case NPC_CRUSADER_1_12: return m_uiCrusader1cGuid;
-        case NPC_CRUSADER_1_13: return m_uiCrusader1dGuid;
-        case NPC_CRUSADER_1_14: return m_uiCrusader1eGuid;
+        case NPC_CRUSADER_1_1:      return m_uiCrusader11Guid;
+        case NPC_CRUSADER_1_2:      return m_uiCrusader12Guid;
+        case NPC_CRUSADER_1_3:      return m_uiCrusader13Guid;
+        case NPC_CRUSADER_1_4:      return m_uiCrusader14Guid;
+        case NPC_CRUSADER_1_5:      return m_uiCrusader15Guid;
+        case NPC_CRUSADER_1_6:      return m_uiCrusader16Guid;
+        case NPC_CRUSADER_1_7:      return m_uiCrusader17Guid;
+        case NPC_CRUSADER_1_8:      return m_uiCrusader18Guid;
+        case NPC_CRUSADER_1_9:      return m_uiCrusader19Guid;
+        case NPC_CRUSADER_1_10:     return m_uiCrusader1aGuid;
+        case NPC_CRUSADER_1_11:     return m_uiCrusader1bGuid;
+        case NPC_CRUSADER_1_12:     return m_uiCrusader1cGuid;
+        case NPC_CRUSADER_1_13:     return m_uiCrusader1dGuid;
+        case NPC_CRUSADER_1_14:     return m_uiCrusader1eGuid;
 
         case NPC_CRUSADER_2_1: return m_uiCrusader21Guid;
         case NPC_CRUSADER_2_2: return m_uiCrusader22Guid;
