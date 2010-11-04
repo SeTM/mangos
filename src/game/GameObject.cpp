@@ -166,7 +166,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
     return true;
 }
 
-void GameObject::Update(uint32 /*p_time*/)
+void GameObject::Update(uint32 /*update_diff*/, uint32 /*tick_diff*/)
 {
     if (GetObjectGuid().IsMOTransport())
     {
@@ -641,11 +641,6 @@ void GameObject::DeleteFromDB()
 GameObjectInfo const *GameObject::GetGOInfo() const
 {
     return m_goInfo;
-}
-
-GameObject* GameObject::GetGameObject(WorldObject& object, uint64 guid)
-{
-	return object.GetMap()->GetGameObject(guid);
 }
 
 /*********************************************************/

@@ -151,7 +151,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
 
 			for (IceBlockMap::iterator itr = iceblocks.begin(); itr != iceblocks.end(); ++itr)
 			{
-				if (GameObject* pGo = GameObject::GetGameObject(*m_creature, itr->second))
+				if (GameObject* pGo = m_pInstance->instance->GetGameObject(itr->second))
 				{
 					if (pGo->IsInBetween(m_creature, pTarget, 3.0f)
 						&& m_creature->GetExactDist2d(pTarget->GetPositionX(), pTarget->GetPositionY()) - m_creature->GetExactDist2d(pGo->GetPositionX(), pGo->GetPositionY()) < 5.0f)
@@ -176,7 +176,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
         {
             if (Unit* pPlayer = m_creature->GetMap()->GetUnit(itr->first))
                 pPlayer->RemoveAurasDueToSpell(SPELL_ICEBOLT);
-            if (GameObject* pGo = GameObject::GetGameObject(*m_creature, itr->second))
+            if (GameObject* pGo = m_pInstance->instance->GetGameObject(itr->second))
                 pGo->Delete();
         }
         iceblocks.clear();
