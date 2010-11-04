@@ -4771,9 +4771,18 @@ void Aura::HandleAuraModIncreaseFlightSpeed(bool apply, bool Real)
     {
         WorldPacket data;
         if(apply)
+        {
+            if (target->GetTypeId()==TYPEID_PLAYER)
+                ((Player*)target)->SetCanFly(true);
             data.Initialize(SMSG_MOVE_SET_CAN_FLY, 12);
+        }
         else
+        {
             data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 12);
+            if (target->GetTypeId()==TYPEID_PLAYER)
+                ((Player*)target)->SetCanFly(false);
+        }
+        //data.append(target->GetPackGUID());
         data << target->GetPackGUID();
         data << uint32(0);                                      // unknown
         target->SendMessageToSet(&data, true);
@@ -6765,9 +6774,17 @@ void Aura::HandleAuraAllowFlight(bool apply, bool Real)
     // allow fly
     WorldPacket data;
     if(apply)
+    {
+        if (GetTarget()->GetTypeId()==TYPEID_PLAYER)
+            ((Player*)GetTarget())->SetCanFly(true);
         data.Initialize(SMSG_MOVE_SET_CAN_FLY, 12);
+    }
     else
+    {
         data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 12);
+        if (GetTarget()->GetTypeId()==TYPEID_PLAYER)
+            ((Player*)GetTarget())->SetCanFly(false);
+    }
     data << GetTarget()->GetPackGUID();
     data << uint32(0);                                      // unk
     GetTarget()->SendMessageToSet(&data, true);
@@ -7039,6 +7056,26 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
                 }
             }
         }
+        else if (caster && caster->GetTypeId() == TYPEID_PLAYER && spellProto->Id == 47788 && 
+            m_removeMode == AURA_REMOVE_BY_EXPIRE)
+        {
+            Player* plr = (Player*)caster;
+            if (Aura *aur = plr->GetAura(63231, EFFECT_INDEX_0))
+            {
+                int32 base_time = aur->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
+                int32 end_time = -(plr->GetSpellCooldownDelay(spellProto->Id) - base_time);
+
+                // start new cooldown at server side
+                plr->AddSpellCooldown(spellProto->Id, 0, time_t(NULL) + time_t(base_time));
+
+                // Send activate cooldown timer (possible 0) at client side
+                WorldPacket data(SMSG_MODIFY_COOLDOWN, (4+8+4));
+                data << spellProto->Id;
+                data << plr->GetGUID();
+                data << end_time*IN_MILLISECONDS;
+                plr->SendDirectMessage(&data);
+            }
+        }
     }
 }
 
@@ -7121,7 +7158,7 @@ void Aura::PeriodicTick()
                     case 67283:
                         pCaster->CastSpell(target, 66000, true);
                         break;
-                    case 67296:                    
+                    case 67296:
                     case 67298:
                         pCaster->CastSpell(target, 65952, true);
                         break;
@@ -9149,6 +9186,14 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                         cast_at_remove = true;
                         spellId1 = 70753;                   // Pushing the Limit
                     }
+                    else
+                        return;
+                    break;
+                }
+                case 74396:                                 // Fingers of Frost (remove main aura)
+                {
+                    if(!apply)
+                        spellId1 = 44544;
                     else
                         return;
                     break;
