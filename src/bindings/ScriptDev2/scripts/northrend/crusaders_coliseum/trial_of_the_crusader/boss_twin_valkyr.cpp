@@ -272,7 +272,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public BSWScriptedAI
                 m_creature->GetGUID() == Valkyrias[1] ? uiDamage /= 2 : uiDamage += uiDamage/2;
         }
 
-        uiDamage /= 2;
+        //uiDamage /= 2;
         for(uint8 i = 0; i < 2; ++i)
         {
             if (Creature* pValkyria = m_creature->GetMap()->GetCreature(Valkyrias[i]))
@@ -341,9 +341,8 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public boss_twin_valkyrAI
 
     void KilledUnit(Unit* pVictim)
     {
-        if (!m_pInstance) 
-            return;
-        DoScriptText(-1713544,m_creature,pVictim);
+        if (pVictim != m_creature)
+            DoScriptText(-1713544,m_creature,pVictim);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -356,39 +355,39 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public boss_twin_valkyrAI
         switch (stage)
         {
          case 0:
-                timedCast(SPELL_TWIN_SPIKE_L, uiDiff);
+             timedCast(SPELL_TWIN_SPIKE_L, uiDiff);
 
-                if (timedQuery(SPELL_LIGHT_TOUCH, uiDiff))
-                {
-                    if (currentDifficulty == RAID_DIFFICULTY_25MAN_HEROIC || RAID_DIFFICULTY_10MAN_HEROIC)
-                        if (Unit* pTarget = doSelectRandomPlayer(SPELL_LIGHT_ESSENCE, false, 50.0f))
-                            doCast(SPELL_LIGHT_TOUCH, pTarget);
-                    doCast(NPC_UNLEASHED_LIGHT);
-                }
-                if (m_pInstance->GetData(DATA_CASTING_VALKYRS) == SPELL_NONE )
-                {
-                    if (timedQuery(SPELL_LIGHT_VORTEX, uiDiff))
-                    {
-                        m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_LIGHT_VORTEX);
-                        DoScriptText(-1713538,m_creature);
-                        stage = 1;
-                        break;
-                    }
+             if (timedQuery(SPELL_LIGHT_TOUCH, uiDiff))
+             {
+                 if (currentDifficulty == RAID_DIFFICULTY_25MAN_HEROIC || RAID_DIFFICULTY_10MAN_HEROIC)
+                     if (Unit* pTarget = doSelectRandomPlayer(SPELL_LIGHT_ESSENCE, false, 50.0f))
+                         doCast(SPELL_LIGHT_TOUCH, pTarget);
+                 doCast(NPC_UNLEASHED_LIGHT);
+             }
+             if (m_pInstance->GetData(DATA_CASTING_VALKYRS) == SPELL_NONE )
+             {
+                 if (timedQuery(SPELL_LIGHT_VORTEX, uiDiff))
+                 {
+                     m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_LIGHT_VORTEX);
+                     DoScriptText(-1713538,m_creature);
+                     stage = 1;
+                     break;
+                 }
 
-                    if (timedQuery(SPELL_TWIN_PACT_L, uiDiff)
-                        && m_creature->GetHealthPercent() <= 50.0f)
-                    {
-                        m_creature->InterruptNonMeleeSpells(true);
-                        doCast(SPELL_SHIELD_LIGHT);
-                        m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_TWIN_PACT_L);
-                        DoScriptText(-1713539,m_creature);
-                        stage = 3;
-                    }
-                }
-                if (m_pInstance->GetData(DATA_CASTING_VALKYRS) == SPELL_TWIN_PACT_H)
-                    if (!m_creature->HasAura(SPELL_TWIN_POWER)) 
-                        doCast(SPELL_TWIN_POWER);
-                break;
+                 if (timedQuery(SPELL_TWIN_PACT_H, uiDiff)
+                     && m_creature->GetHealthPercent() <= 50.0f)
+                 {
+                     m_creature->InterruptNonMeleeSpells(true);
+                     doCast(SPELL_SHIELD_LIGHT);
+                     m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_TWIN_PACT_H);
+                     DoScriptText(-1713539,m_creature);
+                     stage = 3;
+                 }
+             }
+             if (m_pInstance->GetData(DATA_CASTING_VALKYRS) == SPELL_TWIN_PACT_L)
+                 if (!m_creature->HasAura(65949)) // need fix HasAura for heroic spells...
+                     doCast(SPELL_TWIN_POWER);
+             break;
          case 1:
              doCast(SPELL_LIGHT_VORTEX);
              stage = 2;
@@ -402,19 +401,19 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public boss_twin_valkyrAI
              }
              break;
          case 3:
-             if (!m_creature->HasAura(65858))
-                 doCast(SPELL_TWIN_PACT_L);
+             doCast(SPELL_TWIN_PACT_H);
              stage = 4;
              break;
          case 4:
-             if (!m_creature->HasAura(SPELL_SHIELD_LIGHT)
+             if ((!m_creature->HasAura(SPELL_SHIELD_LIGHT) && !m_creature->HasAura(67259) &&
+                 !m_creature->HasAura(67260) && !m_creature->HasAura(67261))
                  && timedQuery(SPELL_SHIELD_LIGHT, uiDiff))
              {
                  m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_NONE);
                  stage = 0;
              }
          default:
-                 break;
+             break;
          }
 
         timedCast(SPELL_BERSERK, uiDiff);
@@ -467,7 +466,8 @@ struct MANGOS_DLL_DECL boss_eydisAI : public boss_twin_valkyrAI
 
     void KilledUnit(Unit* pVictim)
     {
-        DoScriptText(-1713543,m_creature,pVictim);
+        if (pVictim != m_creature)
+            DoScriptText(-1713543,m_creature,pVictim);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -496,19 +496,19 @@ struct MANGOS_DLL_DECL boss_eydisAI : public boss_twin_valkyrAI
                     stage = 1;
                     break;
                 }
-                if (timedQuery(SPELL_TWIN_PACT_H, uiDiff)
+                if (timedQuery(SPELL_TWIN_PACT_L, uiDiff)
                     && m_creature->GetHealthPercent() <= 50.0f)
                 {
                     m_creature->InterruptNonMeleeSpells(true);
                     doCast(SPELL_SHIELD_DARK);
-                    m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_TWIN_PACT_H);
+                    m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_TWIN_PACT_L);
                     DoScriptText(-1713539,m_creature);
                     stage = 3;
                     break;
                 }
             }
-            if (m_pInstance->GetData(DATA_CASTING_VALKYRS) == SPELL_TWIN_PACT_L)
-                if (!m_creature->HasAura(SPELL_TWIN_POWER)) 
+            if (m_pInstance->GetData(DATA_CASTING_VALKYRS) == SPELL_TWIN_PACT_H)
+                if (!m_creature->HasAura(65949)) // need fix HasAura for heroic spells...
                     doCast(SPELL_TWIN_POWER);
             break;
         case 1:
@@ -524,11 +524,14 @@ struct MANGOS_DLL_DECL boss_eydisAI : public boss_twin_valkyrAI
             }
             break;
         case 3:
-            doCast(SPELL_TWIN_PACT_H);
+            doCast(SPELL_TWIN_PACT_L);
             stage = 4;
             break;
         case 4:
-            if (!m_creature->HasAura(SPELL_SHIELD_DARK)
+            if ((!m_creature->HasAura(SPELL_SHIELD_DARK) && 
+                !m_creature->HasAura(67256) &&
+                !m_creature->HasAura(67257) && 
+                !m_creature->HasAura(67258))
                 && timedQuery(SPELL_SHIELD_DARK, uiDiff)) 
             {
                 m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_NONE);

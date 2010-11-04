@@ -1205,7 +1205,7 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
                 m_creature->SummonCreature(NPC_TWINVALKYRIAS, 563.880f, 181.164f, 394.427f, 4.692f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
                 m_creature->SummonCreature(NPC_LIGHT_ESSENCE, SpawnLoc[24].x, SpawnLoc[24].y, SpawnLoc[24].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
                 m_creature->SummonCreature(NPC_LIGHT_ESSENCE, SpawnLoc[25].x, SpawnLoc[25].y, SpawnLoc[25].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
-                m_creature->SummonCreature(NPC_LIGHTBANE, SpawnLoc[3].x, SpawnLoc[3].y, SpawnLoc[3].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+                m_creature->SummonCreature(NPC_LIGHTBANE, SpawnLoc[3].x, SpawnLoc[3].y, SpawnLoc[3].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_LIGHTBANE))) 
                 {
                     pTemp->GetMotionMaster()->MovePoint(0, 574.037f, 182.260f, 395.140f);
@@ -1213,7 +1213,7 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
                 }
                 m_creature->SummonCreature(NPC_DARK_ESSENCE, SpawnLoc[22].x, SpawnLoc[22].y, SpawnLoc[22].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
                 m_creature->SummonCreature(NPC_DARK_ESSENCE, SpawnLoc[23].x, SpawnLoc[23].y, SpawnLoc[23].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
-                m_creature->SummonCreature(NPC_DARKBANE, SpawnLoc[4].x, SpawnLoc[4].y, SpawnLoc[4].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+                m_creature->SummonCreature(NPC_DARKBANE, SpawnLoc[4].x, SpawnLoc[4].y, SpawnLoc[4].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_DARKBANE))) 
                 {
                     pTemp->GetMotionMaster()->MovePoint(0, 553.654f, 180.712f, 395.141f);
@@ -1225,7 +1225,7 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
                 break;
 
             case 4040:
-                UpdateTimer = 60000;
+                UpdateTimer = 500000;
                 pInstance->SetData(TYPE_EVENT,5000);
                 break;
 

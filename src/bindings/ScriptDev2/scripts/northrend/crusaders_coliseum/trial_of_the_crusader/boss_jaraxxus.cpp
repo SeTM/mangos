@@ -96,7 +96,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
             m_volcanoCount = 4;
         }
 
-        if (currentDifficulty == RAID_DIFFICULTY_10MAN_NORMAL || RAID_DIFFICULTY_10MAN_HEROIC)
+        if (currentDifficulty == RAID_DIFFICULTY_10MAN_NORMAL || currentDifficulty == RAID_DIFFICULTY_10MAN_HEROIC)
             m_stackCount = 5;
         else
             m_stackCount = 10;
