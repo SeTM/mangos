@@ -6795,8 +6795,7 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
             }
             // Torment the weak affected (Arcane Barrage, Arcane Blast, Frostfire Bolt, Arcane Missiles, Fireball)
             if ((spellProto->SpellFamilyFlags & UI64LIT(0x0000900020200021)) &&
-                (pVictim->HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED) || pVictim->HasAuraType(SPELL_AURA_HASTE_ALL) ||
-                 isIgnoreUnitState(spellProto)))
+                (pVictim->HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED) || pVictim->HasAuraType(SPELL_AURA_HASTE_ALL)))
             {
                 bool snared = false, slowed = false;
                 // Search for snares on victim
@@ -11401,22 +11400,6 @@ void Unit::StopAttackFaction(uint32 faction_id)
     getHostileRefManager().deleteReferencesForFaction(faction_id);
 
     CallForAllControlledUnits(StopAttackFactionHelper(faction_id),false,true,true);
-}
-
-bool Unit::isIgnoreUnitState(SpellEntry const *spell)
-{
-    if(!HasAuraType(SPELL_AURA_ABILITY_IGNORE_AURASTATE))
-        return false;
-
-    if(spell->SpellFamilyName == SPELLFAMILY_MAGE)
-        return true; 
-
-    Unit::AuraList const& stateAuras = GetAurasByType(SPELL_AURA_ABILITY_IGNORE_AURASTATE);
-    for(Unit::AuraList::const_iterator j = stateAuras.begin();j != stateAuras.end(); ++j)
-        if((*j)->isAffectedOnSpell(spell))
-            return true;
-
-    return false;
 }
 
 void Unit::CleanupDeletedAuras()
