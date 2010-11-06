@@ -79,6 +79,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
     uint8 m_portalsCount;
     uint8 m_volcanoCount;
     uint8 m_stackCount;
+    uint32 m_uiFelFireballTimer;
 
     void Reset() 
     {
@@ -102,6 +103,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
             m_stackCount = 10;
         DoScriptText(-1713517,m_creature);
         m_creature->SetRespawnDelay(DAY);
+        m_uiFelFireballTimer = urand(20000,30000);
     }
 
     void JustReachedHome()
@@ -139,7 +141,13 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        timedCast(SPELL_FEL_FIREBALL, uiDiff);
+        if (m_uiFelFireballTimer <= uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,1))
+                DoCast(pTarget, SPELL_FEL_FIREBALL);
+            
+            m_uiFelFireballTimer = urand(20000,30000);
+        } else m_uiFelFireballTimer -= uiDiff;
 
         timedCast(SPELL_FEL_LIGHTING, uiDiff);
 
