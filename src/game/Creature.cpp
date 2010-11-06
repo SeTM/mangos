@@ -435,15 +435,9 @@ void Creature::Update(uint32 diff)
                     if (uint32 lGuid = sObjectMgr.GetLinkedCreature(m_DBTableGuid))
                     {
                         Creature *lCreature = NULL;
-                        CellPair p(MaNGOS::ComputeCellPair(GetPositionX(), GetPositionY()));
-                        Cell cell(p);
-                        cell.data.Part.reserved = ALL_DISTRICT;
-
                         MaNGOS::CreatureWithDbGUIDCheck creature_check(this,lGuid);
                         MaNGOS::CreatureSearcher<MaNGOS::CreatureWithDbGUIDCheck> checker(lCreature, creature_check);
-
-                        TypeContainerVisitor<MaNGOS::CreatureSearcher<MaNGOS::CreatureWithDbGUIDCheck>, GridTypeMapContainer > object_checker(checker);
-                        cell.Visit(p, object_checker, *this->GetMap());
+                        Cell::VisitWorldObjects(this, checker, 700);
                         
                         if (lCreature && !lCreature->isAlive())
                         {

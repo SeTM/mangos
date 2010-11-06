@@ -2209,7 +2209,6 @@ struct MANGOS_DLL_DECL npc_spring_rabbitAI : public ScriptedAI
                     std::list<Unit *> targets;
                     CellPair p(MaNGOS::ComputeCellPair(m_creature->GetPositionX(), m_creature->GetPositionY()));
                     Cell cell(p);
-                    cell.data.Part.reserved = ALL_DISTRICT;
                     cell.SetNoCreate();
 
                     MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(m_creature, 8.0f);

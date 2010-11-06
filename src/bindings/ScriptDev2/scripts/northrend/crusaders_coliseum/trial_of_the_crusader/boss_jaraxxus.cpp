@@ -118,7 +118,10 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if (!m_pInstance) return;
+        if (!m_pInstance) 
+            return;
+        if (Creature* temp = GetClosestCreatureWithEntry(m_creature, NPC_FIZZLEBANG, 200))
+            m_creature->DealDamage(temp, temp->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         DoScriptText(-1713525,m_creature);
         m_pInstance->SetData(TYPE_JARAXXUS, DONE);
         m_pInstance->SetData(TYPE_EVENT,2000);

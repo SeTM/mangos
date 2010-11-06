@@ -322,23 +322,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
     uint32 slowTimer;
     uint64 heiganGUID;
     bool forward;
-    std::list<GameObject*> GetGameObjectsByEntry(uint32 entry)
-    {
-        CellPair pair(MaNGOS::ComputeCellPair(m_creature->GetPositionX(), m_creature->GetPositionY()));
-        Cell cell(pair);
-        cell.data.Part.reserved = ALL_DISTRICT;
-        cell.SetNoCreate();
 
-        std::list<GameObject*> gameobjectList;
-
-        AllGameObjectsWithEntryInRangeCheck check(m_creature, entry, 100);
-        MaNGOS::GameObjectListSearcher<AllGameObjectsWithEntryInRangeCheck> searcher(gameobjectList, check);
-        TypeContainerVisitor<MaNGOS::GameObjectListSearcher<AllGameObjectsWithEntryInRangeCheck>, GridTypeMapContainer> visitor(searcher);
-
-        cell.Visit(pair, visitor, *(m_creature->GetMap()));
-
-        return gameobjectList;
-    }
     //Let's Dance!
     void DoErupt(uint32 safePlace)
     {
@@ -352,14 +336,16 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
 
         if(safePlace != 1)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181678);
+            std::list<GameObject*> eruptGOs;
+            GetGameObjectListWithEntryInGrid(eruptGOs, m_creature, 181678, 100);
             //Visual part of eruption
             for (int32 i = 181510; i <= 181526; i++)
             {
                 if (i == 181513 || i == 181512 || i == 181511 || i == 181525 || i == 181514 || i == 181515 || i == 181516)
                     continue;
                 
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                std::list<GameObject*> visualGO;
+                GetGameObjectListWithEntryInGrid(visualGO, m_creature, i, 100);
                 for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
@@ -398,12 +384,14 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         else forward = true;
         if(safePlace != 2)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181676);
+            std::list<GameObject*> eruptGOs;
+            GetGameObjectListWithEntryInGrid(eruptGOs, m_creature, 181676, 100);
             for (int32 i = 181511; i <= 181531; i++)
             {
                 if ((i > 181516 && i < 181525) || (i == 181526))
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                std::list<GameObject*> visualGO;
+                GetGameObjectListWithEntryInGrid(visualGO, m_creature, i, 100);
                 for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
@@ -437,12 +425,14 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         }
         if(safePlace != 3)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181677);
+            std::list<GameObject*> eruptGOs;
+            GetGameObjectListWithEntryInGrid(eruptGOs, m_creature, 181677, 100);
             for (int32 i = 181532; i <= 181545; i++)
             {
                 if (i >= 181537 && i <= 181539)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                std::list<GameObject*> visualGO;
+                GetGameObjectListWithEntryInGrid(visualGO, m_creature, i, 100);
                 for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
@@ -476,12 +466,14 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         }
         if(safePlace != 4)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181695);
+            std::list<GameObject*> eruptGOs;
+            GetGameObjectListWithEntryInGrid(eruptGOs, m_creature, 181695, 100);
             for (int32 i = 181537; i <= 181552; i++)
             {
                 if (i > 181539 && i < 181545)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                std::list<GameObject*> visualGO;
+                GetGameObjectListWithEntryInGrid(visualGO, m_creature, i, 100);
                 for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
