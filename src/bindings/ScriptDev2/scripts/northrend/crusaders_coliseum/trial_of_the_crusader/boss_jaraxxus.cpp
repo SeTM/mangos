@@ -113,7 +113,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
         m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
         if (Creature* temp = GetClosestCreatureWithEntry(m_creature, NPC_FIZZLEBANG, 200))
             m_creature->DealDamage(temp, temp->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        m_creature->ForcedDespawn();
+        ((TemporarySummon *)m_creature)->UnSummon();
     }
 
     void JustDied(Unit* pKiller)
@@ -299,7 +299,7 @@ struct MANGOS_DLL_DECL mob_infernal_volcanoAI : public BSWScriptedAI
     void UpdateAI(const uint32 diff)
     {
         if (m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
+            ((TemporarySummon *)m_creature)->UnSummon();
 
         if (timedQuery(SPELL_INFERNAL_ERUPTION,diff) && m_Count > 0) 
         {
@@ -352,7 +352,7 @@ struct MANGOS_DLL_DECL mob_fel_infernalAI : public BSWScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         if (m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
+            ((TemporarySummon *)m_creature)->UnSummon();
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -418,7 +418,7 @@ struct MANGOS_DLL_DECL mob_nether_portalAI : public BSWScriptedAI
     void UpdateAI(const uint32 diff)
     {
         if (m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
+            ((TemporarySummon *)m_creature)->UnSummon();
 
         if (m_Timer < diff && m_Count > 0) 
         {
@@ -474,7 +474,7 @@ struct MANGOS_DLL_DECL mob_mistress_of_painAI : public BSWScriptedAI
     {
         if (!m_pInstance) return;
         if (m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
+            ((TemporarySummon *)m_creature)->UnSummon();
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
