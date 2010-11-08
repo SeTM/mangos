@@ -1799,8 +1799,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
                 // Soulstone Resurrection and Twisting Nether (resurrector)
                 if (spellInfo_1->SpellIconID == 92 && spellInfo_2->SpellIconID == 92 && (
-                    spellInfo_1->SpellVisual[0] == 99 && spellInfo_2->SpellVisual[0] == 0 ||
-                    spellInfo_2->SpellVisual[0] == 99 && spellInfo_1->SpellVisual[0] == 0 ))
+                    (spellInfo_1->SpellVisual[0] == 99 && spellInfo_2->SpellVisual[0] == 0) ||
+                    (spellInfo_2->SpellVisual[0] == 99 && spellInfo_1->SpellVisual[0] == 0)))
                     return false;
 
                 // Heart of the Wild, Agility and various Idol Triggers
