@@ -113,7 +113,7 @@ Unit* DynamicObject::GetCaster() const
     return ObjectAccessor::GetUnit(*this, GetCasterGUID());
 }
 
-void DynamicObject::Update(uint32 update_diff, uint32 /*tick_diff*/)
+void DynamicObject::Update(uint32 p_time)
 {
     // caster can be not in world at time dynamic object update, but dynamic object not yet deleted in Unit destructor
     Unit* caster = GetCaster();
@@ -125,8 +125,8 @@ void DynamicObject::Update(uint32 update_diff, uint32 /*tick_diff*/)
 
     bool deleteThis = false;
 
-    if(m_aliveDuration > int32(update_diff))
-        m_aliveDuration -= update_diff;
+    if(m_aliveDuration > int32(p_time))
+        m_aliveDuration -= p_time;
     else
         deleteThis = true;
 
