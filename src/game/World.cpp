@@ -2196,14 +2196,14 @@ void World::LoadRecruitFriendData()
     {
         Field *fields = result->Fetch();
 
-        uint32 id = fields[1].GetUInt32();
-        uint32 friend_id = fields[2].GetUInt32();
-        time_t invite_date = time_t(fields[3].GetUInt64());
+        uint32 id = fields[0].GetUInt32();
+        uint32 friend_id = fields[1].GetUInt32();
+        time_t invite_date = time_t(fields[2].GetUInt64());
 
         // check expired friendship
         if (time(NULL) >= (invite_date + MONTH))
         {
-            CharacterDatabase.PExecute("DELETE FROM `accounts_friends` WHERE `id`= '%u' and `friend_id` = '%u'", id, friend_id);
+            LoginDatabase.PExecute("DELETE FROM `accounts_friends` WHERE `id`= '%u' and `friend_id` = '%u'", id, friend_id);
             continue;
         }
 
