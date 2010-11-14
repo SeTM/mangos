@@ -60,6 +60,7 @@
 #include "GMTicketMgr.h"
 #include "Util.h"
 #include "CharacterDatabaseCleaner.h"
+#include "Language.h"
 
 INSTANTIATE_SINGLETON_1( World );
 
@@ -94,6 +95,9 @@ World::World()
 
     m_defaultDbcLocale = LOCALE_enUS;
     m_availableDbcLocaleMask = 0;
+	
+	// Initialize broadcaster nextId
+    m_nextId = 0;
 
     for(int i = 0; i < CONFIG_UINT32_VALUE_COUNT; ++i)
         m_configUint32Values[i] = 0;
@@ -869,6 +873,11 @@ void World::LoadConfigSettings(bool reload)
     sLog.outString( "WORLD: VMap support included. LineOfSight:%i, getHeight:%i, indoorCheck:%i",
         enableLOS, enableHeight, getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) ? 1 : 0);
     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
+
+    // Broadcaster
+    setConfig(CONFIG_BOOL_BROADCAST_ENABLED     , "Broadcast.Enabled"   , false);
+    setConfig(CONFIG_UINT32_BROADCAST_INTERVAL  , "Broadcast.Interval"  , 60000);
+    setConfig(CONFIG_UINT32_BROADCAST_POSITION    , "Broadcast.Position"  , 1);
 }
 
 /// Initialize the World
@@ -1288,7 +1297,7 @@ void World::SetInitialWorldSettings()
                                                             //Update "uptime" table based on configuration entry in minutes.
     m_timers[WUPDATE_CORPSES].SetInterval(20*MINUTE*IN_MILLISECONDS);
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
-    m_timers[WUPDATE_ROF].SetInterval(5*MINUTE);
+    m_timers[WUPDATE_ROF].SetInterval(5*MINUTE*IN_MILLISECONDS);
     
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
@@ -1346,6 +1355,9 @@ void World::SetInitialWorldSettings()
 
     // Delete all characters which have been deleted X days before
     Player::DeleteOldCharacters();
+
+    sLog.outString("Starting Autobroadcast system..." );
+    m_timers[WUPDATE_BROADCAST].SetInterval(m_configUint32Values[CONFIG_UINT32_BROADCAST_INTERVAL]);
 
     sLog.outString( "WORLD: World initialized" );
 
@@ -1531,6 +1543,13 @@ void World::Update(uint32 diff)
     {
         m_timers[WUPDATE_DELETECHARS].Reset();
         Player::DeleteOldCharacters();
+    }
+
+    ///- Process autobroadcaster
+    if(getConfig(CONFIG_BOOL_BROADCAST_ENABLED) && m_timers[WUPDATE_BROADCAST].Passed())
+    {
+        m_timers[WUPDATE_BROADCAST].Reset();
+        SendBroadcast();
     }
 
     /// </ul>
@@ -2409,4 +2428,43 @@ bool World::configNoReload(bool reload, eConfigBoolValues index, char const* fie
         sLog.outError("%s option can't be changed at mangosd.conf reload, using current value (%s).", fieldname, getConfig(index) ? "'true'" : "'false'");
 
     return false;
+}
+
+// Broadcast a message
+void World::SendBroadcast()
+{
+    std::string message;
+
+    QueryResult *result;
+    if(m_nextId > 0)
+        result = LoginDatabase.PQuery("SELECT `text`, `next` FROM `broadcast_strings` WHERE `id` = %u;", m_nextId);
+    else
+        result = LoginDatabase.PQuery("SELECT `text`, `next` FROM `broadcast_strings` ORDER BY RAND();", m_nextId);
+
+    if(!result)
+        return;
+
+    Field *fields = result->Fetch();
+    m_nextId  = fields[1].GetUInt32();
+    message = fields[0].GetString();
+
+    delete result, fields;
+
+    if((getConfig(CONFIG_UINT32_BROADCAST_POSITION) & BROADCAST_LOCATION_CHAT) == BROADCAST_LOCATION_CHAT)
+        sWorld.SendWorldText(LANG_AUTO_BROADCAST, message.c_str());
+    if((getConfig(CONFIG_UINT32_BROADCAST_POSITION) & BROADCAST_LOCATION_TOP) == BROADCAST_LOCATION_TOP)
+    {
+        WorldPacket data(SMSG_NOTIFICATION, (message.size()+1));
+        data << message;
+        sWorld.SendGlobalMessage(&data);
+    }
+
+    if((getConfig(CONFIG_UINT32_BROADCAST_POSITION) & BROADCAST_LOCATION_IRC) == BROADCAST_LOCATION_IRC)
+#ifdef MANGCHAT_INSTALLED
+        sIRC.Send_IRC_Channel(sIRC._irc_chan[sIRC.anchn].c_str(), "\00311[Server]: " + message);
+#else
+        sLog.outError("AutoBroadcaster: You have IRC broadcasting enabled but we couldn't detect mangchat");
+#endif
+
+    sLog.outString("AutoBroadcast: '%s'",message.c_str());
 }
