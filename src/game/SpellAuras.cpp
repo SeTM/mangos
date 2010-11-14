@@ -366,7 +366,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleNULL,                                      //313 0 spells in 3.3
     &Aura::HandleNULL,                                      //314 1 test spell (reduce duration of silince/magic)
     &Aura::HandleNULL,                                      //315 underwater walking
-    &Aura::HandleNoImmediateEffect                          //316 SPELL_AURA_MOD_PERIODIC_HASTE makes haste affect HOT/DOT ticks
+    &Aura::HandleNULL                                       //316 makes haste affect HOT/DOT ticks
 };
 
 static AuraType const frozenAuraTypes[] = { SPELL_AURA_MOD_ROOT, SPELL_AURA_MOD_STUN, SPELL_AURA_NONE };
@@ -393,10 +393,12 @@ m_isPersistent(false), m_in_use(0), m_spellAuraHolder(holder)
     if (!caster)
     {
         damage = m_currentBasePoints;
+        m_maxduration = target->CalculateSpellDuration(spellproto, m_effIndex, target);
     }
     else
     {
         damage        = caster->CalculateSpellDamage(target, spellproto, m_effIndex, &m_currentBasePoints);
+        m_maxduration = caster->CalculateSpellDuration(spellproto, m_effIndex, target);
 
         if (!damage && castItem && castItem->GetItemSuffixFactor())
         {
@@ -425,25 +427,45 @@ m_isPersistent(false), m_in_use(0), m_spellAuraHolder(holder)
         }
     }
 
-    SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff]);
-
-    if (caster)
-        m_maxduration = caster->CalculateBaseSpellDuration(spellproto, &m_modifier.periodictime);
-    else
-        m_maxduration = GetSpellDuration(spellproto);
-
     if (m_maxduration == -1 || (isPassive && spellproto->DurationIndex == 0))
         isPermanent = true;
 
-    if (!isPermanent)
+    m_origDuration = m_maxduration;
+
+    Player* modOwner = caster ? caster->GetSpellModOwner() : NULL;
+
+    if (!isPermanent && modOwner)
     {
-        m_maxduration = target->CalculateSpellDuration(caster, m_maxduration, spellproto, m_effIndex);
+        modOwner->ApplySpellMod(spellproto->Id, SPELLMOD_DURATION, m_maxduration);
         // Get zero duration aura after - need set m_maxduration > 0 for apply/remove aura work
         if (m_maxduration<=0)
             m_maxduration = 1;
     }
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura: construct Spellid : %u, Aura : %u Duration : %d Target : %d Damage : %d", spellproto->Id, spellproto->EffectApplyAuraName[eff], m_maxduration, spellproto->EffectImplicitTargetA[eff],damage);
+
+    SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff], damage);
+
+    //Apply haste to channeled spells and some DoT/HoT auras
+    uint32 spellfamily = GetSpellProto()->SpellFamilyName;
+    uint64 spellfamilyflag = GetSpellProto()->SpellFamilyFlags;
+    if(caster && ((GetSpellProto()->AttributesEx & (SPELL_ATTR_EX_CHANNELED_1 | SPELL_ATTR_EX_CHANNELED_2))
+        || (spellfamily == SPELLFAMILY_WARLOCK && (spellfamilyflag & UI64LIT(0x00000002))&& caster->HasAura(70947))//Glyph of Quick Decay
+        || (spellfamily == SPELLFAMILY_PRIEST && (spellfamilyflag & UI64LIT(0x02000000))&& caster->HasAura(15473))//Devouring Plague in Shadow Form
+        || (spellfamily == SPELLFAMILY_PRIEST && (spellfamilyflag & UI64LIT(0x0000040000000000))&& caster->HasAura(15473))//Vampiric Touch in Shadow Formaa
+        || (spellfamily == SPELLFAMILY_DRUID && (spellfamilyflag & UI64LIT(0x00000010))&& caster->HasAura(71013))))//Glyph of Rapid Rejuvenation
+        if (m_modifier.periodictime)
+            ApplyHasteToPeriodic();
+        else//This case for nonperiodic effect of periodic spells
+        {
+            if( !(GetSpellProto()->Attributes & (SPELL_ATTR_UNK4|SPELL_ATTR_TRADESPELL)) )
+	            m_maxduration = int32(m_origDuration * GetCaster()->GetFloatValue(UNIT_MOD_CAST_SPEED));
+        }
+    // Apply periodic time mod
+    else if(modOwner && m_modifier.periodictime)
+        modOwner->ApplySpellMod(spellproto->Id, SPELLMOD_ACTIVATION_TIME, m_modifier.periodictime);
+
+    m_duration = m_maxduration;
 
     // Start periodic on next tick or at aura apply
     if (!(spellproto->AttributesEx5 & SPELL_ATTR_EX5_START_PERIODIC_AT_APPLY))
@@ -6521,7 +6543,9 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             break;
         case FORM_SHADOW:
             spellId1 = 49868;
-            spellId2 = 71167;
+
+            if(target->GetTypeId() == TYPEID_PLAYER)      // Spell 49868 have same category as main form spell and share cooldown
+                ((Player*)target)->RemoveSpellCooldown(49868);
             break;
         case FORM_GHOSTWOLF:
             spellId1 = 67116;
@@ -6536,27 +6560,14 @@ void Aura::HandleShapeshiftBoosts(bool apply)
 
     if(apply)
     {
-        Player* plr = target->GetTypeId() == TYPEID_PLAYER ? (Player*)target : NULL;
-
         if (spellId1)
-        {
-            if (plr && plr->HasSpellCooldown(spellId1))
-                plr->RemoveSpellCooldown(spellId1, true);
-
             target->CastSpell(target, spellId1, true, NULL, this );
-        }
-
         if (spellId2)
-        {
-            if (plr && plr->HasSpellCooldown(spellId2))
-                plr->RemoveSpellCooldown(spellId2, true);
-
             target->CastSpell(target, spellId2, true, NULL, this);
-        }
 
-        if (plr)
+        if (target->GetTypeId() == TYPEID_PLAYER)
         {
-            const PlayerSpellMap& sp_list = plr->GetSpellMap();
+            const PlayerSpellMap& sp_list = ((Player *)target)->GetSpellMap();
             for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
             {
                 if (itr->second.state == PLAYERSPELL_REMOVED) continue;
@@ -6600,7 +6611,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             }
 
             // Leader of the Pack
-            if (plr->HasSpell(17007))
+            if (((Player*)target)->HasSpell(17007))
             {
                 SpellEntry const *spellInfo = sSpellStore.LookupEntry(24932);
                 if (spellInfo && spellInfo->Stances & (1<<(form-1)))
@@ -6608,7 +6619,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             }
 
             // Savage Roar
-            if (form == FORM_CAT && target->HasAura(52610))
+            if (form == FORM_CAT && ((Player*)target)->HasAura(52610))
                 target->CastSpell(target, 62071, true);
 
             // Survival of the Fittest (Armor part)
