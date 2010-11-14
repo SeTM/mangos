@@ -23199,10 +23199,7 @@ bool Player::IsFriendTo()
         for(RecruitFriendMap::const_iterator itr = bounds.first; itr != bounds.second; ++itr)
         {
             if (itr->second == plr->GetSession()->GetAccountId())
-            {
                 return true;
-                break;
-            }
         }
     }
 
