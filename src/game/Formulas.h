@@ -122,6 +122,9 @@ namespace MaNGOS
             if(u->GetTypeId()==TYPEID_UNIT && ((Creature*)u)->IsElite())
                 xp_gain *= 4;  // Wowacadem value
 
+            if (pl->GetGroup() && pl->IsFriendTo())
+                xp_gain *= 3;
+
             return (uint32)(xp_gain*sWorld.getConfig(CONFIG_FLOAT_RATE_XP_KILL));
         }
 

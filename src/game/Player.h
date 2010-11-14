@@ -2397,6 +2397,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 GetOriginalSubGroup() const { return m_originalGroup.getSubGroup(); }
         void SetOriginalGroup(Group *group, int8 subgroup = -1);
 
+        bool IsFriendTo();
+
         GridReference<Player> &GetGridRef() { return m_gridRef; }
         MapReference &GetMapRef() { return m_mapRef; }
 
