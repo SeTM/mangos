@@ -23183,7 +23183,7 @@ void Player::_LoadRandomBGStatus(QueryResult *result)
 
 bool Player::IsFriendTo()
 {
-    if (getLevel() > 68)
+    if (getLevel() >= 68)
         return false;
 
     uint32 gray_level = MaNGOS::XP::GetGrayLevel(getLevel());
