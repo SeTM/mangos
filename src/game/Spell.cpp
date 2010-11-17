@@ -1946,7 +1946,15 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
                         if ((*iter)->GetEntry() == i_spellST->second.targetEntry)
                         {
-                            targetUnitMap.push_back((*iter));
+                            if (i_spellST->second.type == SPELL_TARGET_TYPE_DEAD && ((Creature*)(*iter))->IsCorpse())
+                            {
+                                targetUnitMap.push_back((*iter));
+                            }
+                            else if (i_spellST->second.type == SPELL_TARGET_TYPE_CREATURE && (*iter)->isAlive())
+                            {
+                                targetUnitMap.push_back((*iter));
+                            }
+
                             break;
                         }
                     }
@@ -4450,11 +4458,11 @@ SpellCastResult Spell::CheckCast(bool strict)
         VMAP::VMapFactory::createOrGetVMapManager()->isLineOfSightCalcEnabled())
     {
         if (m_spellInfo->Attributes & SPELL_ATTR_OUTDOORS_ONLY &&
-                !m_caster->GetMap()->IsOutdoors(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()))
+                !m_caster->GetTerrain()->IsOutdoors(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()))
             return SPELL_FAILED_ONLY_OUTDOORS;
 
         if(m_spellInfo->Attributes & SPELL_ATTR_INDOORS_ONLY &&
-                m_caster->GetMap()->IsOutdoors(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()))
+                m_caster->GetTerrain()->IsOutdoors(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()))
             return SPELL_FAILED_ONLY_INDOORS;
     }
     // only check at first call, Stealth auras are already removed at second call
@@ -4770,14 +4778,24 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (m_spellInfo->AttributesEx & SPELL_ATTR_EX_UNK24)
     {
         float fx, fy, fz;
-        float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
-        float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
-        float dis = rand_norm() * (max_dis - min_dis) + min_dis;
 
-        m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
+        if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+        {
+            fx = m_targets.m_destX;
+            fy = m_targets.m_destY;
+            fz = m_targets.m_destZ;
+        }
+        else
+        {
+            float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+            float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+            float dis = rand_norm_f() * (max_dis - min_dis) + min_dis;
+
+            m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
+        }
 
         if (m_caster->GetMap())
-            if (!m_caster->GetMap()->IsInWater(fx, fy, fz-0.5f))
+            if (!m_caster->GetTerrain()->IsInWater(fx, fy, fz + 1.f))
                 return SPELL_FAILED_NOT_FISHABLE;
     }
 
@@ -6748,7 +6766,6 @@ bool Spell::IsNeedSendToClient() const
         m_spellInfo->speed > 0.0f || (!m_triggeredByAuraSpell && !m_IsTriggeredSpell);
 }
 
-
 bool Spell::IsTriggeredSpellWithRedundentData() const
 {
     return m_IsTriggeredSpell && (m_spellInfo->manaCost || m_spellInfo->ManaCostPercentage);
@@ -7157,7 +7174,7 @@ void Spell::TriggerGlobalCooldown()
     // global cooldown can't leave range 1..1.5 secs (if it it)
     // exist some spells (mostly not player directly casted) that have < 1 sec and > 1.5 sec global cooldowns
     // but its as test show not affected any spell mods.
-    if (m_spellInfo->StartRecoveryTime >= 1000 && m_spellInfo->StartRecoveryTime <= 1500)
+    if (gcd >= 1000 && gcd <= 1500)
     {
         // gcd modifier auras applied only to self spells and only player have mods for this
         if (m_caster->GetTypeId() == TYPEID_PLAYER)

@@ -175,7 +175,7 @@ void DynamicObject::Delay(int32 delaytime)
                     break;
                 }
             }
-            
+
             if (foundAura)
             {
                 ++iter;
