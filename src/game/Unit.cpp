@@ -4350,6 +4350,7 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder *holder)
             case SPELL_AURA_MOD_RANGED_ATTACK_POWER:
             case SPELL_AURA_MOD_ATTACK_POWER:
             case SPELL_AURA_MOD_STAT:
+            case SPELL_AURA_MOD_HASTE:
                 {
                     if (i_mod->m_amount <= 0 || a_mod->m_amount < 0)     // don't check negative and proved auras
                         continue;
