@@ -3346,8 +3346,8 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
                 // If spell that caused this aura has Crowd Control or Daze effect
                 if ((aurMechMask & MECHANIC_NOT_REMOVED_BY_SHAPESHIFT) ||
                     (aurSpellInfo->SpellIconID == 15 && aurSpellInfo->Dispel == 0 &&	// some spells have these parameters instead of MECHANIC_DAZE or so (skip snare spells)
-                    (aurMechMask & (1 << (MECHANIC_SNARE-1))) == 0 ||
-                    (aurMechMask & (1 << (MECHANIC_DAZE-1))) &&				// if this is MECHANIC_DAZE, triggered by non-pvp spell or ability...
+                    (aurMechMask & (1 << (MECHANIC_SNARE-1))) == 0) ||
+                    ((aurMechMask & (1 << (MECHANIC_DAZE-1))) &&				// if this is MECHANIC_DAZE, triggered by non-pvp spell or ability...
                     aurSpellInfo->Id!=18118 && aurSpellInfo->Id!=52807))			// there is only two pvp spells with "MECHANIC_DAZE" mechanic in dbc
                 {
                     ++iter;
