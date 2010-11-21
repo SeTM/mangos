@@ -160,7 +160,7 @@ struct MANGOS_DLL_DECL npc_tempest_minionAI : public ScriptedAI
                 m_creature->SetHealth(m_creature->GetMaxHealth());
                 m_creature->SetVisibility(VISIBILITY_OFF);
                 Init();
-                m_creature->MonsterTextEmote("%s appears to defend Emalon!", ObjectGuid(), true);
+                m_creature->MonsterTextEmote("%s appears to defend Emalon!", NULL, true);
                 if (m_pInstance)
                 {
                     Creature* pEmalon = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_EMALON));
@@ -315,7 +315,7 @@ struct MANGOS_DLL_DECL boss_emalonAI : public ScriptedAI
             Creature* pMinion = (Creature*)m_creature->GetMap()->GetUnit(m_auiTempestMinionGUID[rand()%3]);
             if(pMinion && pMinion->isAlive())
             {
-                m_creature->MonsterTextEmote("%s overcharges Tempest Minion!", ObjectGuid(), true);
+                m_creature->MonsterTextEmote("%s overcharges Tempest Minion!", NULL, true);
                 pMinion->SetHealth(pMinion->GetMaxHealth());
                 pMinion->CastSpell(pMinion, SPELL_OVERCHARGE, false);
             }

@@ -908,7 +908,7 @@ struct CalcDamageInfo
 // Spell damage info structure based on structure sending in SMSG_SPELLNONMELEEDAMAGELOG opcode
 struct SpellNonMeleeDamage{
     SpellNonMeleeDamage(Unit *_attacker, Unit *_target, uint32 _SpellID, SpellSchoolMask _schoolMask)
-        : target(_target), attacker(_attacker), SpellID(_SpellID), damage(0), overkill(0), schoolMask(_schoolMask),
+        : target(_target), attacker(_attacker), SpellID(_SpellID), damage(0), schoolMask(_schoolMask),
         absorb(0), resist(0), physicalLog(false), unused(false), blocked(0), HitInfo(0)
     {}
 
@@ -916,7 +916,6 @@ struct SpellNonMeleeDamage{
     Unit   *attacker;
     uint32 SpellID;
     uint32 damage;
-    uint32 overkill;
     SpellSchoolMask schoolMask;
     uint32 absorb;
     uint32 resist;
@@ -1135,6 +1134,14 @@ enum ReactiveType
 };
 
 #define MAX_REACTIVE 3
+
+// Used as MiscValue for SPELL_AURA_IGNORE_UNIT_STATE
+enum IgnoreUnitState
+{
+    IGNORE_UNIT_TARGET_STATE      = 0,                      // target health, aura states, or combopoints
+    IGNORE_UNIT_COMBAT_STATE      = 1,                      // ignore caster in combat state
+    IGNORE_UNIT_TARGET_NON_FROZEN = 126,                    // ignore absent of frozen state
+};
 
 typedef std::set<uint64> GuardianPetList;
 
@@ -1453,6 +1460,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool IsPolymorphed() const;
 
         bool isFrozen() const;
+        bool IsIgnoreUnitState(SpellEntry const *spell, IgnoreUnitState ignoreState);
 
         void RemoveSpellbyDamageTaken(AuraType auraType, uint32 damage);
 
@@ -1832,8 +1840,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 CalculateDamage(WeaponAttackType attType, bool normalized);
         float GetAPMultiplier(WeaponAttackType attType, bool normalized);
         void ModifyAuraState(AuraState flag, bool apply);
-        bool HasAuraState(AuraState flag, SpellEntry const *spellProto = NULL, Unit *Caster = NULL) const;
-        bool HasAuraStateForCaster(AuraState flag, SpellEntry const *spellProto, uint64 caster) const;
+        bool HasAuraState(AuraState flag) const { return HasFlag(UNIT_FIELD_AURASTATE, 1<<(flag-1)); }
+        bool HasAuraStateForCaster(AuraState flag, uint64 caster) const;
 
         void UnsummonAllTotems();
         Unit* SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo = NULL);
