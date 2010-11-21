@@ -161,6 +161,15 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
                         pInstance->SetData(TYPE_STAGE,0);
                         pInstance->SetData(TYPE_CRUSADERS,DONE);
                         pInstance->SetData(TYPE_EVENT,3100);
+
+                        Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
+                        if (PlList.isEmpty())
+                            break;
+                        for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
+                        {
+                            if (Player* pPlayer = i->getSource())
+                                pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET,68184);
+                        }
                     }
                     break;
                 }
