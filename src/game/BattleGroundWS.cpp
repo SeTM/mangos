@@ -167,9 +167,9 @@ void BattleGroundWS::AddPlayer(Player *plr)
     m_PlayerScores[plr->GetGUID()] = sc;
 }
 
-void BattleGroundWS::RespawnFlag(uint32 Team, bool captured)
+void BattleGroundWS::RespawnFlag(Team team, bool captured)
 {
-    if (Team == ALLIANCE)
+    if (team == ALLIANCE)
     {
         DEBUG_LOG("Respawn Alliance flag");
         m_FlagState[BG_TEAM_ALLIANCE] = BG_WS_FLAG_STATE_ON_BASE;
@@ -192,7 +192,7 @@ void BattleGroundWS::RespawnFlag(uint32 Team, bool captured)
     }
 }
 
-void BattleGroundWS::RespawnFlagAfterDrop(uint32 team)
+void BattleGroundWS::RespawnFlagAfterDrop(Team team)
 {
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
@@ -223,7 +223,7 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player *Source)
 
     m_LastCapturedFlagTeam = Source->GetTeam();
 
-    uint32 winner = 0;
+    Team winner = TEAM_NONE;
 
     Source->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
     if (Source->GetTeam() == ALLIANCE)
@@ -289,7 +289,7 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player *Source)
     }
     else
     {
-        m_FlagsTimer[GetTeamIndexByTeamId(Source->GetTeam()) ? 0 : 1] = BG_WS_FLAG_RESPAWN_TIME;
+        m_FlagsTimer[GetOtherTeamIndex(GetTeamIndexByTeamId(Source->GetTeam()))] = BG_WS_FLAG_RESPAWN_TIME;
     }
 }
 
@@ -380,7 +380,7 @@ void BattleGroundWS::EventPlayerDroppedFlag(Player *Source)
             UpdateWorldState(BG_WS_FLAG_UNK_ALLIANCE, uint32(-1));
         }
 
-        m_FlagsDropTimer[GetTeamIndexByTeamId(Source->GetTeam()) ? 0 : 1] = BG_WS_FLAG_DROP_TIME;
+        m_FlagsDropTimer[GetOtherTeamIndex(GetTeamIndexByTeamId(Source->GetTeam()))] = BG_WS_FLAG_DROP_TIME;
     }
 }
 
@@ -518,7 +518,7 @@ void BattleGroundWS::RemovePlayer(Player *plr, uint64 guid)
     }
 }
 
-void BattleGroundWS::UpdateFlagState(uint32 team, uint32 value)
+void BattleGroundWS::UpdateFlagState(Team team, uint32 value)
 {
     if (team == ALLIANCE)
         UpdateWorldState(BG_WS_FLAG_STATE_ALLIANCE, value);
@@ -526,7 +526,7 @@ void BattleGroundWS::UpdateFlagState(uint32 team, uint32 value)
         UpdateWorldState(BG_WS_FLAG_STATE_HORDE, value);
 }
 
-void BattleGroundWS::UpdateTeamScore(uint32 team)
+void BattleGroundWS::UpdateTeamScore(Team team)
 {
     if (team == ALLIANCE)
         UpdateWorldState(BG_WS_FLAG_CAPTURES_ALLIANCE, GetTeamScore(team));
@@ -600,13 +600,13 @@ void BattleGroundWS::Reset()
     m_HonorWinKills = (isBGWeekend) ? 3 : 1;
     m_HonorEndKills = (isBGWeekend) ? 4 : 2;
     m_EndTimer = BG_WS_TIME_LIMIT;
-    m_LastCapturedFlagTeam = 0;
+    m_LastCapturedFlagTeam = TEAM_NONE;
 
     m_EndTimer = BG_WS_TIME_LIMIT;
-    m_LastCapturedFlagTeam = 0;
+    m_LastCapturedFlagTeam = TEAM_NONE;
 }
 
-void BattleGroundWS::EndBattleGround(uint32 winner)
+void BattleGroundWS::EndBattleGround(Team winner)
 {
     //win reward
     if (winner == ALLIANCE)
