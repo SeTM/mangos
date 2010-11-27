@@ -989,7 +989,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
     {
         // mark effects that were already handled in Spell::HandleDelayedSpellLaunch on spell launch as processed
         for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-            if (IsEffectHandledOnDelayedSpellLaunch(m_spellInfo, SpellEffectIndex(i)))
+            if (IsEffectHandledOnDelayedSpellLaunch(m_spellInfo, SpellEffectIndex(i)) && missInfo != SPELL_MISS_REFLECT)
                 mask &= ~(1<<i);
 
         // maybe used in effects that are handled on hit
