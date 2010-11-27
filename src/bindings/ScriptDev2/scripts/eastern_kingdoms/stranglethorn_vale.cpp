@@ -208,6 +208,15 @@ bool GossipSelectWithCode_npc_landro_longshot(Player* pPlayer, Creature* pCreatu
                     case 6:
                         RewardPlayer(pPlayer, sCode, 54811, 0);
                         break;
+                    case 7:
+                        RewardPlayer(pPlayer, sCode, 54069, 0);
+                        break;
+                    case 8:
+                        RewardPlayer(pPlayer, sCode, 800000, 0);
+                        break;
+                    case 9:
+                        RewardPlayer(pPlayer, sCode, 46017, 0);
+                        break;
                     }
                 }
                 pPlayer->CLOSE_GOSSIP_MENU();
