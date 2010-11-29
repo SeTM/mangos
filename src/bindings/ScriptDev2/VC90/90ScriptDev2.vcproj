@@ -2330,7 +2330,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\boss_proffesor_putricide.cpp"
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\boss_professor_putricide.cpp"
 							>
 						</File>
 						<File
@@ -2350,7 +2350,23 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\def_spire.h"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\gunship_battle.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\icecrown_spire.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\icecrown_teleport.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\instance_icecrown_spire.cpp"
 							>
 						</File>
 					</Filter>
