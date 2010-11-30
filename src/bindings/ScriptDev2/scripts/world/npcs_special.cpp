@@ -1065,7 +1065,11 @@ struct MANGOS_DLL_DECL npc_guardianAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+    }
+
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        uiDamage = 0;
     }
 
     void UpdateAI(const uint32 diff)
