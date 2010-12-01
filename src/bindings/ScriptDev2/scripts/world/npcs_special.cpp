@@ -2370,7 +2370,7 @@ void NotifyPlayer(Player* pPlayer, Creature* pCreature, const char* item, std::s
 	text = text + tail + Code;
 
     MailDraft(subject, text)
-        .SendMailTo(MailReceiver(pPlayer,GUID_LOPART(pPlayer->GetGUID())),MailSender(MAIL_CREATURE, pCreature->GetEntry()));
+        .SendMailTo(MailReceiver(pPlayer,pPlayer->GetGUID()),MailSender(MAIL_CREATURE, pCreature->GetEntry()));
 }
 
 void DoDrawing(Player *pPlayer, Creature *pCreature, uint32 Price, int Chance, const char* Item, int type, int b)
