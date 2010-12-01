@@ -348,6 +348,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     case 70492: case 72505:                 // Ooze Eruption
                     case 71904:                             // Chaos Bane
                     case 72624: case 72625:                 // Ooze Eruption
+                    case 70814: case 69055:                 // Bone Slice
                     {
                         uint32 count = 0;
                         for(std::list<TargetInfo>::iterator ihit= m_UniqueTargetInfo.begin();ihit != m_UniqueTargetInfo.end();++ihit)
@@ -481,6 +482,23 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                         if (!unitTarget->HasAura(65686))
                             return;
                         break;
+                        // Defile damage depending from scale.
+                    case 72754:
+                    case 73708:
+                    case 73709:
+                    case 73710:
+                        damage = damage * m_caster->GetObjectScale();
+                        break;
+                        // Growling ooze puddle
+                    case 70346:
+                    case 72456:
+                    case 72868:
+                    case 72869:
+                        {
+                            float distance = unitTarget->GetDistance2d(m_caster); 
+                            damage *= exp(-distance/(5.0f*m_caster->GetObjectScale()));
+                            break;
+                        }
                     // Bone Storm
                     case 69075:
                     case 70834:
@@ -488,9 +506,45 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     case 70836:
                     {
                         float distance = unitTarget->GetDistance2d(m_caster); 
-                        damage *= exp(-distance/(10.0f));
+                        damage *= exp(-distance/(47.0f));
                         break;
                     }
+                    case 74607:
+                        // SPELL_FIERY_COMBUSTION_EXPLODE - Ruby sanctum boss Halion,
+                        // damage proportional number of mark (74567, dummy)
+                        {
+                            if (Aura* aura = m_caster->GetAura(74567, EFFECT_INDEX_0))
+                            {
+                                if (aura->GetStackAmount() > 0)
+                                    damage = 1000 * aura->GetStackAmount();
+                                m_caster->RemoveAurasDueToSpell(74567);
+                            }
+                            else damage = 0;
+                            break;
+                        }
+                        // Blade of Twilight
+                    case 74769:
+                    case 77844:
+                    case 77845:
+                    case 77846:
+                        {
+                            float distance = unitTarget->GetDistance2d(m_caster); 
+                            damage *= exp(-distance/(10.0f));
+                            break;
+                        }
+                    case 74799:
+                        // SPELL_SOUL_CONSUMPTION_EXPLODE - Ruby sanctum boss Halion,
+                        // damage proportional number of mark (74795, dummy)
+                        {
+                            if (Aura* aura = m_caster->GetAura(74795, EFFECT_INDEX_0))
+                            {
+                                if (aura->GetStackAmount() > 0)
+                                    damage = 1000 * aura->GetStackAmount();
+                                m_caster->RemoveAurasDueToSpell(74795);
+                            }
+                            else damage = 0;
+                            break;
+                        }
                 }
                 break;
             }

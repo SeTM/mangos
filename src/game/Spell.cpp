@@ -1553,6 +1553,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 28542:                                 // Life Drain
                 case 66013:                                 // Penetrating Cold (10 man)
                 case 68509:                                 // Penetrating Cold (10 man heroic)
+                case 69055:                                 // Bone Slice
+                case 70814:
                     unMaxTargets = 2;
                     break;
                 case 28796:                                 // Poison Bolt Volley

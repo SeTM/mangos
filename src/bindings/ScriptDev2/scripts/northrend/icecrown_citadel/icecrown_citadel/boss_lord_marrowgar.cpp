@@ -31,7 +31,7 @@ enum
         NPC_BONE_SPIKE                          = 38711,
         NPC_COLD_FLAME                          = 36672,
         //Abilities
-        SPELL_SABER_LASH                        = 71021,
+        SPELL_SABER_LASH                        = 69055,
         SPELL_CALL_COLD_FLAME                   = 69138,
         SPELL_CALL_COLD_FLAME_1                 = 71580,
         SPELL_COLD_FLAME                        = 69146,
@@ -54,6 +54,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
 
     ScriptedInstance *pInstance;
     bool intro;
+    uint32 BoneSliceTimer;
 
     void Reset()
     {
@@ -62,6 +63,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
         resetTimers();
         m_creature->SetSpeedRate(MOVE_RUN, 1);
         m_creature->SetSpeedRate(MOVE_WALK, 1);
+        BoneSliceTimer = urand(10000,25000);
 //        m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
     }
 
@@ -114,7 +116,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
         if (!pTarget || !pTarget->isAlive()) return;
         float fPosX, fPosY, fPosZ;
         pTarget->GetPosition(fPosX, fPosY, fPosZ);
-        if (Unit* pSpike = doSummon(NPC_BONE_SPIKE, fPosX, fPosY, fPosZ + 0.5f))
+        if (Unit* pSpike = m_creature->SummonCreature(NPC_BONE_SPIKE, fPosX, fPosY, fPosZ + 0.5f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 0))
         {
             pSpike->SetOwnerGuid(m_creature->GetObjectGuid());
             pSpike->SetInCombatWith(pTarget);
@@ -166,7 +168,12 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
                         }
                     }
 
-                    timedCast(SPELL_SABER_LASH, diff);
+                    if (BoneSliceTimer <= diff)
+                    {
+                        DoCast(m_creature->getVictim(), SPELL_SABER_LASH);
+                        BoneSliceTimer = urand(10000,25000);
+                    } else BoneSliceTimer -= diff;
+
                     DoMeleeAttackIfReady();
                     break;
             case 1:

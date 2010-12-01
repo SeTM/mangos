@@ -313,6 +313,10 @@ CanCastResult BSWScriptedAI::_BSWSpellSelector(uint8 m_uiSpellIdx, Unit* pTarget
                    }
                    break;
 
+            case FORCE_CAST:
+                   result = _BSWDoForceCast(m_uiSpellIdx, pTarget);
+                   break;
+
             case SPELLTABLEPARM_NUMBER:
             default:
                    error_log("BSW: FAILED casting spell number %u type %u - type not exists",pSpell->m_uiSpellEntry[currentDifficulty], pSpell->m_CastTarget);
@@ -432,7 +436,8 @@ BossSpellTableParameters BSWScriptedAI::_getBSWCastType(uint32 pTemp)
                 case 15: return CAST_ON_RANDOM_POINT;
                 case 16: return CAST_ON_RANDOM_PLAYER;
                 case 17: return APPLY_AURA_ALLPLAYERS;
-                case 18: return SPELLTABLEPARM_NUMBER;
+                case 18: return FORCE_CAST;
+                case 19: return SPELLTABLEPARM_NUMBER;
      default: return DO_NOTHING;
      };
 };
@@ -442,16 +447,35 @@ CanCastResult BSWScriptedAI::_BSWDoCast(uint8 m_uiSpellIdx, Unit* pTarget)
     BSWRecord* pSpell = &m_BSWRecords[m_uiSpellIdx];
 
     if (!pTarget || !pTarget->IsInMap(m_creature) || !pTarget->isAlive())
-        {
-           error_log("BSW: warning - failed casting bugged spell number %u - no target or target not in map",pSpell->m_uiSpellEntry[currentDifficulty]);
-           return CAST_FAIL_OTHER;
-        }
+    {
+       error_log("BSW: warning - failed casting bugged spell number %u - no target or target not in map",pSpell->m_uiSpellEntry[currentDifficulty]);
+       return CAST_FAIL_OTHER;
+    }
 
     debug_log("BSW: Casting bugged spell number %u type %u",pSpell->m_uiSpellEntry[currentDifficulty], pSpell->m_CastTarget);
 
     pTarget->InterruptNonMeleeSpells(false);
 
     pTarget->CastSpell(pTarget, pSpell->m_uiSpellEntry[currentDifficulty], false);
+
+    return CAST_OK;
+};
+
+CanCastResult BSWScriptedAI::_BSWDoForceCast(uint8 m_uiSpellIdx, Unit* pTarget)
+{
+    BSWRecord* pSpell = &m_BSWRecords[m_uiSpellIdx];
+
+    if (!pTarget || !pTarget->IsInMap(m_creature) || !pTarget->isAlive())
+    {
+       error_log("BSW: warning - failed forced casting spell number %u - no target or target not in map",pSpell->m_uiSpellEntry[currentDifficulty]);
+       return CAST_FAIL_OTHER;
+    }
+
+    debug_log("BSW: Forced casting spell number %u ",pSpell->m_uiSpellEntry[currentDifficulty], pSpell->m_CastTarget);
+
+    pTarget->InterruptNonMeleeSpells(false);
+
+    pTarget->CastSpell(m_creature, pSpell->m_uiSpellEntry[currentDifficulty], true);
 
     return CAST_OK;
 };
@@ -501,22 +525,22 @@ Unit* BSWScriptedAI::_doSummon(uint8 m_uiSpellIdx, TempSummonType summontype, ui
     else return m_creature->SummonCreature(pSpell->m_uiSpellEntry[currentDifficulty], pSpell->LocData.x, pSpell->LocData.y, pSpell->LocData.z, 0, summontype, delay);
 };
 
-Unit* BSWScriptedAI::_doSummonAtPosition(uint8 m_uiSpellIdx)
+Unit* BSWScriptedAI::_doSummonAtPosition(uint8 m_uiSpellIdx, float fPosX, float fPosY, float fPosZ)
 {
     BSWRecord* pSpell = &m_BSWRecords[m_uiSpellIdx];
 
     switch (pSpell->m_CastTarget) 
     {
         case SUMMON_NORMAL:
-             return _doSummonAtPosition(m_uiSpellIdx, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 0, pSpell->LocData.x, pSpell->LocData.y, pSpell->LocData.z);
+             return _doSummonAtPosition(pSpell->m_uiSpellEntry[m_uiSpellIdx], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 0, fPosX, fPosY, fPosZ);
              break;
 
         case SUMMON_TEMP:
-             return _doSummonAtPosition(m_uiSpellIdx, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, urand(pSpell->m_uiSpellTimerMin[currentDifficulty],pSpell->m_uiSpellTimerMax[currentDifficulty]), pSpell->LocData.x, pSpell->LocData.y, pSpell->LocData.z);
+             return _doSummonAtPosition(pSpell->m_uiSpellEntry[m_uiSpellIdx], TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, urand(pSpell->m_uiSpellTimerMin[currentDifficulty],pSpell->m_uiSpellTimerMax[currentDifficulty]), fPosX, fPosY, fPosZ);
              break;
 
         case SUMMON_INSTANT:
-             return _doSummonAtPosition(m_uiSpellIdx, TEMPSUMMON_MANUAL_DESPAWN, urand(pSpell->m_uiSpellTimerMin[currentDifficulty],pSpell->m_uiSpellTimerMax[currentDifficulty]), pSpell->LocData.x, pSpell->LocData.y, pSpell->LocData.z);
+             return _doSummonAtPosition(pSpell->m_uiSpellEntry[m_uiSpellIdx], TEMPSUMMON_MANUAL_DESPAWN, urand(pSpell->m_uiSpellTimerMin[currentDifficulty],pSpell->m_uiSpellTimerMax[currentDifficulty]), fPosX, fPosY, fPosZ);
              break;
 
         default:
@@ -561,8 +585,10 @@ bool BSWScriptedAI::_doRemove(uint8 m_uiSpellIdx, Unit* pTarget, uint8 index)
                 case CAST_ON_VICTIM:
                 case CAST_ON_BOTTOMAGGRO:
                 case CAST_ON_TARGET:
+                case FORCE_CAST:
                 case APPLY_AURA_TARGET:
-                         if (!pTarget) return false;
+                         if (!pTarget)
+                             return false;
                      break;
 
                 case CAST_ON_RANDOM:
@@ -627,7 +653,11 @@ bool BSWScriptedAI::_doRemoveFromAll(uint32 SpellID)
         {
             Unit* pTarget = itr->getSource();
             if (pTarget && pTarget->IsInWorld())
+            {
                 pTarget->RemoveAurasDueToSpell(SpellID);
+                if (Pet* pPet = pTarget->GetPet())
+                    pPet->RemoveAurasDueToSpell(SpellID);
+            }
         }
         return true;
     }
@@ -638,74 +668,105 @@ bool BSWScriptedAI::_doRemoveFromAll(uint32 SpellID)
     }
 };
 
-bool BSWScriptedAI::_doAura(uint8 m_uiSpellIdx, Unit* pTarget, SpellEffectIndex index)
+bool BSWScriptedAI::_doAura(uint8 m_uiSpellIdx, Unit* pTarget)
 {
     BSWRecord* pSpell = &m_BSWRecords[m_uiSpellIdx];
 
-    if (!pTarget || !pTarget->IsInMap(m_creature) || !pTarget->isAlive())
-        {
-           error_log("BSW: FAILED adding aura of spell number %u - no target or target not in map or target is dead",pSpell->m_uiSpellEntry[currentDifficulty]);
-           return false;
-        }
+    if (!pTarget)
+        pTarget = m_creature;
 
-    if (_hasAura(m_uiSpellIdx,pTarget))
-         debug_log("BSW: adding aura stack from spell %u index %u",pSpell->m_uiSpellEntry[currentDifficulty], index);
-    else debug_log("BSW: adding new aura from spell %u index %u",pSpell->m_uiSpellEntry[currentDifficulty], index);
+    bool result = true;
 
-    SpellEntry const *spell = (SpellEntry *)GetSpellStore()->LookupEntry(pSpell->m_uiSpellEntry[currentDifficulty]);
-    if (spell && spell->Effect[index] < TOTAL_SPELL_EFFECTS)
-    {
-        if (IsSpellAppliesAura(spell, (1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)) || IsSpellHaveEffect(spell, SPELL_EFFECT_PERSISTENT_AREA_AURA))
-        {
-            SpellAuraHolder *holder = CreateSpellAuraHolder(spell, pTarget,  pSpell->m_IsBugged ? pTarget : m_creature);
+    for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
+        result = result && _doAura(m_uiSpellIdx, pTarget, SpellEffectIndex(i), !i);
 
-            int32 basepoint = pSpell->varData ?  pSpell->varData - 1 : spell->EffectBasePoints[index] + 1;
+    return result;
 
-            if( IsAreaAuraEffect(spell->Effect[index]) ||
-                spell->Effect[index] == SPELL_EFFECT_APPLY_AURA  ||
-                spell->Effect[index] == SPELL_EFFECT_PERSISTENT_AREA_AURA )
-                {
-                    Aura *aura = CreateAura(spell, SpellEffectIndex(index), &basepoint, holder, pTarget);
-                    holder->AddAura(aura, SpellEffectIndex(index));
-                    return true;
-                }
-        }
-    }
-
-    error_log("BSW: FAILED adding aura from spell %u index %u",pSpell->m_uiSpellEntry[currentDifficulty], index);
-
-    return false;
 };
 
-bool BSWScriptedAI::_doAura(uint32 SpellID, Unit* pTarget, SpellEffectIndex index)
+bool BSWScriptedAI::_doAura(uint32 SpellID, Unit* pTarget)
+{
+    if (!pTarget)
+        pTarget = m_creature;
+
+    bool result = true;
+
+    for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
+        result = result && _doAura(SpellID, pTarget, SpellEffectIndex(i), 0, !i);
+
+    return result;
+
+};
+
+
+bool BSWScriptedAI::_doAura(uint8 m_uiSpellIdx, Unit* pTarget, SpellEffectIndex index, bool isStack)
+{
+    BSWRecord* pSpell = &m_BSWRecords[m_uiSpellIdx];
+
+    if (!pTarget)
+        pTarget = m_creature;
+
+    return _doAura(pSpell->m_uiSpellEntry[currentDifficulty], pTarget, index, pSpell->varData, isStack);
+
+};
+
+
+bool BSWScriptedAI::_doAura(uint32 SpellID, Unit* pTarget, SpellEffectIndex index, int32 basepoint, bool isStack)
 {
     if (!pTarget || !pTarget->IsInMap(m_creature) || !pTarget->isAlive())
-        {
-           error_log("BSW: FAILED adding aura of spell number %u - no target or target not in map or target is dead",SpellID);
-           return false;
-        }
+    {
+        error_log("BSW: FAILED adding aura of spell number %u - no target or target not in map or target is dead",SpellID);
+        return false;
+    }
 
     if (_hasAura(SpellID,pTarget))
          debug_log("BSW: adding aura stack from spell %u index %u",SpellID, index);
     else debug_log("BSW: adding new aura from spell %u index %u",SpellID, index);
 
     SpellEntry const *spell = (SpellEntry *)GetSpellStore()->LookupEntry(SpellID);
-    if (spell && spell->Effect[index] < TOTAL_SPELL_EFFECTS)
+
+    if (spell)
     {
         if (IsSpellAppliesAura(spell, (1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)) || IsSpellHaveEffect(spell, SPELL_EFFECT_PERSISTENT_AREA_AURA))
         {
-            SpellAuraHolder* holder = CreateSpellAuraHolder(spell, pTarget, m_creature);
+            int32 _basepoint = basepoint ?  basepoint - 1 : spell->EffectBasePoints[index] + 1;
 
-            int32 basepoint = spell->EffectBasePoints[index] + 1;
+            bool addedToExisting = true;
 
-            if( IsAreaAuraEffect(spell->Effect[index]) ||
-                spell->Effect[index] == SPELL_EFFECT_APPLY_AURA  ||
-                spell->Effect[index] == SPELL_EFFECT_PERSISTENT_AREA_AURA )
-                {
-                    Aura *aura = CreateAura(spell, SpellEffectIndex(index), &basepoint, holder, pTarget);
-                    holder->AddAura(aura, SpellEffectIndex(index));
-                    return true;
-                }
+            SpellAuraHolder* holder = pTarget->GetSpellAuraHolder(SpellID, pTarget->GetGUID());
+
+            Aura* aura = NULL;
+
+            if (!holder)
+            {
+                holder = CreateSpellAuraHolder(spell, pTarget, pTarget);
+                addedToExisting = false;
+            }
+
+
+            if (aura = holder->GetAuraByEffectIndex(index))
+            {
+                if (isStack)
+                    holder->ModStackAmount(1);
+            }
+            else 
+            {
+                aura = CreateAura(spell, index, &_basepoint, holder, pTarget);
+                aura->SetAuraDuration(aura->GetAuraMaxDuration());
+                holder->AddAura(aura, index);
+            }
+
+            if (addedToExisting)
+            {
+                pTarget->AddAuraToModList(aura);
+                holder->SetInUse(true);
+                aura->ApplyModifier(true,true);
+                holder->SetInUse(false);
+            }
+            else
+                pTarget->AddSpellAuraHolder(holder);
+
+            return true;
         }
     }
 
