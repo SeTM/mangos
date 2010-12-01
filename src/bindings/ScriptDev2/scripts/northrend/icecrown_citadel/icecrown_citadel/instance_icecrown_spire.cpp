@@ -250,6 +250,9 @@ static Locations SpawnLoc[]=
     {
         switch(pGo->GetEntry())
         {
+            case GO_LORD_MARROWGAR_ENTRANCE:
+                m_uiLordEntranceGUID = pGo->GetGUID();
+                break;
             case GO_ICEWALL_1: 
                          m_uiIcewall1GUID = pGo->GetGUID();
                          break;
@@ -431,11 +434,15 @@ static Locations SpawnLoc[]=
                 break;
             case TYPE_MARROWGAR:
                 m_auiEncounter[TYPE_MARROWGAR] = uiData;
+                if (uiData == IN_PROGRESS)
+                    CloseDoor(m_uiLordEntranceGUID);
+                else
+                    OpenDoor(m_uiLordEntranceGUID);
                 if (uiData == DONE) 
                     {
                         OpenDoor(m_uiIcewall1GUID);
                         OpenDoor(m_uiIcewall2GUID);
-                        OpenDoor( m_uiOratoryDoorGUID);
+                        OpenDoor(m_uiOratoryDoorGUID);
                     }
                 break;
              case TYPE_DEATHWHISPER:

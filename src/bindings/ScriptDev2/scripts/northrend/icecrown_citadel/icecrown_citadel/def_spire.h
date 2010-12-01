@@ -74,6 +74,8 @@ enum
     GO_ORATORY_DOOR             = 201563,
     GO_DEATHWHISPER_ELEVATOR    = 202220, //5653
 
+    GO_LORD_MARROWGAR_ENTRANCE  = 201857,
+
     GO_SAURFANG_DOOR            = 201825,
 
     GO_GAS_RELEASE_VALVE        = 201616, //72479
@@ -208,6 +210,7 @@ private:
 
     uint64 m_uidummyTargetGUID;
 
+    uint64 m_uiLordEntranceGUID;
     uint64 m_uiIcewall1GUID;
     uint64 m_uiIcewall2GUID;
     uint64 m_uiSaurfangDoorGUID;
