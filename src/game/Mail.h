@@ -133,6 +133,9 @@ class MailSender
         /// The stationary associated with this MailSender
         MailStationery GetStationery() const { return m_stationery; }
     private:
+        // Trap for wrong used guid as low guid, no body
+        MailSender(MailMessageType messageType, uint64 wrong_guid, MailStationery stationery = MAIL_STATIONERY_DEFAULT);
+
         MailMessageType m_messageType;
         uint32 m_senderId;                                  // player low guid or other object entry
         MailStationery m_stationery;
@@ -144,9 +147,9 @@ class MailSender
 class MANGOS_DLL_SPEC MailReceiver
 {
     public:                                                 // Constructors
-        explicit MailReceiver(uint32 receiver_lowguid) : m_receiver(NULL), m_receiver_lowguid(receiver_lowguid) {}
+        explicit MailReceiver(ObjectGuid receiver_guid) : m_receiver(NULL), m_receiver_guid(receiver_guid) {}
         MailReceiver(Player* receiver);
-        MailReceiver(Player* receiver,uint32 receiver_lowguid);
+        MailReceiver(Player* receiver, ObjectGuid receiver_guid);
     public:                                                 // Accessors
         /**
          * Gets the player associated with this MailReciever
@@ -162,10 +165,10 @@ class MANGOS_DLL_SPEC MailReceiver
          *
          * @returns the low part of the GUID of the player associated with this MailReciever
          */
-        uint32  GetPlayerGUIDLow() const { return m_receiver_lowguid; }
+        ObjectGuid const& GetPlayerGuid() const { return m_receiver_guid; }
     private:
         Player* m_receiver;
-        uint32  m_receiver_lowguid;
+        ObjectGuid m_receiver_guid;
 };
 /**
  * The class to represent the draft of a mail.
@@ -222,7 +225,7 @@ class MailDraft
          */
         MailDraft& AddCOD(uint32 COD) { m_COD = COD; return *this; }
     public:                                                 // finishers
-        void SendReturnToSender(uint32 sender_acc, uint32 sender_lowguid, uint32 receiver_lowguid);
+        void SendReturnToSender(uint32 sender_acc, ObjectGuid sender_guid, ObjectGuid receiver_guid);
         void MANGOS_DLL_SPEC SendMailTo(MailReceiver const& receiver, MailSender const& sender, MailCheckMask checked = MAIL_CHECK_MASK_NONE, uint32 deliver_delay = 0);
     private:
         void deleteIncludedItems(bool inDB = false);
@@ -265,10 +268,10 @@ struct Mail
     uint8 stationery;
     /// the ID of the template this mail is based on.
     uint16 mailTemplateId;
-    /// the GUID of the player that sent this mail.
+    /// the LowGUID of the player that sent this mail, or creature low guid, or other id
     uint32 sender;
     /// the GUID of the player that this mail is sent to.
-    uint32 receiver;
+    ObjectGuid receiverGuid;
     /// the subject of the mail
     std::string subject;
     /// the body of the mail

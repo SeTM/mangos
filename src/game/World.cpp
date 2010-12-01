@@ -229,9 +229,9 @@ World::AddSession_ (WorldSession* s)
 
     m_sessions[s->GetAccountId ()] = s;
 
-    uint32 Sessions = GetActiveAndQueuedSessionCount ();
-    uint32 pLimit = GetPlayerAmountLimit ();
-    uint32 QueueSize = GetQueueSize ();                     //number of players in the queue
+    uint32 Sessions = GetActiveAndQueuedSessionCount();
+    uint32 pLimit = GetPlayerAmountLimit();
+    uint32 QueueSize = GetQueuedSessionCount();                     //number of players in the queue
 
     //so we don't count the user trying to
     //login as a session and queue the socket that we are using
