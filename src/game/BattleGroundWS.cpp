@@ -221,8 +221,6 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player *Source)
 	
 	m_LastCapturedFlagTeam = Source->GetTeam();
 
-    m_LastCapturedFlagTeam = Source->GetTeam();
-
     Team winner = TEAM_NONE;
 
     Source->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
