@@ -4958,7 +4958,7 @@ void Unit::RemoveAurasDueToItemSpell(Item* castItem,uint32 spellId)
     SpellAuraHolderBounds bounds = GetSpellAuraHolderBounds(spellId);
     for (SpellAuraHolderMap::iterator iter = bounds.first; iter != bounds.second; )
     {
-        if (iter->second->GetCastItemGUID() == castItem->GetGUID())
+        if (iter->second->GetCastItemGuid() == castItem->GetObjectGuid())
         {
             RemoveSpellAuraHolder(iter->second);
             bounds = GetSpellAuraHolderBounds(spellId);
@@ -8954,6 +8954,22 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
         if (speed < min_speed)
             speed = min_speed;
     }
+
+    if (GetTypeId() == TYPEID_UNIT)
+    {
+        switch(mtype)
+        {
+        case MOVE_RUN:
+            speed *= ((Creature*)this)->GetCreatureInfo()->speed_run;
+            break;
+        case MOVE_WALK:
+            speed *= ((Creature*)this)->GetCreatureInfo()->speed_walk;
+            break;
+        default:
+            break;
+        }
+    }
+
     SetSpeedRate(mtype, speed * ratio, forced);
 }
 

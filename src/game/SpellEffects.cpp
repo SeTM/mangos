@@ -1708,6 +1708,20 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget,46798,true,m_CastItem,NULL,m_originalCasterGUID);
                     break;
                 }
+                case 47170:                                 // Impale Leviroth
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    unitTarget->SetHealthPercent(8.0f);
+
+                    // Cosmetic - Underwater Blood (no sound)
+                    // Spell persist through death, but should not be there at respawn (TODO: some research, so this&similar are removed at resp.)
+                    unitTarget->CastSpell(unitTarget, 47172, true);
+
+                    ((Creature*)unitTarget)->AI()->AttackStart(m_caster);
+                    return;
+                }
                 case 47176:                                 // Infect Ice Troll
                 {
                     // Spell has wrong areaGroupid, so it can not be casted where expected.
@@ -2958,7 +2972,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         if ((*itr)->GetSpellProto()->SpellFamilyName==SPELLFAMILY_SHAMAN &&
                             ((*itr)->GetSpellProto()->SpellFamilyFlags & UI64LIT(0x0000000000200000)) &&
-                            (*itr)->GetCastItemGUID() == item->GetGUID())
+                            (*itr)->GetCastItemGuid() == item->GetObjectGuid())
                         {
                             m_damage += m_damage * damage / 100;
                             return;
@@ -4728,9 +4742,6 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     spawnCreature->setPowerType(POWER_MANA);
     spawnCreature->setFaction(m_caster->getFaction());
-    spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, 0);
-    spawnCreature->SetUInt32Value(UNIT_FIELD_BYTES_0, 2048);
-    spawnCreature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
     spawnCreature->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
     spawnCreature->SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
     spawnCreature->SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, 1000);
@@ -5206,8 +5217,6 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
         spawnCreature->setPowerType(POWER_MANA);
         spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, spawnCreature->GetCreatureInfo()->npcflag);
         spawnCreature->setFaction(forceFaction ? forceFaction : m_caster->getFaction());
-        spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, 0);
-        spawnCreature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
         spawnCreature->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
         spawnCreature->SetCreatorGuid(m_caster->GetObjectGuid());
         spawnCreature->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
@@ -5666,8 +5675,6 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     NewSummon->SetCreatorGuid(m_caster->GetObjectGuid());
     NewSummon->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     NewSummon->setFaction(faction);
-    NewSummon->SetUInt32Value(UNIT_FIELD_BYTES_0, 2048);
-    NewSummon->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
     NewSummon->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, uint32(time(NULL)));
     NewSummon->SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
     NewSummon->SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, 1000);
@@ -7866,7 +7873,7 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
     Player *target = (Player*)unitTarget;
 
     // caster or target already have requested duel
-    if( caster->duel || target->duel || !target->GetSocial() || target->GetSocial()->HasIgnore(caster->GetGUIDLow()) )
+    if( caster->duel || target->duel || !target->GetSocial() || target->GetSocial()->HasIgnore(caster->GetObjectGuid()) )
         return;
 
     // Players can only fight a duel with each other outside (=not inside dungeons and not in capital cities)
