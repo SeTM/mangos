@@ -2294,6 +2294,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_originalCaster->CastCustomSpell(unitTarget, 54172, &m_currentBasePoints[0], &m_currentBasePoints[1], &m_currentBasePoints[2], true, 0, 0, m_originalCasterGUID);
                     break;
                 }
+                case 69922: // Temper Quel'Delar
+                    {
+                        if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                            return;
+
+                        m_caster->CastSpell(m_caster,69956,true,NULL);
+                        break;
+                    }
             }
             break;
         }
