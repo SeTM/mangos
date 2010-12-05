@@ -4265,11 +4265,12 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder *holder)
                 case SPELL_AURA_PERIODIC_MANA_LEECH:
                 case SPELL_AURA_OBS_MOD_MANA:
                 case SPELL_AURA_POWER_BURN_MANA:
+                case SPELL_AURA_MOD_DAMAGE_FROM_CASTER:
                     break;
                 case SPELL_AURA_PERIODIC_ENERGIZE:      // all or self or clear non-stackable
                 default:                                // not allow
                     // can be only single (this check done at _each_ aura add
-                    RemoveSingleAuraFromSpellAuraHolder(foundHolder,SpellEffectIndex(i),AURA_REMOVE_BY_STACK);
+                    RemoveSpellAuraHolder(foundHolder,SpellEffectIndex(i),AURA_REMOVE_BY_STACK);
                     stop = true;
                     break;
                 }
