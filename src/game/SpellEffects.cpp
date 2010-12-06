@@ -2302,6 +2302,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         m_caster->CastSpell(m_caster,69956,true,NULL);
                         break;
                     }
+                case 70896: // Dark Empowerment
+                    {
+                        if (!unitTarget || !unitTarget->isAlive())
+                            return;
+                        
+                        unitTarget->CastSpell(unitTarget,70901,true,NULL);
+                        break;
+                    }
             }
             break;
         }

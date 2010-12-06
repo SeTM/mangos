@@ -447,26 +447,34 @@ static Locations SpawnLoc[]=
                 break;
              case TYPE_DEATHWHISPER:
                 m_auiEncounter[TYPE_DEATHWHISPER] = uiData; 
-                if (uiData == DONE) {
+                if (uiData == IN_PROGRESS)
+                    CloseDoor(m_uiOratoryDoorGUID);
+                else
+                    OpenDoor(m_uiOratoryDoorGUID);
+                if (uiData == DONE) 
+                {
                     if (GameObject* pGO = instance->GetGameObject(m_uiDeathWhisperElevatorGUID))
-                        {
-                              pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                              pGO->SetGoState(GO_STATE_READY);
-                        }
+                    {
+                        pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                        pGO->SetGoState(GO_STATE_READY);
+                    }
                 }
                 break;
              case TYPE_FLIGHT_WAR:
-                if (uiData == DONE && m_auiEncounter[TYPE_FLIGHT_WAR] != DONE  ) {
-                                 if (GameObject* pChest = instance->GetGameObject(m_uiGunshipArmoryAGUID))
-                                     if (pChest && !pChest->isSpawned()) {
-                                          pChest->SetRespawnTime(7*DAY);
-                                      };
+                 if (uiData == DONE && m_auiEncounter[TYPE_FLIGHT_WAR] != DONE) 
+                 {
+                     if (GameObject* pChest = instance->GetGameObject(m_uiGunshipArmoryAGUID))
+                         if (pChest && !pChest->isSpawned()) 
+                         {
+                             pChest->SetRespawnTime(7*DAY);
+                         };
 
-                                 if (GameObject* pChest = instance->GetGameObject(m_uiGunshipArmoryHGUID))
-                                     if (pChest && !pChest->isSpawned()) {
-                                          pChest->SetRespawnTime(7*DAY);
-                                      };
-                                };
+                     if (GameObject* pChest = instance->GetGameObject(m_uiGunshipArmoryHGUID))
+                         if (pChest && !pChest->isSpawned()) 
+                         {
+                             pChest->SetRespawnTime(7*DAY);
+                         };
+                 };
                 m_auiEncounter[3] = uiData; 
                 break;
              case TYPE_SAURFANG:

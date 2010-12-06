@@ -25,40 +25,40 @@ EndScriptData */
 #include "def_spire.h"
 enum BossSpells
 {
-        //common
-        SPELL_BERSERK                           = 47008,
-        //yells
-        //summons
-        NPC_VENGEFUL_SHADE                      = 38222,
-        NPC_FANATIC                             = 37890,
-        NPC_REANIMATED_FANATIC                  = 38009,
-        NPC_ADHERENT                            = 37949,
-        NPC_REANIMATED_ADHERENT                 = 38010,
-        //Abilities
-        SPELL_MANA_BARRIER                      = 70842,
-        SPELL_SHADOW_BOLT                       = 71254,
-        SPELL_DEATH_AND_DECAY                   = 71001,
-        SPELL_DARK_EMPOWERMENT                  = 70901,
-        SPELL_FROSTBOLT                         = 71420,
-        SPELL_INSIGNIFICANCE                    = 71204,
+    //common
+    SPELL_BERSERK                           = 47008,
+    //yells
+    //summons
+    NPC_VENGEFUL_SHADE                      = 38222,
+    NPC_FANATIC                             = 37890,
+    NPC_REANIMATED_FANATIC                  = 38009,
+    NPC_ADHERENT                            = 37949,
+    NPC_REANIMATED_ADHERENT                 = 38010,
+    //Abilities
+    SPELL_MANA_BARRIER                      = 70842,
+    SPELL_SHADOW_BOLT                       = 71254,
+    SPELL_DEATH_AND_DECAY                   = 71001,
+    SPELL_DARK_EMPOWERMENT                  = 70901,
+    SPELL_FROSTBOLT                         = 71420,
+    SPELL_INSIGNIFICANCE                    = 71204,
 
-        SPELL_DOMINATE_MIND                     = 71289,
+    SPELL_DOMINATE_MIND                     = 71289,
 
-        SPELL_VENGEFUL_BLAST                    = 71494,
-        SPELL_VENGEFUL_BLAST_0                  = 71544,
-        // summons
-        SPELL_FROST_FEVER                       = 71129,
-        SPELL_DEATHCHILL_BOLT                   = 70594,
-        SPELL_DEATHCHILL_BLAST                  = 70906,
-        SPELL_DARK_MARTYRDROM                   = 70903,
-        SPELL_CURSE_OF_TOPOR                    = 71237,
-        SPELL_SHORUD_OF_THE_OCCULUT             = 70768,
-        SPELL_ADHERENTS_DETERMINIATION          = 71234,
-        SPELL_SUMMON_VISUAL                     = 41236,
+    SPELL_VENGEFUL_BLAST                    = 71494,
+    SPELL_VENGEFUL_BLAST_0                  = 71544,
+    // summons
+    SPELL_FROST_FEVER                       = 71129,
+    SPELL_DEATHCHILL_BOLT                   = 70594,
+    SPELL_DEATHCHILL_BLAST                  = 70906,
+    SPELL_DARK_MARTYRDROM                   = 70903,
+    SPELL_CURSE_OF_TOPOR                    = 71237,
+    SPELL_SHORUD_OF_THE_OCCULUT             = 70768,
+    SPELL_ADHERENTS_DETERMINIATION          = 71234,
+    SPELL_SUMMON_VISUAL                     = 41236,
 
-        SPELL_NECROTIC_STRIKE                   = 70659,
-        SPELL_SHADOW_CLEAVE                     = 70670,
-        SPELL_VAMPIRIC_MIGHT                    = 70674,
+    SPELL_NECROTIC_STRIKE                   = 70659,
+    SPELL_SHADOW_CLEAVE                     = 70670,
+    SPELL_VAMPIRIC_MIGHT                    = 70674,
 };
 
 static Locations SpawnLoc[]=
@@ -103,33 +103,36 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
         if (m_creature->CanInitiateAttack() && pWho->isTargetableForAttack() &&
         m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
         {
-        if (m_creature->IsWithinDistInMap(pWho, m_creature->GetAttackDistance(pWho)) && m_creature->IsWithinLOSInMap(pWho))
-        {
-            if (!m_creature->getVictim())
+            if (m_creature->IsWithinDistInMap(pWho, m_creature->GetAttackDistance(pWho)) && m_creature->IsWithinLOSInMap(pWho))
             {
-                pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
-                AttackStart(pWho);
-            }
-            else if (m_creature->GetMap()->IsDungeon())
-            {
-                pWho->SetInCombatWith(m_creature);
-                m_creature->AddThreat(pWho);
+                if (!m_creature->getVictim())
+                {
+                    pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+                    AttackStart(pWho);
+                }
+                else if (m_creature->GetMap()->IsDungeon())
+                {
+                    pWho->SetInCombatWith(m_creature);
+                    m_creature->AddThreat(pWho);
+                }
             }
         }
-    }
-        if (stage) return;
-        else intro = true;
+        if (stage) 
+            return;
+        else 
+            intro = true;
     }
 
     void KilledUnit(Unit* pVictim)
     {
-    switch (urand(0,1)) {
+        switch (urand(0,1)) 
+        {
         case 0:
-               DoScriptText(-1631029,m_creature,pVictim);
-               break;
+            DoScriptText(-1631029,m_creature,pVictim);
+            break;
         case 1:
-               DoScriptText(-1631030,m_creature,pVictim);
-               break;
+            DoScriptText(-1631030,m_creature,pVictim);
+            break;
         };
     }
 
@@ -146,11 +149,12 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
         {
              m_creature->GetMotionMaster()->MovePoint(1, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
         }
-        else    {
-                m_creature->GetMotionMaster()->MovementExpired();
-                MovementStarted = false;
-                SetCombatMovement(false);
-                }
+        else
+        {
+            m_creature->GetMotionMaster()->MovementExpired();
+            MovementStarted = false;
+            SetCombatMovement(false);
+        }
     }
 
     void Aggro(Unit *who) 
@@ -165,7 +169,8 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
 
     void JustDied(Unit *killer)
     {
-        if(pInstance) pInstance->SetData(TYPE_DEATHWHISPER, DONE);
+        if(pInstance) 
+            pInstance->SetData(TYPE_DEATHWHISPER, DONE);
         DoScriptText(-1631032,m_creature,killer);
     }
 
@@ -173,9 +178,8 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
     {
         if(!pInstance || !summoned) return;
 
-        if (Unit* pTarget= m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) ) {
+        if (Unit* pTarget= m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0)) 
             summoned->AddThreat(pTarget, 100.0f);
-            }
     }
 
     void CallGuard(uint8 place)
@@ -193,159 +197,168 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
         if (!m_creature || !m_creature->isAlive())
             return;
 
-        if (hasAura(SPELL_MANA_BARRIER, m_creature)) {
-            if (m_creature->GetPower(POWER_MANA) > uiDamage) {
-                     m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-uiDamage);
-                     uiDamage = 0;
-                     }
-                else {
-                     m_creature->SetPower(POWER_MANA,0);
-                     doRemove(SPELL_MANA_BARRIER);
-                     };
-            } else return;
+        if (hasAura(SPELL_MANA_BARRIER, m_creature)) 
+        {
+            if (m_creature->GetPower(POWER_MANA) > uiDamage) 
+            {
+                m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-uiDamage);
+                uiDamage = 0;
+            }
+            else 
+            {
+                m_creature->SetPower(POWER_MANA,0);
+                doRemove(SPELL_MANA_BARRIER);
+            };
+        } else return;
     }
 
     void UpdateAI(const uint32 diff)
     {
-        if (intro && timedQuery(SPELL_SHADOW_BOLT,diff)) 
-            switch (stage) {
-                                   case 0:
-                                          DoScriptText(-1631020,m_creature);
-                                          stage = 1;
-                                          break;
-                                   case 1:
-                                          DoScriptText(-1631021,m_creature);
-                                          stage = 2;
-                                          break;
-                                   case 2:
-                                          DoScriptText(-1631022,m_creature);
-                                          stage = 3;
-                                          break;
-                                   default:
-                                          break;
-                                   }
+        if (intro && timedQuery(SPELL_SHADOW_BOLT,diff))
+            switch (stage)
+        {
+            case 0:
+                DoScriptText(-1631020,m_creature);
+                stage = 1;
+                break;
+            case 1:
+                DoScriptText(-1631021,m_creature);
+                stage = 2;
+                break;
+            case 2:
+                DoScriptText(-1631022,m_creature);
+                stage = 3;
+                break;
+            default:
+                break;
+        }
 
-        if (hasAura(SPELL_MANA_BARRIER, m_creature)) {
-             if(m_creature->GetHealth() <= m_creature->GetMaxHealth()) {
-                  if (m_creature->GetPower(POWER_MANA) > (m_creature->GetMaxHealth() - m_creature->GetHealth()))
-                        {
-                         m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-(m_creature->GetMaxHealth() - m_creature->GetHealth()));
-                         m_creature->SetHealth(m_creature->GetMaxHealth());
-                        }
-                        else m_creature->SetPower(POWER_MANA,0);
-            }
+        if (hasAura(SPELL_MANA_BARRIER, m_creature)) 
+        {
+             if(m_creature->GetHealth() <= m_creature->GetMaxHealth()) 
+             {
+                 if (m_creature->GetPower(POWER_MANA) > (m_creature->GetMaxHealth() - m_creature->GetHealth()))
+                 {
+                     m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-(m_creature->GetMaxHealth() - m_creature->GetHealth()));
+                     m_creature->SetHealth(m_creature->GetMaxHealth());
+                 }
+                 else m_creature->SetPower(POWER_MANA,0);
+             }
         }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (MovementStarted) return;
+        if (MovementStarted) 
+            return;
 
         switch(stage)
         {
-            case 3: {
+            case 3: 
+                {
                     if (IsCombatMovement())
                         SetCombatMovement(false);
 
                     timedCast(SPELL_SHADOW_BOLT,diff);
 
                     if (timedQuery(NPC_FANATIC, diff))
-                        {
+                    {
                         DoScriptText(-1631028,m_creature);
-                        switch (currentDifficulty) {
-                             case RAID_DIFFICULTY_10MAN_NORMAL:
-                                       CallGuard(urand(0,1));
-                                       break;
-                             case RAID_DIFFICULTY_10MAN_HEROIC:
-                                       CallGuard(urand(0,1));
-                                       if (urand(0,1)) CallGuard(2);
-                                       break;
-                             case RAID_DIFFICULTY_25MAN_NORMAL:
-                                       CallGuard(0);
-                                       CallGuard(1);
-                                       if (urand(0,1)) CallGuard(2);
-                                       break;
-                             case RAID_DIFFICULTY_25MAN_HEROIC:
-                                       CallGuard(0);
-                                       CallGuard(1);
-                                       CallGuard(2);
-                                       break;
-                             default:
-                                       break;
-
-                                            }
+                        switch (currentDifficulty) 
+                        {
+                        case RAID_DIFFICULTY_10MAN_NORMAL:
+                            CallGuard(urand(0,1));
+                            break;
+                        case RAID_DIFFICULTY_10MAN_HEROIC:
+                            CallGuard(urand(0,1));
+                            if (urand(0,1)) CallGuard(2);
+                            break;
+                        case RAID_DIFFICULTY_25MAN_NORMAL:
+                            CallGuard(0);
+                            CallGuard(1);
+                            if (urand(0,1)) CallGuard(2);
+                            break;
+                        case RAID_DIFFICULTY_25MAN_HEROIC:
+                            CallGuard(0);
+                            CallGuard(1);
+                            CallGuard(2);
+                            break;
+                        default:
+                            break;
                         }
-
-                    if (timedQuery(SPELL_DARK_EMPOWERMENT ,diff))
-                    { 
-                    switch (urand(0,1)) {
-                            case 0:
-                                  if(Creature *pGuard = GetClosestCreatureWithEntry(m_creature, NPC_FANATIC, 100.0f))
-                                  {
-                                      doCast(SPELL_DARK_EMPOWERMENT, pGuard);
-                                      DoScriptText(-1631026,m_creature);
-                                  };
-                                  break;
-                            case 1:
-                                  if(Creature *pGuard = GetClosestCreatureWithEntry(m_creature, NPC_ADHERENT, 100.0f))
-                                  {
-                                      doCast(SPELL_DARK_EMPOWERMENT, pGuard);
-                                      DoScriptText(-1631027,m_creature);
-                                  };
-                                  break;
-                                  }
                     }
 
-                    break;}
-
-            case 4: {
+                    if (timedQuery(SPELL_DARK_EMPOWERMENT ,diff))
+                    {
+                        switch (urand(0,1)) 
+                        {
+                        case 0:
+                            if(Creature *pGuard = GetClosestCreatureWithEntry(m_creature, NPC_FANATIC, 100.0f))
+                            {
+                                doCast(70896, pGuard);
+                                DoScriptText(-1631026,m_creature);
+                            };
+                            break;
+                        case 1:
+                            if(Creature *pGuard = GetClosestCreatureWithEntry(m_creature, NPC_ADHERENT, 100.0f))
+                            {
+                                doCast(70896, pGuard);
+                                DoScriptText(-1631027,m_creature);
+                            };
+                            break;
+                        }
+                    }
+                    break;
+                }
+            case 4: 
+                {
                     timedCast(SPELL_FROSTBOLT, diff);
-
                     timedCast(SPELL_INSIGNIFICANCE, diff);
-
                     timedCast(NPC_VENGEFUL_SHADE, diff);
 
-                    if (is25()) timedCast(SPELL_DOMINATE_MIND, diff);
+                    if (is25()) 
+                        timedCast(SPELL_DOMINATE_MIND, diff);
 
                     if (timedQuery(NPC_FANATIC, diff))
+                    {
+                        switch (currentDifficulty)
                         {
-                        switch (currentDifficulty) {
-                             case RAID_DIFFICULTY_10MAN_HEROIC:
-                                       CallGuard(urand(0,1));
-                                       if (urand(0,1)) CallGuard(2);
-                                       break;
-                             case RAID_DIFFICULTY_25MAN_HEROIC:
-                                       CallGuard(0);
-                                       CallGuard(1);
-                                       CallGuard(2);
-                                       break;
-                             default:
-                                       break;
 
-                                            }
+                        case RAID_DIFFICULTY_10MAN_HEROIC:
+                            CallGuard(urand(0,1));
+                            if (urand(0,1)) CallGuard(2);
+                            break;
+                        case RAID_DIFFICULTY_25MAN_HEROIC:
+                            CallGuard(0);
+                            CallGuard(1);
+                            CallGuard(2);
+                            break;
+                        default:
+                            break;
                         }
+                    }
 
-                    break;}
+                    break;
+                }
+        }
+        
+        timedCast(SPELL_DEATH_AND_DECAY, diff);
+
+        if (!hasAura(SPELL_MANA_BARRIER, m_creature) && stage == 3) 
+        {
+            stage = 4;
+            DoScriptText(-1631024,m_creature);
+            SetCombatMovement(true);
+            m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
         }
 
-                    timedCast(SPELL_DEATH_AND_DECAY, diff);
+        if (timedQuery(SPELL_BERSERK, diff))
+        {
+            doCast(SPELL_BERSERK);
+            DoScriptText(-1631031,m_creature);
+        };
 
-
-         if (!hasAura(SPELL_MANA_BARRIER, m_creature) && stage == 3) 
-               {
-                stage = 4;
-                DoScriptText(-1631024,m_creature);
-                SetCombatMovement(true);
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-               }
-
-         if (timedQuery(SPELL_BERSERK, diff))
-                {
-                doCast(SPELL_BERSERK);
-                DoScriptText(-1631031,m_creature);
-                };
-
-         DoMeleeAttackIfReady();
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -363,19 +376,22 @@ struct MANGOS_DLL_DECL mob_vengeful_shadeAI : public BSWScriptedAI
     }
 
     ScriptedInstance *m_pInstance;
+    uint32 m_uiDespawnTimer;
 
     void Reset()
     {
+        m_uiDespawnTimer = 10000;
         m_creature->SetRespawnDelay(DAY);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->SetInCombatWithZone();
-        if (Unit* pTarget= m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) ) {
-                m_creature->AddThreat(pTarget, 1000.0f);
-                m_creature->GetMotionMaster()->MoveChase(pTarget);
-                m_creature->SetSpeedRate(MOVE_RUN, 0.5);
-                }
-        doCast(SPELL_VENGEFUL_BLAST);
+        if (Unit* pTarget= m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) )
+        {
+            m_creature->AddThreat(pTarget, 1000.0f);
+            m_creature->GetMotionMaster()->MoveChase(pTarget);
+            m_creature->SetSpeedRate(MOVE_RUN, 0.5);
+        }
+        //doCast(SPELL_VENGEFUL_BLAST); need rewrite with use this proc aura
     }
 
 
@@ -400,8 +416,11 @@ struct MANGOS_DLL_DECL mob_vengeful_shadeAI : public BSWScriptedAI
                 m_creature->SetSpeedRate(MOVE_RUN, 0.5);
             }
         }
-    }
 
+        if (m_uiDespawnTimer <= uiDiff)
+            m_creature->ForcedDespawn();
+        else m_uiDespawnTimer -= uiDiff;
+    }
 };
 
 CreatureAI* GetAI_mob_vengeful_shade(Creature* pCreature)
