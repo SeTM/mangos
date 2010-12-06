@@ -209,7 +209,8 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
                         if (Unit* pTarget = doSelectRandomPlayerAtRange(60.0f))
                             AttackStart(pTarget);
                     }
-                    if (!hasAura(SPELL_BONE_STORM_STRIKE, m_creature) && !hasAura(SPELL_BONE_STORM, m_creature)) setStage(4);
+                    if (!hasAura(SPELL_BONE_STORM_STRIKE, m_creature) && !hasAura(SPELL_BONE_STORM, m_creature)) 
+                        setStage(4);
                     break;
             case 4:
                     pInstance->SetData(DATA_DIRECTION, 0);
@@ -250,7 +251,7 @@ struct MANGOS_DLL_DECL mob_coldflameAI : public BSWScriptedAI
     void Reset()
     {
         if(!m_pInstance) return;
-//        m_creature->SetDisplayId(10045);
+        //m_creature->SetDisplayId(10045);
         m_creature->SetRespawnDelay(7*DAY);
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -280,7 +281,8 @@ struct MANGOS_DLL_DECL mob_coldflameAI : public BSWScriptedAI
             m_creature->ForcedDespawn();
         }
 
-        if (m_creature->GetCreatorGuid().IsEmpty()) return;
+        if (m_creature->GetCreatorGuid().IsEmpty()) 
+            return;
 
         if (!isCreator)
         {
@@ -325,7 +327,6 @@ struct MANGOS_DLL_DECL mob_coldflameAI : public BSWScriptedAI
                 }
             } else m_creature->ForcedDespawn();
         } else timedCast(SPELL_COLD_FLAME, uiDiff);
-
     }
 };
 
@@ -397,7 +398,10 @@ struct MANGOS_DLL_DECL mob_bone_spikeAI : public BSWScriptedAI
         if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGUID))
         {
             if(!pVictim->isAlive())
+            {
+                pVictim->RemoveAurasDueToSpell(SPELL_BONE_STRIKE_IMPALE);
                 m_creature->ForcedDespawn();
+            }
 
             if ( pVictim
                 && !hasAura(SPELL_BONE_STRIKE_IMPALE, pVictim)

@@ -323,7 +323,6 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
                     {
                         switch (currentDifficulty)
                         {
-
                         case RAID_DIFFICULTY_10MAN_HEROIC:
                             CallGuard(urand(0,1));
                             if (urand(0,1)) CallGuard(2);
@@ -377,10 +376,11 @@ struct MANGOS_DLL_DECL mob_vengeful_shadeAI : public BSWScriptedAI
 
     ScriptedInstance *m_pInstance;
     uint32 m_uiDespawnTimer;
+    bool m_uiDespawn;
 
     void Reset()
     {
-        m_uiDespawnTimer = 10000;
+        m_uiDespawnTimer = 15000;
         m_creature->SetRespawnDelay(DAY);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -389,11 +389,27 @@ struct MANGOS_DLL_DECL mob_vengeful_shadeAI : public BSWScriptedAI
         {
             m_creature->AddThreat(pTarget, 1000.0f);
             m_creature->GetMotionMaster()->MoveChase(pTarget);
-            m_creature->SetSpeedRate(MOVE_RUN, 0.5);
+            m_creature->SetSpeedRate(MOVE_RUN, 0.9f);
         }
-        //doCast(SPELL_VENGEFUL_BLAST); need rewrite with use this proc aura
+        DoCast(m_creature,SPELL_VENGEFUL_BLAST,true);
+        m_uiDespawn = false;
     }
 
+    void DoMeleeAttackIfReady()
+    {
+        //Make sure our attack is ready before checking distance
+        if (m_creature->isAttackReady())
+        {
+            //If we are within range melee the target
+            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+            {
+                m_creature->AttackerStateUpdate(m_creature->getVictim());
+                m_creature->resetAttackTimer();
+                m_uiDespawnTimer = 1000;
+                m_uiDespawn = true;
+            }
+        }
+    }
 
     void UpdateAI(const uint32 uiDiff)
     {
@@ -403,23 +419,12 @@ struct MANGOS_DLL_DECL mob_vengeful_shadeAI : public BSWScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (timedQuery(SPELL_VENGEFUL_BLAST_0, uiDiff))
-        {
-            if (m_creature->IsWithinDist(m_creature->getVictim(), 1.0f, false))
-            {
-                doCast(SPELL_VENGEFUL_BLAST_0);
-                m_creature->ForcedDespawn();
-            }
-            else
-            {
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                m_creature->SetSpeedRate(MOVE_RUN, 0.5);
-            }
-        }
-
         if (m_uiDespawnTimer <= uiDiff)
             m_creature->ForcedDespawn();
         else m_uiDespawnTimer -= uiDiff;
+
+        if (!m_uiDespawn)
+            DoMeleeAttackIfReady();
     }
 };
 

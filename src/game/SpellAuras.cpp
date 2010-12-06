@@ -5433,6 +5433,24 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 }
                 break;
             }
+            case SPELLFAMILY_GENERIC:
+            {
+                switch(spellProto->Id)
+                {
+                case 69146:
+                case 70823:
+                case 70824:
+                case 70825:
+                    {
+                        if (target->HasAura(69065))
+                            m_modifier.m_amount = 0;
+                        break;
+                    }
+                default:
+                    break;
+                }
+                break;
+            }
             default:
                 break;
         }
