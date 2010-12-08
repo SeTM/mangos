@@ -1626,7 +1626,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // removing unknown aura stacks by diff reasons and selections
         void RemoveNotOwnSingleTargetAuras(uint32 newPhase = 0x0);
         void RemoveAurasAtMechanicImmunity(uint32 mechMask, uint32 exceptSpellId, bool non_positive = false);
-        void RemoveSpellsCausingAura(AuraType auraType, bool negative = true, bool positive = true);
+        void RemoveSpellsCausingAura(AuraType auraType);
+        void RemoveSpellsCausingAura(AuraType auraType, SpellAuraHolder* except);
         void RemoveRankAurasDueToSpell(uint32 spellId);
         bool RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder *holder);
         void RemoveAurasWithInterruptFlags(uint32 flags);
@@ -1693,9 +1694,21 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 m_detectInvisibilityMask;
         uint32 m_invisibilityMask;
 
-        uint32 m_ShapeShiftFormSpellId;
-        ShapeshiftForm m_form;
-        bool IsInFeralForm() const { return m_form == FORM_CAT || m_form == FORM_BEAR || m_form == FORM_DIREBEAR; }
+        ShapeshiftForm GetShapeshiftForm() const { return ShapeshiftForm(GetByteValue(UNIT_FIELD_BYTES_2, 3)); }
+        void  SetShapeshiftForm(ShapeshiftForm form) { SetByteValue(UNIT_FIELD_BYTES_2, 3, form); }
+
+        bool IsInFeralForm() const
+        {
+            ShapeshiftForm form = GetShapeshiftForm();
+            return form == FORM_CAT || form == FORM_BEAR || form == FORM_DIREBEAR;
+        }
+
+        bool IsInDisallowedMountForm() const
+        {
+            ShapeshiftForm form = GetShapeshiftForm();
+            return form != FORM_NONE && form != FORM_BATTLESTANCE && form != FORM_BERSERKERSTANCE && form != FORM_DEFENSIVESTANCE &&
+                form != FORM_SHADOW;
+        }
 
         float m_modMeleeHitChance;
         float m_modRangedHitChance;
@@ -1846,7 +1859,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool HasAuraStateForCaster(AuraState flag, uint64 caster) const;
 
         void UnsummonAllTotems();
-        Unit* SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo = NULL);
+        Unit* SelectMagnetTarget(Unit *victim, Spell* spell = NULL, SpellEffectIndex eff = EFFECT_INDEX_0);
 
         int32 SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int32 benefit, int32 ap_benefit, DamageEffectType damagetype, bool donePart, float defCoeffMod = 1.0f);
         int32 SpellBaseDamageBonusDone(SpellSchoolMask schoolMask);
