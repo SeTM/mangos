@@ -4370,7 +4370,7 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder *holder)
             case SPELL_AURA_MOD_RANGED_ATTACK_POWER:
             case SPELL_AURA_MOD_ATTACK_POWER:
             case SPELL_AURA_MOD_STAT:
-            case SPELL_AURA_MOD_HASTE:
+            case SPELL_AURA_MOD_MELEE_HASTE:
                 {
                     if (i_mod->m_amount <= 0 || a_mod->m_amount < 0)     // don't check negative and proved auras
                         continue;
@@ -6559,9 +6559,8 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, Spell* spell, SpellEffectIndex eff)
                 if (magnet->isAlive() && magnet->IsWithinLOSInMap(this) && spell->CheckTarget(magnet, eff))
                 {
                     if (SpellAuraHolder *holder = (*itr)->GetHolder())
-                        if (holder->GetAuraCharges())
-                            if (holder->DropAuraCharge())
-                                victim->RemoveSpellAuraHolder(holder);
+                        if (holder->DropAuraCharge())
+                            victim->RemoveSpellAuraHolder(holder);
                     return magnet;
                 }
             }
@@ -6580,9 +6579,8 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, Spell* spell, SpellEffectIndex eff)
                     if (roll_chance_i((*i)->GetModifier()->m_amount))
                     {
                         if (SpellAuraHolder *holder = (*i)->GetHolder())
-                            if (holder->GetAuraCharges())
-                                if (holder->DropAuraCharge())
-                                    victim->RemoveSpellAuraHolder(holder);
+                            if (holder->DropAuraCharge())
+                                victim->RemoveSpellAuraHolder(holder);
                         return magnet;
                     }
                 }
@@ -6812,7 +6810,7 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                 else // Tundra Stalker
                 {
                     // Frost Fever (target debuff)
-                    if (pVictim->GetAura(SPELL_AURA_MOD_HASTE, SPELLFAMILY_DEATHKNIGHT, UI64LIT(0x0000000000000000), 0x00000002))
+                    if (pVictim->GetAura(SPELL_AURA_MOD_MELEE_HASTE, SPELLFAMILY_DEATHKNIGHT, UI64LIT(0x0000000000000000), 0x00000002))
                         DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
                     break;
                 }
@@ -6900,7 +6898,7 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                     }
                 }
                 // Search for attack slowing auras on victim
-                Unit::AuraList const& hasteAuras = pVictim->GetAurasByType(SPELL_AURA_MOD_HASTE);
+                Unit::AuraList const& hasteAuras = pVictim->GetAurasByType(SPELL_AURA_MOD_MELEE_HASTE);
                 for(Unit::AuraList::const_iterator i = hasteAuras.begin(); i != hasteAuras.end(); ++i)
                 {
                     SpellEntry const* aurSpellInfo = (*i)->GetSpellProto();
@@ -7969,7 +7967,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit *pVictim, uint32 pdamage,WeaponAttackType
                     else // Tundra Stalker
                     {
                         // Frost Fever (target debuff)
-                        if (pVictim->GetAura(SPELL_AURA_MOD_HASTE, SPELLFAMILY_DEATHKNIGHT, UI64LIT(0x0000000000000000), 0x00000002))
+                        if (pVictim->GetAura(SPELL_AURA_MOD_MELEE_HASTE, SPELLFAMILY_DEATHKNIGHT, UI64LIT(0x0000000000000000), 0x00000002))
                             DonePercent *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
                         break;
                     }
