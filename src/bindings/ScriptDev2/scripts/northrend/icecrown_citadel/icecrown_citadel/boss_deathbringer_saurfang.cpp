@@ -116,7 +116,8 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public BSWScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-    switch (urand(0,1)) {
+        switch (urand(0,1)) 
+        {
         case 0:
                DoScriptText(-1631103,m_creature,pVictim);
                break;
@@ -131,20 +132,23 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public BSWScriptedAI
     {
         if(!pInstance || !summoned) return;
 
-        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) ) {
+        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) ) 
+        {
             summoned->AddThreat(pTarget, 100.0f);
             summoned->GetMotionMaster()->MoveChase(pTarget);
-            }
+        }
     }
 
     void JustDied(Unit *killer)
     {
-        if(!pInstance) return;
+        if(!pInstance) 
+            return;
         pInstance->SetData(TYPE_SAURFANG, DONE);
         DoScriptText(-1631106,m_creature);
 
         Map::PlayerList const &pList = m_creature->GetMap()->GetPlayers();
-        if (pList.isEmpty()) return;
+        if (pList.isEmpty()) 
+            return;
 
         for (Map::PlayerList::const_iterator i = pList.begin(); i != pList.end(); ++i)
            if (Player* pPlayer = i->getSource())
@@ -169,65 +173,63 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public BSWScriptedAI
         switch(getStage())
         {
             case 0:
-                    if (m_creature->GetHealthPercent() <= 30.0f) setStage(1);
-                    break;
-
-            case 1: 
-                        doCast(SPELL_FRENZY);
-                        setStage(2);
-                        DoScriptText(-1631101,m_creature);
-                    break;
-
+                if (m_creature->GetHealthPercent() <= 30.0f) setStage(1);
+                break;
+            case 1:
+                doCast(SPELL_FRENZY);
+                setStage(2);
+                DoScriptText(-1631101,m_creature);
+                break;
             case 2:
-                    break;
-
+                break;
             default:
-                    break;
+                break;
         }
 
-            if (timedQuery(SPELL_MARK, diff))
-            {
-                if (Unit* pTarget = doSelectRandomPlayer(SPELL_MARK,false,120.0f))
-                   if (doCast(SPELL_MARK, pTarget) == CAST_OK) 
-                       doBloodPower();
-            }
-
-            if (timedCast(SPELL_BLOOD_NOVA, diff) == CAST_OK) doBloodPower();
-
-            if (timedCast(SPELL_BOILING_BLOOD, diff) == CAST_OK) doBloodPower();
-
-            if (timedCast(SPELL_RUNE_OF_BLOOD, diff) == CAST_OK) doBloodPower();
-
-            if (timedQuery(SPELL_CALL_BLOOD_BEAST_1, diff))
-                {
-                    beasts = getSpellData(SPELL_CALL_BLOOD_BEAST_1);
-                    DoScriptText(-1631102,m_creature);
-                };
-
-            if (beasts > 0)
-            {
-                CanCastResult res = CAST_FAIL_OTHER;
-                switch (beasts)
-                {
-                    case 1: res = doCast(SPELL_CALL_BLOOD_BEAST_1); break;
-                    case 2: res = doCast(SPELL_CALL_BLOOD_BEAST_2); break;
-                    case 3: res = doCast(SPELL_CALL_BLOOD_BEAST_3); break;
-                    case 4: res = doCast(SPELL_CALL_BLOOD_BEAST_4); break;
-                    case 5: res = doCast(SPELL_CALL_BLOOD_BEAST_5); break;
-                    default: break;
-                };
-
-                if ( res == CAST_OK)
-                {
+        if (timedQuery(SPELL_MARK, diff))
+        {
+            if (Unit* pTarget = doSelectRandomPlayer(SPELL_MARK,false,120.0f))
+                if (doCast(SPELL_MARK, pTarget) == CAST_OK) 
                     doBloodPower();
-                    --beasts;
-                };
+        }
+
+        if (timedCast(SPELL_BLOOD_NOVA, diff) == CAST_OK) doBloodPower();
+
+        if (timedCast(SPELL_BOILING_BLOOD, diff) == CAST_OK) doBloodPower();
+
+        if (timedCast(SPELL_RUNE_OF_BLOOD, diff) == CAST_OK) doBloodPower();
+
+        if (timedQuery(SPELL_CALL_BLOOD_BEAST_1, diff))
+        {
+            beasts = getSpellData(SPELL_CALL_BLOOD_BEAST_1);
+            DoScriptText(-1631102,m_creature);
+        };
+
+        if (beasts > 0)
+        {
+            CanCastResult res = CAST_FAIL_OTHER;
+            switch (beasts)
+            {
+            case 1: res = doCast(SPELL_CALL_BLOOD_BEAST_1); break;
+            case 2: res = doCast(SPELL_CALL_BLOOD_BEAST_2); break;
+            case 3: res = doCast(SPELL_CALL_BLOOD_BEAST_3); break;
+            case 4: res = doCast(SPELL_CALL_BLOOD_BEAST_4); break;
+            case 5: res = doCast(SPELL_CALL_BLOOD_BEAST_5); break;
+            default: break;
             };
 
-        if (timedQuery(SPELL_BERSERK, diff)){
-             doCast(SPELL_BERSERK);
-             DoScriptText(-1631108,m_creature);
-             };
+            if ( res == CAST_OK)
+            {
+                doBloodPower();
+                --beasts;
+            };
+        };
+
+        if (timedQuery(SPELL_BERSERK, diff))
+        {
+            doCast(SPELL_BERSERK);
+            DoScriptText(-1631108,m_creature);
+        };
 
         DoMeleeAttackIfReady();
     }
@@ -267,7 +269,7 @@ struct MANGOS_DLL_DECL  mob_blood_beastAI : public BSWScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         if (!pInstance || pInstance->GetData(TYPE_SAURFANG) != IN_PROGRESS) 
-              m_creature->ForcedDespawn();
+            m_creature->ForcedDespawn();
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -276,11 +278,11 @@ struct MANGOS_DLL_DECL  mob_blood_beastAI : public BSWScriptedAI
             doCast(SPELL_RESISTANT_SKIN);
 
         if (!scentcasted && (m_creature->GetHealthPercent() <= 20.0f))
-           {
-               if (urand(0,1))                            //50%
-                   doCast(SPELL_SCENT_OF_BLOOD);
-               scentcasted = true;
-           }
+        {
+            if (urand(0,1))                            //50%
+                doCast(SPELL_SCENT_OF_BLOOD);
+            scentcasted = true;
+        }
 
         DoMeleeAttackIfReady();
 
