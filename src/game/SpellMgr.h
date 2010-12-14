@@ -27,7 +27,7 @@
 #include "SpellAuraDefines.h"
 #include "DBCStructure.h"
 #include "DBCStores.h"
-#include "Database/SQLStorage.h"
+#include "SQLStorages.h"
 
 #include "Utilities/UnorderedMapSet.h"
 
@@ -44,28 +44,6 @@ enum SpellCategories
     SPELLCATEGORY_HEALTH_MANA_POTIONS = 4,
     SPELLCATEGORY_DEVOUR_MAGIC        = 12,
     SPELLCATEGORY_JUDGEMENT           = 1210,               // Judgement (seal trigger)
-};
-
-enum SpellFamilyNames
-{
-    SPELLFAMILY_GENERIC     = 0,
-    SPELLFAMILY_UNK1        = 1,                            // events, holidays
-    // 2 - unused
-    SPELLFAMILY_MAGE        = 3,
-    SPELLFAMILY_WARRIOR     = 4,
-    SPELLFAMILY_WARLOCK     = 5,
-    SPELLFAMILY_PRIEST      = 6,
-    SPELLFAMILY_DRUID       = 7,
-    SPELLFAMILY_ROGUE       = 8,
-    SPELLFAMILY_HUNTER      = 9,
-    SPELLFAMILY_PALADIN     = 10,
-    SPELLFAMILY_SHAMAN      = 11,
-    SPELLFAMILY_UNK2        = 12,                           // 2 spells (silence resistance)
-    SPELLFAMILY_POTION      = 13,
-    // 14 - unused
-    SPELLFAMILY_DEATHKNIGHT = 15,
-    // 16 - unused
-    SPELLFAMILY_PET         = 17
 };
 
 //Some SpellFamilyFlags
@@ -289,7 +267,7 @@ inline bool IsCasterSourceTarget(uint32 target)
         case TARGET_TOTEM_WATER:
         case TARGET_TOTEM_AIR:
         case TARGET_TOTEM_FIRE:
-        case TARGET_AREAEFFECT_CUSTOM_2:
+        case TARGET_AREAEFFECT_GO_AROUND_DEST:
         case TARGET_ALL_RAID_AROUND_CASTER:
         case TARGET_SELF2:
         case TARGET_DIRECTLY_FORWARD:
@@ -383,7 +361,7 @@ inline bool IsAreaEffectTarget( Targets target )
         case TARGET_ALL_PARTY:
         case TARGET_ALL_PARTY_AROUND_CASTER_2:
         case TARGET_AREAEFFECT_PARTY:
-        case TARGET_AREAEFFECT_CUSTOM_2:
+        case TARGET_AREAEFFECT_GO_AROUND_DEST:
         case TARGET_ALL_RAID_AROUND_CASTER:
         case TARGET_AREAEFFECT_PARTY_AND_CLASS:
         case TARGET_IN_FRONT_OF_CASTER_30:
@@ -456,6 +434,11 @@ inline bool IsAutoRepeatRangedSpell(SpellEntry const* spellInfo)
     return (spellInfo->Attributes & SPELL_ATTR_RANGED) && (spellInfo->AttributesEx2 & SPELL_ATTR_EX2_AUTOREPEAT_FLAG);
 }
 
+inline bool IsSpellRequiresRangedAP(SpellEntry const* spellInfo)
+{
+    return (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE);
+}
+
 SpellCastResult GetErrorAtShapeshiftedCast (SpellEntry const *spellInfo, uint32 form);
 
 inline bool IsChanneledSpell(SpellEntry const* spellInfo)
@@ -465,7 +448,7 @@ inline bool IsChanneledSpell(SpellEntry const* spellInfo)
 
 inline bool NeedsComboPoints(SpellEntry const* spellInfo)
 {
-    return (spellInfo->AttributesEx & (SPELL_ATTR_EX_REQ_COMBO_POINTS1 | SPELL_ATTR_EX_REQ_COMBO_POINTS2));
+    return (spellInfo->AttributesEx & (SPELL_ATTR_EX_REQ_TARGET_COMBO_POINTS | SPELL_ATTR_EX_REQ_COMBO_POINTS));
 }
 
 inline SpellSchoolMask GetSpellSchoolMask(SpellEntry const* spellInfo)
@@ -511,8 +494,6 @@ inline uint32 GetDispellMask(DispelType dispel)
     else
         return (1 << dispel);
 }
-
-int32 ApplyHasteToChannelSpell(int32 orginalDuration, SpellEntry const* spellInfo, Spell const* spell);
 
 // Diminishing Returns interaction with spells
 DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto, bool triggered);
@@ -621,6 +602,7 @@ struct SpellBonusEntry
     float  direct_damage;
     float  dot_damage;
     float  ap_bonus;
+    float  ap_dot_bonus;
 };
 
 typedef UNORDERED_MAP<uint32, SpellProcEventEntry> SpellProcEventMap;
@@ -642,11 +624,10 @@ enum SpellTargetType
 {
     SPELL_TARGET_TYPE_GAMEOBJECT = 0,
     SPELL_TARGET_TYPE_CREATURE   = 1,
-    SPELL_TARGET_TYPE_DEAD       = 2,
-    SPELL_TARGET_TYPE_CONTROLLED = 3
+    SPELL_TARGET_TYPE_DEAD       = 2
 };
 
-#define MAX_SPELL_TARGET_TYPE 4
+#define MAX_SPELL_TARGET_TYPE 3
 
 struct SpellTargetEntry
 {
@@ -1038,7 +1019,7 @@ class SpellMgr
             return mSpellScriptTarget.equal_range(spell_id);
         }
 
-        // Spell correctess for client using
+        // Spell correctness for client using
         static bool IsSpellValid(SpellEntry const * spellInfo, Player* pl = NULL, bool msg = true);
 
         SkillLineAbilityMapBounds GetSkillLineAbilityMapBounds(uint32 spell_id) const

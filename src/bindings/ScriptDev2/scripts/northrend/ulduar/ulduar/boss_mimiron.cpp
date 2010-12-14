@@ -515,7 +515,7 @@ struct MANGOS_DLL_DECL boss_vx_001AI : public Scripted_NoMovementAI
         else last_phase = false;
 
         m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
-        m_creature->SendMovementFlagUpdate();
+        m_creature->SendHeartBeat(false);
         plasma = false;
         plasma_timer = 14000;
         rapid_burst_timer = 1500;
@@ -679,7 +679,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
 
         stop = false;
         m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
-        m_creature->SendMovementFlagUpdate();
+        m_creature->SendHeartBeat(false);
         
         plasma_ball_timer = 3000;
         

@@ -44,14 +44,21 @@ class SqlResultQueue;
 class QueryResult;
 class WorldSocket;
 
+typedef std::multimap<uint32, uint32> RecruitFriendMap;
+typedef std::pair<RecruitFriendMap::const_iterator, RecruitFriendMap::const_iterator> RecruitFriendMapBounds;
+
 // ServerMessages.dbc
 enum ServerMessageType
 {
-    SERVER_MSG_SHUTDOWN_TIME      = 1,
-    SERVER_MSG_RESTART_TIME       = 2,
-    SERVER_MSG_STRING             = 3,
-    SERVER_MSG_SHUTDOWN_CANCELLED = 4,
-    SERVER_MSG_RESTART_CANCELLED  = 5
+    SERVER_MSG_SHUTDOWN_TIME          = 1,
+    SERVER_MSG_RESTART_TIME           = 2,
+    SERVER_MSG_CUSTOM                 = 3,
+    SERVER_MSG_SHUTDOWN_CANCELLED     = 4,
+    SERVER_MSG_RESTART_CANCELLED      = 5,
+    SERVER_MSG_BG_SHUTDOWN_TIME       = 6,
+    SERVER_MSG_BG_RESTART_TIME        = 7,
+    SERVER_MSG_INSTANCE_SHUTDOWN_TIME = 8,
+    SERVER_MSG_INSTANCE_RESTART_TIME  = 9,
 };
 
 enum ShutdownMask
@@ -78,7 +85,9 @@ enum WorldTimers
     WUPDATE_CORPSES     = 5,
     WUPDATE_EVENTS      = 6,
     WUPDATE_DELETECHARS = 7,
-    WUPDATE_COUNT       = 8
+    WUPDATE_ROF         = 8,
+    WUPDATE_BROADCAST   = 9,
+    WUPDATE_COUNT       = 10
 };
 
 /// Configuration elements
@@ -184,6 +193,11 @@ enum eConfigUInt32Values
     CONFIG_UINT32_CHARDELETE_METHOD,
     CONFIG_UINT32_CHARDELETE_MIN_LEVEL,
     CONFIG_UINT32_RANDOM_BG_RESET_HOUR,
+
+    /* Broadcaster */
+    CONFIG_UINT32_BROADCAST_INTERVAL,
+    CONFIG_UINT32_BROADCAST_POSITION,
+
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -321,6 +335,9 @@ enum eConfigBoolValues
     CONFIG_BOOL_CLEAN_CHARACTER_DB,
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
     CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,
+
+    CONFIG_BOOL_BROADCAST_ENABLED, // Broadcaster
+
     CONFIG_BOOL_VALUE_COUNT
 };
 
@@ -394,6 +411,13 @@ enum RealmZone
     REALM_ZONE_CN5_8         = 37                           // basic-Latin at create, any at login
 };
 
+enum BroadcastLocation
+{
+    BROADCAST_LOCATION_CHAT = 1,
+    BROADCAST_LOCATION_TOP = 2,
+    BROADCAST_LOCATION_IRC = 4,
+};
+
 /// Storage class for commands issued for delayed execution
 struct CliCommandHolder
 {
@@ -433,8 +457,8 @@ class World
         /// Get the number of current active sessions
         void UpdateMaxSessionCounters();
         uint32 GetActiveAndQueuedSessionCount() const { return m_sessions.size(); }
-        uint32 GetActiveSessionCount() const { return m_sessions.size() - m_QueuedPlayer.size(); }
-        uint32 GetQueuedSessionCount() const { return m_QueuedPlayer.size(); }
+        uint32 GetActiveSessionCount() const { return m_sessions.size() - m_QueuedSessions.size(); }
+        uint32 GetQueuedSessionCount() const { return m_QueuedSessions.size(); }
         /// Get the maximum number of parallel sessions on the server since last reboot
         uint32 GetMaxQueuedSessionCount() const { return m_maxQueuedSessionCount; }
         uint32 GetMaxActiveSessionCount() const { return m_maxActiveSessionCount; }
@@ -453,10 +477,9 @@ class World
 
         //player Queue
         typedef std::list<WorldSession*> Queue;
-        void AddQueuedPlayer(WorldSession*);
-        bool RemoveQueuedPlayer(WorldSession* session);
-        int32 GetQueuePos(WorldSession*);
-        uint32 GetQueueSize() const { return m_QueuedPlayer.size(); }
+        void AddQueuedSession(WorldSession*);
+        bool RemoveQueuedSession(WorldSession* session);
+        int32 GetQueuedSessionPos(WorldSession*);
 
         /// \todo Actions on m_allowMovement still to be implemented
         /// Is movement allowed?
@@ -544,6 +567,12 @@ class World
         BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, std::string author);
         bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
 
+        void LoadRecruitFriendData();
+        RecruitFriendMapBounds GetRecruitFriendMapBounds(uint32 id) const
+        {
+            return m_recruitFriend.equal_range(id);
+        }
+
         uint32 IncreaseScheduledScriptsCount() { return (uint32)++m_scheduledScripts; }
         uint32 DecreaseScheduledScriptCount() { return (uint32)--m_scheduledScripts; }
         uint32 DecreaseScheduledScriptCount(size_t count) { return (uint32)(m_scheduledScripts -= count); }
@@ -584,11 +613,14 @@ class World
         void _UpdateRealmCharCount(QueryResult *resultCharCount, uint32 accountId);
 
         void InitDailyQuestResetTime();
-        void InitWeeklyQuestResetTime();
         void InitRandomBGResetTime();
+        void InitWeeklyQuestResetTime();
+        void SetMonthlyQuestResetTime(bool initialize = true);
         void ResetDailyQuests();
-        void ResetWeeklyQuests();
         void ResetRandomBG();
+        void ResetWeeklyQuests();
+        void ResetMonthlyQuests();
+
     private:
         void setConfig(eConfigUInt32Values index, char const* fieldname, uint32 defvalue);
         void setConfig(eConfigInt32Values index, char const* fieldname, int32 defvalue);
@@ -651,17 +683,21 @@ class World
         static float m_MaxVisibleDistanceInFlight;
         static float m_VisibleUnitGreyDistance;
         static float m_VisibleObjectGreyDistance;
+
         // CLI command holder to be thread safe
         ACE_Based::LockedQueue<CliCommandHolder*,ACE_Thread_Mutex> cliCmdQueue;
         SqlResultQueue *m_resultQueue;
 
         // next daily quests reset time
         time_t m_NextDailyQuestReset;
-        time_t m_NextWeeklyQuestReset;
         time_t m_NextRandomBGReset;
+        time_t m_NextWeeklyQuestReset;
+        time_t m_NextMonthlyQuestReset;
+
+        RecruitFriendMap m_recruitFriend;
 
         //Player Queue
-        Queue m_QueuedPlayer;
+        Queue m_QueuedSessions;
 
         //sessions that are added async
         void AddSession_(WorldSession* s);
@@ -671,6 +707,10 @@ class World
         std::string m_DBVersion;
         std::string m_CreatureEventAIVersion;
         std::string m_ScriptsVersion;
+
+        //Broadcaster
+        uint32 m_nextId;
+        void SendBroadcast();
 };
 
 extern uint32 realmID;

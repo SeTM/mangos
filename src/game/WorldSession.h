@@ -25,6 +25,7 @@
 
 #include "Common.h"
 #include "SharedDefines.h"
+#include "ObjectGuid.h"
 
 struct ItemPrototype;
 struct AuctionEntry;
@@ -43,6 +44,8 @@ class QueryResult;
 class LoginQueryHolder;
 class CharacterHandler;
 class GMTicket;
+class MovementInfo;
+class WorldSession;
 
 struct OpcodeHandler;
 
@@ -141,6 +144,43 @@ enum TutorialDataState
     TUTORIALDATA_NEW       = 2
 };
 
+//class to deal with packet processing
+//allows to determine if next packet is safe to be processed
+class PacketFilter
+{
+    public:
+        explicit PacketFilter(WorldSession * pSession) : m_pSession(pSession) {}
+        virtual ~PacketFilter() {}
+
+        virtual bool Process(WorldPacket * packet) { return true; }
+        virtual bool ProcessLogout() const { return true; }
+
+    protected:
+        WorldSession * const m_pSession;
+};
+//process only thread-safe packets in Map::Update()
+class MapSessionFilter : public PacketFilter
+{
+    public:
+        explicit MapSessionFilter(WorldSession * pSession) : PacketFilter(pSession) {}
+        ~MapSessionFilter() {}
+
+        virtual bool Process(WorldPacket * packet);
+        //in Map::Update() we do not process player logout!
+        virtual bool ProcessLogout() const { return false; }
+};
+
+//class used to filer only thread-unsafe packets from queue
+//in order to update only be used in World::UpdateSessions()
+class WorldSessionFilter : public PacketFilter
+{
+    public:
+        explicit WorldSessionFilter(WorldSession * pSession) : PacketFilter(pSession) {}
+        ~WorldSessionFilter() {}
+
+        virtual bool Process(WorldPacket* packet);
+};
+
 /// Player session in the World
 class MANGOS_DLL_SPEC WorldSession
 {
@@ -185,8 +225,8 @@ class MANGOS_DLL_SPEC WorldSession
         /// Is the user engaged in a log out process?
         bool isLogingOut() const { return _logoutTime || m_playerLogout; }
 
-	void SetMpUse(bool v) { m_isMpUsing = v; }
-	bool isMpUse() { return m_isMpUsing; }
+        void SetMpUse(bool v) { m_isMpUsing = v; }
+        bool isMpUse() { return m_isMpUsing; }
 
         /// Engage the logout process for the user
         void LogoutRequest(time_t requestTime)
@@ -204,21 +244,23 @@ class MANGOS_DLL_SPEC WorldSession
         void KickPlayer();
 
         void QueuePacket(WorldPacket* new_packet);
-        bool Update(uint32 diff);
+
+        bool Update(uint32 diff, PacketFilter& updater);
 
         /// Handle the authentication waiting queue (to be completed)
         void SendAuthWaitQue(uint32 position);
 
-        //void SendTestCreatureQueryOpcode( uint32 entry, uint64 guid, uint32 testvalue );
         void SendNameQueryOpcode(Player* p);
-        void SendNameQueryOpcodeFromDB(uint64 guid);
+        void SendNameQueryOpcodeFromDB(ObjectGuid guid);
         static void SendNameQueryOpcodeFromDBCallBack(QueryResult *result, uint32 accountId);
 
-        void SendTrainerList( uint64 guid );
-        void SendTrainerList( uint64 guid, const std::string& strTitle );
-        void SendListInventory( uint64 guid );
-        void SendShowBank( uint64 guid );
-        void SendTabardVendorActivate( uint64 guid );
+        void SendTrainerList(ObjectGuid guid);
+        void SendTrainerList(ObjectGuid guid, const std::string& strTitle );
+
+        void SendListInventory(ObjectGuid guid);
+        bool CheckBanker(ObjectGuid guid);
+        void SendShowBank(ObjectGuid guid);
+        void SendTabardVendorActivate(ObjectGuid guid);
         void SendSpiritResurrect();
         void SendBindPoint(Creature* npc);
         void SendGMTicketGetTicket(uint32 status, GMTicket *ticket = NULL);
@@ -280,7 +322,7 @@ class MANGOS_DLL_SPEC WorldSession
         void SendItemEnchantTimeUpdate(uint64 Playerguid, uint64 Itemguid,uint32 slot,uint32 Duration);
 
         //Taxi
-        void SendTaxiStatus( uint64 guid );
+        void SendTaxiStatus(ObjectGuid guid);
         void SendTaxiMenu( Creature* unit );
         void SendDoFlight( uint32 mountDisplayId, uint32 path, uint32 pathNode = 0 );
         bool SendLearnNewTaxiNode( Creature* unit );
@@ -289,7 +331,7 @@ class MANGOS_DLL_SPEC WorldSession
         void SendGuildCommandResult(uint32 typecmd, const std::string& str, uint32 cmdresult);
         void SendArenaTeamCommandResult(uint32 team_action, const std::string& team, const std::string& player, uint32 error_id);
         void SendNotInArenaTeamPacket(uint8 type);
-        void SendPetitionShowList( uint64 guid );
+        void SendPetitionShowList(ObjectGuid guid);
         void SendSaveGuildEmblem( uint32 msg );
 
         // Looking For Group
@@ -729,7 +771,7 @@ class MANGOS_DLL_SPEC WorldSession
         // Refund 
         void HandleItemRefundInfoRequest(WorldPacket& recv_data);
         void HandleItemRefundRequest(WorldPacket& recv_data);
-        void SendRefundInfo( uint64 GUID );
+        void SendRefundInfo( ObjectGuid GUID );
 
         void HandleChannelVoiceOnOpcode(WorldPacket & recv_data);
         void HandleVoiceSessionEnableOpcode(WorldPacket& recv_data);
@@ -773,7 +815,7 @@ class MANGOS_DLL_SPEC WorldSession
         void HandleAlterAppearanceOpcode(WorldPacket& recv_data);
         void HandleRemoveGlyphOpcode(WorldPacket& recv_data);
         void HandleCharCustomizeOpcode(WorldPacket& recv_data);
-        void HandleCharFactionChange(WorldPacket& recv_data);
+        void HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data);
         void HandleQueryInspectAchievementsOpcode(WorldPacket& recv_data);
         void HandleEquipmentSetSaveOpcode(WorldPacket& recv_data);
         void HandleEquipmentSetDeleteOpcode(WorldPacket& recv_data);
@@ -785,6 +827,8 @@ class MANGOS_DLL_SPEC WorldSession
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
+        bool VerifyMovementInfo(MovementInfo const& movementInfo, ObjectGuid const& guid) const;
+        void HandleMoverRelocation(MovementInfo& movementInfo);
 
         void ExecuteOpcode( OpcodeHandler const& opHandle, WorldPacket* packet );
 
@@ -811,7 +855,7 @@ class MANGOS_DLL_SPEC WorldSession
         int m_sessionDbLocaleIndex;
         uint32 m_latency;
         AccountData m_accountData[NUM_ACCOUNT_DATA_TYPES];
-	bool   m_isMpUsing;
+        bool   m_isMpUsing;
         uint32 m_Tutorials[8];
         TutorialDataState m_tutorialState;
         AddonsList m_addonsList;

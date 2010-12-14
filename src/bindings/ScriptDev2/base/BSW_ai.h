@@ -50,6 +50,7 @@ enum BossSpellTableParameters
   CAST_ON_RANDOM_POINT      = 15,
   CAST_ON_RANDOM_PLAYER     = 16,
   APPLY_AURA_ALLPLAYERS     = 17,
+  FORCE_CAST                = 18,
   SPELLTABLEPARM_NUMBER
 };
 
@@ -147,9 +148,14 @@ struct MANGOS_DLL_DECL BSWScriptedAI : public ScriptedAI
                  return queryIndex(_findSpellIDX(SpellID)) ? _doRemoveFromAll(_findSpellIDX(SpellID)) : _doRemoveFromAll(SpellID);
              };
 
-        bool doAura(uint32 SpellID, Unit* pTarget = NULL, SpellEffectIndex index = EFFECT_INDEX_0)
+        bool doAura(uint32 SpellID, Unit* pTarget, SpellEffectIndex index, int32 basepoint = 0, bool isStack = true)
              {
-                 return queryIndex(_findSpellIDX(SpellID)) ? _doAura(_findSpellIDX(SpellID),pTarget, index) : _doAura(SpellID, pTarget, index);
+                 return queryIndex(_findSpellIDX(SpellID)) ? _doAura(_findSpellIDX(SpellID), pTarget, index, isStack) : _doAura(SpellID, pTarget, index, basepoint, isStack);
+             };
+
+        bool doAura(uint32 SpellID, Unit* pTarget = NULL)
+             {
+                 return queryIndex(_findSpellIDX(SpellID)) ? _doAura(_findSpellIDX(SpellID), pTarget) : _doAura(SpellID, pTarget);
              };
 
         bool hasAura(uint32 SpellID, Unit* pTarget = NULL)
@@ -181,7 +187,7 @@ struct MANGOS_DLL_DECL BSWScriptedAI : public ScriptedAI
 
         Unit* doSummon(uint32 SpellID, float fPosX, float fPosY, float fPosZ, TempSummonType type = TEMPSUMMON_CORPSE_TIMED_DESPAWN, uint32 delay = 60000)
              {
-                 return queryIndex(_findSpellIDX(SpellID)) ? _doSummonAtPosition(_findSpellIDX(SpellID)) : _doSummonAtPosition(SpellID, type, delay, fPosX, fPosY, fPosZ);
+                 return queryIndex(_findSpellIDX(SpellID)) ? _doSummonAtPosition(_findSpellIDX(SpellID), fPosX, fPosY, fPosZ) : _doSummonAtPosition(SpellID, type, delay, fPosX, fPosY, fPosZ);
              };
 
         uint8 bossSpellCount()
@@ -237,11 +243,13 @@ struct MANGOS_DLL_DECL BSWScriptedAI : public ScriptedAI
 
         Unit*         _doSummon(uint8 m_uiSpellIdx, TempSummonType type = TEMPSUMMON_CORPSE_TIMED_DESPAWN, uint32 delay = 60000);
 
-        Unit*         _doSummonAtPosition(uint8 m_uiSpellIdx);
+        Unit*         _doSummonAtPosition(uint8 m_uiSpellIdx, float fPosX, float fPosY, float fPosZ);
 
         Unit*         _doSummonAtPosition(uint32 guid, TempSummonType type, uint32 delay, float fPosX, float fPosY, float fPosZ);
 
         CanCastResult _BSWDoCast(uint8 m_uiSpellIdx, Unit* pTarget);
+
+        CanCastResult _BSWDoForceCast(uint8 m_uiSpellIdx, Unit* pTarget);
 
         CanCastResult _BSWSpellSelector(uint8 m_uiSpellIdx, Unit* pTarget = NULL);
 
@@ -259,9 +267,13 @@ struct MANGOS_DLL_DECL BSWScriptedAI : public ScriptedAI
 
         bool          _doRemoveFromAll(uint32 SpellID);
 
-        bool          _doAura(uint8 m_uiSpellIdx, Unit* pTarget = NULL, SpellEffectIndex index = EFFECT_INDEX_0);
+        bool          _doAura(uint8 m_uiSpellIdx, Unit* pTarget, SpellEffectIndex index, bool isStack = true);
 
-        bool          _doAura(uint32 SpellID, Unit* pTarget, SpellEffectIndex index = EFFECT_INDEX_0);
+        bool          _doAura(uint32 SpellID, Unit* pTarget, SpellEffectIndex index, int32 basepoint = 0, bool isStack = true);
+
+        bool          _doAura(uint8 m_uiSpellIdx, Unit* pTarget);
+
+        bool          _doAura(uint32 SpellID, Unit* pTarget);
 
         bool          _hasAura(uint8 m_uiSpellIdx, Unit* pTarget);
 

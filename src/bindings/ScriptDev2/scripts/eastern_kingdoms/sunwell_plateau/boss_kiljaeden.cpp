@@ -496,7 +496,7 @@ struct MANGOS_DLL_DECL mob_sinister_reflectionAI : public ScriptedAI
                 if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE && b_needmove)
                 {
                     //Drop current movement gen
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim(), 14.0f, ((float)10/180)*M_PI);
+                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim(), 14.0f, (float(10/180))*M_PI);
                     b_needmove = false;
                 }
 

@@ -48,40 +48,40 @@ enum Summons
 
 enum BossSpells
 {
-SPELL_IMPALE           = 66331,
-SPELL_STAGGERING_STOMP = 67648,
-SPELL_RISING_ANGER     = 66636,
-SUMMON_SNOBOLD         = NPC_SNOBOLD_VASSAL,
-SPELL_ACID_SPIT        = 66880,
-SPELL_PARALYTIC_SPRAY  = 66901,
-SPELL_ACID_SPEW        = 66819,
-SPELL_PARALYTIC_BITE   = 66824,
-SPELL_SWEEP_0          = 66794,
-SPELL_SLIME_POOL       = 66883,
-SPELL_FIRE_SPIT        = 66796,
-SPELL_MOLTEN_SPEW      = 66821,
-SPELL_BURNING_BITE     = 66879,
-SPELL_BURNING_SPRAY    = 66902,
-SPELL_SWEEP_1          = 67646,
-SPELL_FEROCIOUS_BUTT   = 66770,
-SPELL_MASSIVE_CRASH    = 66683,
-SPELL_WHIRL            = 67345,
-SPELL_ARCTIC_BREATH    = 66689,
-SPELL_TRAMPLE          = 66734,
-SPELL_ADRENALINE       = 68667,
-SPELL_SNOBOLLED        = 66406,
-SPELL_BATTER           = 66408,
-SPELL_FIRE_BOMB        = 66313,
-SPELL_FIRE_BOMB_1      = 66317,
-SPELL_FIRE_BOMB_DOT    = 66318,
-SPELL_HEAD_CRACK       = 66407,
-SPELL_SUBMERGE_0       = 53421,
-SPELL_ENRAGE           = 68335,
-SPELL_FROTHING_RAGE    = 66759,
-SPELL_STAGGERED_DAZE   = 66758,
-SPELL_SLIME_POOL_1     = 66881,
-SPELL_SLIME_POOL_2     = 66882,
-SPELL_SLIME_POOL_VISUAL  = 63084,
+    SPELL_IMPALE           = 66331,
+    SPELL_STAGGERING_STOMP = 67648,
+    SPELL_RISING_ANGER     = 66636,
+    SUMMON_SNOBOLD         = NPC_SNOBOLD_VASSAL,
+    SPELL_ACID_SPIT        = 66880,
+    SPELL_PARALYTIC_SPRAY  = 66901,
+    SPELL_ACID_SPEW        = 66819,
+    SPELL_PARALYTIC_BITE   = 66824,
+    SPELL_SWEEP_0          = 66794,
+    SPELL_SLIME_POOL       = 66883,
+    SPELL_FIRE_SPIT        = 66796,
+    SPELL_MOLTEN_SPEW      = 66821,
+    SPELL_BURNING_BITE     = 66879,
+    SPELL_BURNING_SPRAY    = 66902,
+    SPELL_SWEEP_1          = 67646,
+    SPELL_FEROCIOUS_BUTT   = 66770,
+    SPELL_MASSIVE_CRASH    = 66683,
+    SPELL_WHIRL            = 67345,
+    SPELL_ARCTIC_BREATH    = 66689,
+    SPELL_TRAMPLE          = 66734,
+    SPELL_ADRENALINE       = 68667,
+    SPELL_SNOBOLLED        = 66406,
+    SPELL_BATTER           = 66408,
+    SPELL_FIRE_BOMB        = 66313,
+    SPELL_FIRE_BOMB_1      = 66317,
+    SPELL_FIRE_BOMB_DOT    = 66318,
+    SPELL_HEAD_CRACK       = 66407,
+    SPELL_SUBMERGE_0       = 53421,
+    SPELL_ENRAGE           = 68335,
+    SPELL_FROTHING_RAGE    = 66759,
+    SPELL_STAGGERED_DAZE   = 66758,
+    SPELL_SLIME_POOL_1     = 66881,
+    SPELL_SLIME_POOL_2     = 66882,
+    SPELL_SLIME_POOL_VISUAL  = 63084,
 };
 
 struct MANGOS_DLL_DECL boss_gormokAI : public BSWScriptedAI
@@ -629,7 +629,11 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public BSWScriptedAI
                 timedCast(SPELL_ARCTIC_BREATH, uiDiff);
                 timedCast(SPELL_WHIRL, uiDiff);
                 if (timedQuery(SPELL_MASSIVE_CRASH, uiDiff))
+                {
+                    m_creature->GetMap()->CreatureRelocation(m_creature, 563.342f, 140.271f, 393.836f, 4.727f);
+                    m_creature->SendMonsterMove(563.342f, 140.271f, 393.836f, SPLINETYPE_FACINGTARGET, SPLINEFLAG_TRAJECTORY, 0);
                     stage = 1;
+                }
                 timedCast(SPELL_FROTHING_RAGE, uiDiff);
                 DoMeleeAttackIfReady();
                 break;
@@ -764,6 +768,5 @@ void AddSC_northrend_beasts()
     newscript->Name = "mob_fire_bomb";
     newscript->GetAI = &GetAI_mob_fire_bomb;
     newscript->RegisterSelf();
-
 }
 

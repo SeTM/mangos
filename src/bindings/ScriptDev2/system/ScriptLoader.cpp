@@ -312,6 +312,12 @@ extern void AddSC_boss_forgemaster_gafrost();
 extern void AddSC_boss_krick();
 extern void AddSC_boss_scourgelord_tyrannus();
 
+extern void AddSC_instance_halls_of_reflection();
+extern void AddSC_halls_of_reflection();
+extern void AddSC_boss_falric();
+extern void AddSC_boss_marwyn();
+extern void AddSC_boss_lich_king_hr();
+
 extern void AddSC_boss_anubrekhan();                        //naxxramas
 extern void AddSC_boss_grobbulus();
 extern void AddSC_boss_thaddius();
@@ -381,6 +387,21 @@ extern void AddSC_boss_zuramat();
 extern void AddSC_instance_violet_hold();
 extern void AddSC_violet_hold();
 
+//IceCrown Citadel
+extern void AddSC_instance_icecrown_spire();
+extern void AddSC_icecrown_spire();
+extern void AddSC_icecrown_teleporter();
+extern void AddSC_boss_lord_marrowgar();
+extern void AddSC_boss_lady_deathwhisper();
+extern void AddSC_boss_deathbringer_saurfang();
+extern void AddSC_boss_rotface();
+extern void AddSC_boss_festergut();
+extern void AddSC_boss_proffesor_putricide();
+extern void AddSC_blood_prince_council();
+extern void AddSC_boss_blood_queen_lanathel();
+extern void AddSC_boss_valithria_dreamwalker();
+extern void AddSC_boss_sindragosa();
+extern void AddSC_boss_lich_king_icc();
 
 extern void AddSC_boss_archavon();
 extern void AddSC_boss_emalon();
@@ -786,6 +807,12 @@ void AddScripts()
     AddSC_boss_krick();
     AddSC_boss_scourgelord_tyrannus();
 
+    AddSC_instance_halls_of_reflection();
+    AddSC_halls_of_reflection();
+    AddSC_boss_falric();
+    AddSC_boss_marwyn();
+    AddSC_boss_lich_king_hr();
+
     AddSC_boss_anubrekhan();                                //naxxramas
     AddSC_boss_four_horsemen();
     AddSC_boss_faerlina();
@@ -847,7 +874,6 @@ void AddScripts()
     AddSC_instance_pinnacle();
     AddSC_instance_violet_hold();                           //violet_hold
     AddSC_violet_hold();
-
     AddSC_boss_cyanigosa();
     AddSC_boss_erekem();
     AddSC_boss_ichoron();
@@ -855,8 +881,21 @@ void AddScripts()
     AddSC_boss_moragg();
     AddSC_boss_xevozz();
     AddSC_boss_zuramat();
-    AddSC_instance_violet_hold();
-    AddSC_violet_hold();
+
+    AddSC_instance_icecrown_spire();
+    AddSC_icecrown_spire();
+    AddSC_icecrown_teleporter();
+    AddSC_boss_lord_marrowgar();
+    AddSC_boss_lady_deathwhisper();
+    AddSC_boss_deathbringer_saurfang();
+    AddSC_boss_rotface();
+    AddSC_boss_festergut();
+    AddSC_boss_proffesor_putricide();
+    AddSC_blood_prince_council();
+    AddSC_boss_blood_queen_lanathel();
+    AddSC_boss_valithria_dreamwalker();
+    AddSC_boss_sindragosa();
+    AddSC_boss_lich_king_icc();
 
     AddSC_boss_archavon();
     AddSC_boss_emalon();

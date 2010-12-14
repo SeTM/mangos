@@ -441,7 +441,7 @@ LexicsCutterNoActionOnGM = 1
 #
 #    GameType
 #        Server realm style
-#        0 = NORMAL;1 = PVP; 4 = NORMAL; 6 = RP; 8 = RPPVP
+#        0 = NORMAL; 1 = PVP; 4 = NORMAL; 6 = RP; 8 = RPPVP
 #        also custom type: 16 FFA_PVP (free for all pvp mode like arena PvP in all zones except rest
 #        activated places and sanctuaries)
 #
@@ -1027,8 +1027,8 @@ ListenRange.Yell = 300
 #        Chat protection from creating fake messages using a lot spaces (other invisible symbols),
 #        not applied to addon language messages, but can prevent working old addons
 #        that use normal languages for sending data to another clients.
-#        Default: 0 (disible fake messages preventing)
-#                 1 (enabled fake messages preventing)
+#        Default: 0 (disable fake messages preventing)
+#                 1 (enable fake messages preventing)
 #
 #    ChatStrictLinkChecking.Severity
 #        Check chat messages for ingame links to spells, items, quests, achievements etc.
@@ -1046,7 +1046,7 @@ ListenRange.Yell = 300
 #    ChatFlood.MessageCount
 #        Chat anti-flood protection, haste message count to activate protection
 #        Default: 10
-#                 0 (disible anti-flood protection)
+#                 0 (disable anti-flood protection)
 #
 #    ChatFlood.MessageDelay
 #        Chat anti-flood protection, minimum message delay to count message
@@ -1340,6 +1340,10 @@ Visibility.Distance.Grey.Object = 10
 #         Default: 1 (enabled)
 #                  0 (disabled)
 #
+#    BattleGround.Random.ResetHour
+#        Hour when random bg reset (0..23)
+#        Default: 6
+#
 ###################################################################################################################
 
 Rate.Health = 1
@@ -1432,10 +1436,6 @@ Death.Bones.BattlegroundOrArena = 1
 #        The time in which premade group of 1 faction waits in BG Queue for premade group of other faction
 #        Default: 1800000 (30 minutes)
 #                 0 - disable premade group matches (group always added to bg team in normal way)
-#
-#    BattleGround.Random.ResetHour
-#        Hour when random bg reset (0..23)
-#        Default: 6
 #
 ###################################################################################################################
 
@@ -1633,3 +1633,26 @@ SOAP.Port = 7878
 CharDelete.Method = 0
 CharDelete.MinLevel = 0
 CharDelete.KeepDays = 30
+
+###################################################################################################################
+# Automatic Broadcaster
+#
+#    Broadcast.Enabled
+#        Enable/Disable the broadcaster
+#        Default: 0 - off
+#                 1 - on
+#
+#    Broadcast.Position
+#        Where to display the message (Just add the values for multiple)
+#        Default: 1 - In the in-game chat window
+#                 2 - In the top-middle of the screen
+#                 4 - In the announcements IRC channel (if mangchat is installed)
+#
+#    Broadcast.Interval
+#        Interval at which to broadcast messages
+#
+###################################################################################################################
+
+Broadcast.Enabled = 1
+Broadcast.Position = 2
+Broadcast.Interval = 30000

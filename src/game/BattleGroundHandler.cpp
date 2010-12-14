@@ -76,7 +76,7 @@ void WorldSession::SendBattlegGroundList( ObjectGuid guid, BattleGroundTypeId bg
 
 void WorldSession::HandleBattlemasterJoinOpcode( WorldPacket & recv_data )
 {
-    uint64 guid;
+    ObjectGuid guid;
     uint32 bgTypeId_;
     uint32 instanceId;
     uint8 joinAsGroup;
@@ -96,7 +96,7 @@ void WorldSession::HandleBattlemasterJoinOpcode( WorldPacket & recv_data )
 
     BattleGroundTypeId bgTypeId = BattleGroundTypeId(bgTypeId_);
 
-    DEBUG_LOG( "WORLD: Recvd CMSG_BATTLEMASTER_JOIN Message from (GUID: %u TypeId:%u)", GUID_LOPART(guid), GuidHigh2TypeId(GUID_HIPART(guid)));
+    DEBUG_LOG( "WORLD: Recvd CMSG_BATTLEMASTER_JOIN Message from %s", guid.GetString().c_str());
 
     // can do this, since it's battleground, not arena
     BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId, 0);
@@ -105,6 +105,14 @@ void WorldSession::HandleBattlemasterJoinOpcode( WorldPacket & recv_data )
     // ignore if player is already in BG
     if (_player->InBattleGround())
         return;
+
+	// prevent joining from instances
+    uint32 mapid = _player->GetMapId();
+    if(mapid != 0 && mapid != 1 && mapid != 530 && mapid != 571)
+    {
+        SendNotification("You cannot join from here");
+        return;
+    }
 
     // get bg instance or bg template if instance not found
     BattleGround *bg = NULL;
@@ -254,11 +262,11 @@ void WorldSession::HandleBattleGroundPlayerPositionsOpcode( WorldPacket & /*recv
                 uint32 count1 = 0;                          // always constant zero?
                 uint32 count2 = 0;                          // count of next fields
 
-                Player *ali_plr = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetAllianceFlagPickerGUID());
+                Player *ali_plr = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetAllianceFlagPickerGuid());
                 if (ali_plr)
                     ++count2;
 
-                Player *horde_plr = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetHordeFlagPickerGUID());
+                Player *horde_plr = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetHordeFlagPickerGuid());
                 if (horde_plr)
                     ++count2;
 
@@ -375,7 +383,7 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
     BattleGroundQueue& bgQueue = sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId];
     //we must use temporary variable, because GroupQueueInfo pointer can be deleted in BattleGroundQueue::RemovePlayer() function
     GroupQueueInfo ginfo;
-    if (!bgQueue.GetPlayerGroupInfoData(_player->GetGUID(), &ginfo))
+    if (!bgQueue.GetPlayerGroupInfoData(_player->GetObjectGuid(), &ginfo))
     {
         sLog.outError("BattlegroundHandler: itrplayerstatus not found.");
         return;
@@ -451,16 +459,16 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_IN_PROGRESS, 0, bg->GetStartTime(), bg->GetArenaType());
             _player->GetSession()->SendPacket(&data);
             // remove battleground queue status from BGmgr
-            bgQueue.RemovePlayer(_player->GetGUID(), false);
+            bgQueue.RemovePlayer(_player->GetObjectGuid(), false);
             // this is still needed here if battleground "jumping" shouldn't add deserter debuff
             // also this is required to prevent stuck at old battleground after SetBattleGroundId set to new
             if (BattleGround *currentBg = _player->GetBattleGround())
-                currentBg->RemovePlayerAtLeave(_player->GetGUID(), false, true);
+                currentBg->RemovePlayerAtLeave(_player->GetObjectGuid(), false, true);
 
             // set the destination instance id
             _player->SetBattleGroundId(bg->GetInstanceID(), bgTypeId);
             // set the destination team
-            _player->SetBGTeam(ginfo.Team);
+            _player->SetBGTeam(ginfo.GroupTeam);
             // bg->HandleBeforeTeleportToBattleGround(_player);
             sBattleGroundMgr.SendToBattleGround(_player, ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
             // add only in HandleMoveWorldPortAck()
@@ -469,19 +477,19 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
             break;
         case 0:                                         // leave queue
             // if player leaves rated arena match before match start, it is counted as he played but he lost
-            if (ginfo.IsRated)
+            if (ginfo.IsRated && ginfo.IsInvitedToBGInstanceGUID)
             {
-                ArenaTeam * at = sObjectMgr.GetArenaTeamById(ginfo.Team);
+                ArenaTeam * at = sObjectMgr.GetArenaTeamById(ginfo.ArenaTeamId);
                 if (at)
                 {
-                    DEBUG_LOG("UPDATING memberLost's personal arena rating for %u by opponents rating: %u, because he has left queue!", GUID_LOPART(_player->GetGUID()), ginfo.OpponentsTeamRating);
+                    DEBUG_LOG("UPDATING memberLost's personal arena rating for %s by opponents rating: %u, because he has left queue!", _player->GetGuidStr().c_str(), ginfo.OpponentsTeamRating);
                     at->MemberLost(_player, ginfo.OpponentsTeamRating);
                     at->SaveToDB();
                 }
             }
             _player->RemoveBattleGroundQueueId(bgQueueTypeId);  // must be called this way, because if you move this call to queue->removeplayer, it causes bugs
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_NONE, 0, 0, 0);
-            bgQueue.RemovePlayer(_player->GetGUID(), true);
+            bgQueue.RemovePlayer(_player->GetObjectGuid(), true);
             // player left queue, we should update it - do not update Arena Queue
             if (!ginfo.ArenaType)
                 sBattleGroundMgr.ScheduleQueueUpdate(ginfo.ArenaTeamRating, ginfo.ArenaType, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
@@ -548,7 +556,7 @@ void WorldSession::HandleBattlefieldStatusOpcode( WorldPacket & /*recv_data*/ )
         //get GroupQueueInfo for queue status
         BattleGroundQueue& bgQueue = sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId];
         GroupQueueInfo ginfo;
-        if (!bgQueue.GetPlayerGroupInfoData(_player->GetGUID(), &ginfo))
+        if (!bgQueue.GetPlayerGroupInfoData(_player->GetObjectGuid(), &ginfo))
             continue;
         if (ginfo.IsInvitedToBGInstanceGUID)
         {
@@ -587,7 +595,7 @@ void WorldSession::HandleAreaSpiritHealerQueryOpcode( WorldPacket & recv_data )
     if (!bg)
         return;
 
-    uint64 guid;
+    ObjectGuid guid;
     recv_data >> guid;
 
     Creature *unit = GetPlayer()->GetMap()->GetCreature(guid);
@@ -608,7 +616,7 @@ void WorldSession::HandleAreaSpiritHealerQueueOpcode( WorldPacket & recv_data )
     if (!bg)
         return;
 
-    uint64 guid;
+    ObjectGuid guid;
     recv_data >> guid;
 
     Creature *unit = GetPlayer()->GetMap()->GetCreature(guid);
@@ -626,11 +634,10 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
     DEBUG_LOG("WORLD: CMSG_BATTLEMASTER_JOIN_ARENA");
     //recv_data.hexlike();
 
-    uint64 guid;                                            // arena Battlemaster guid
+    ObjectGuid guid;                                        // arena Battlemaster guid
     uint8 arenaslot;                                        // 2v2, 3v3 or 5v5
     uint8 asGroup;                                          // asGroup
     uint8 isRated;                                          // isRated
-    Group * grp;
 
     recv_data >> guid >> arenaslot >> asGroup >> isRated;
 
@@ -680,9 +687,15 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
 
     GroupJoinBattlegroundResult err;
 
+    Group * grp = NULL;
+
     // check queue conditions
     if (!asGroup)
     {
+        // you can't join in this way by client
+        if (isRated)
+            return;
+
         // check if already in queue
         if (_player->GetBattleGroundQueueIndex(bgQueueTypeId) < PLAYER_MAX_BATTLEGROUND_QUEUES)
             //player is already in this queue

@@ -1065,7 +1065,11 @@ struct MANGOS_DLL_DECL npc_guardianAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+    }
+
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        uiDamage = 0;
     }
 
     void UpdateAI(const uint32 diff)
@@ -2209,7 +2213,6 @@ struct MANGOS_DLL_DECL npc_spring_rabbitAI : public ScriptedAI
                     std::list<Unit *> targets;
                     CellPair p(MaNGOS::ComputeCellPair(m_creature->GetPositionX(), m_creature->GetPositionY()));
                     Cell cell(p);
-                    cell.data.Part.reserved = ALL_DISTRICT;
                     cell.SetNoCreate();
 
                     MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(m_creature, 8.0f);
@@ -2363,11 +2366,11 @@ void NotifyPlayer(Player* pPlayer, Creature* pCreature, const char* item, std::s
     std::string subject = "Поздравляем!";
     std::string text    = "Поздравляем, Вы выиграли в лотерее! Ваш приз - ";
     text = text + item;
-	std::string tail = ". Ваш код для получения приза - ";
+	std::string tail = ". Отправляйтесь в Пиратскую бухту к Ландро Дальнострелу и скажите ему секретный код для получения приза! Ваш код для получения приза - ";
 	text = text + tail + Code;
 
     MailDraft(subject, text)
-        .SendMailTo(MailReceiver(pPlayer,GUID_LOPART(pPlayer->GetGUID())),MailSender(MAIL_CREATURE, pCreature->GetEntry()));
+        .SendMailTo(MailReceiver(pPlayer,pPlayer->GetGUID()),MailSender(MAIL_CREATURE, pCreature->GetEntry()));
 }
 
 void DoDrawing(Player *pPlayer, Creature *pCreature, uint32 Price, int Chance, const char* Item, int type, int b)
@@ -2401,6 +2404,9 @@ void DoDrawing(Player *pPlayer, Creature *pCreature, uint32 Price, int Chance, c
 #define GOSSIP_HIPPOGRYPH_HATCHLING     "Я хочу сыграть на Детеныша гиппогрифа"
 #define GOSSIP_BANANA_CHARM             "Я хочу сыграть на Банановый оберег"
 #define GOSSIP_CELESTIAL_STEED          "Я хочу сыграть на Небесного скакуна"
+#define GOSSIP_BLAZING_HIPPORGYPH       "Я хочу сыграть на Пламенеющего гиппогрифа"
+#define GOSSIP_SHIRT                    "Я хочу сыграть на Рубашку"
+#define GOSSIP_VALANIR                  "Я хочу сыграть на Вал'анир, молот древних королей"
 bool GossipHello_npc_raffle(Player* pPlayer, Creature* pCreature)
 {
     // Reins of the Swift Spectral Tiger
@@ -2415,6 +2421,12 @@ bool GossipHello_npc_raffle(Player* pPlayer, Creature* pCreature)
     pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_BANANA_CHARM, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF +9);
     // Celestial Steed
     pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CELESTIAL_STEED, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF +11);
+    // Blazing Hippogryph
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_BLAZING_HIPPORGYPH, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF +13);
+    // First Race Participator Shirt
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_SHIRT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF +15);
+    // Val'anyr, Hammer of Ancient Kings
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_VALANIR, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF +17);
     pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
     return true;
 }
@@ -2447,6 +2459,18 @@ bool GossipSelect_npc_raffle(Player* pPlayer, Creature* pCreature, uint32 uiSend
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Испытать удачу...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+12);
         pPlayer->SEND_GOSSIP_MENU(122997, pCreature->GetGUID());
         break;
+    case GOSSIP_ACTION_INFO_DEF+13:
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Испытать удачу...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+14);
+        pPlayer->SEND_GOSSIP_MENU(122998, pCreature->GetGUID());
+        break;
+    case GOSSIP_ACTION_INFO_DEF+15:
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Испытать удачу...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+16);
+        pPlayer->SEND_GOSSIP_MENU(122999, pCreature->GetGUID());
+        break;
+    case GOSSIP_ACTION_INFO_DEF+17:
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Испытать удачу...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+18);
+        pPlayer->SEND_GOSSIP_MENU(123000, pCreature->GetGUID());
+        break;
     case GOSSIP_ACTION_INFO_DEF+2:
         DoDrawing(pPlayer, pCreature, 10000000, 1, "Swift Spectral Tiger", 1, 1);
         break;
@@ -2464,6 +2488,15 @@ bool GossipSelect_npc_raffle(Player* pPlayer, Creature* pCreature, uint32 uiSend
         break;
     case GOSSIP_ACTION_INFO_DEF+12:
         DoDrawing(pPlayer, pCreature, 12000000, 1, "Celestial Steed", 6, 11);
+        break;
+    case GOSSIP_ACTION_INFO_DEF+14:
+        DoDrawing(pPlayer, pCreature, 9000000, 1, "Blazing Hippogryph", 7, 13);
+        break;
+    case GOSSIP_ACTION_INFO_DEF+16:
+        DoDrawing(pPlayer, pCreature, 5000000, 1, "First Race Participator Shirt", 8, 15);
+        break;
+    case GOSSIP_ACTION_INFO_DEF+18:
+        DoDrawing(pPlayer, pCreature, 15000000, 1, "Val'anyr, Hammer of Ancient Kings", 9, 17);
         break;
     }
     return true;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -161,6 +161,15 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
                         pInstance->SetData(TYPE_STAGE,0);
                         pInstance->SetData(TYPE_CRUSADERS,DONE);
                         pInstance->SetData(TYPE_EVENT,3100);
+
+                        Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
+                        if (PlList.isEmpty())
+                            break;
+                        for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
+                        {
+                            if (Player* pPlayer = i->getSource())
+                                pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET,68184);
+                        }
                     }
                     break;
                 }
@@ -319,7 +328,7 @@ bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32
             if (GameObject* pGoFloor = pInstance->instance->GetGameObject(pInstance->GetData64(GO_ARGENT_COLISEUM_FLOOR)))
             {
                 pGoFloor->SetUInt32Value(GAMEOBJECT_DISPLAYID,9060);
-                pGoFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK_10 | GO_FLAG_NODESPAWN);
+                pGoFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED | GO_FLAG_NODESPAWN);
                 pGoFloor->SetUInt32Value(GAMEOBJECT_BYTES_1,8449);
             }
             pCreature->CastSpell(pCreature,69016,false);
@@ -488,7 +497,7 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
                 if (GameObject* pGoFloor = pInstance->instance->GetGameObject(pInstance->GetData64(GO_ARGENT_COLISEUM_FLOOR)))
                 {
                     pGoFloor->SetUInt32Value(GAMEOBJECT_DISPLAYID,9060);
-                    pGoFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK_10 | GO_FLAG_NODESPAWN);
+                    pGoFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED | GO_FLAG_NODESPAWN);
                     pGoFloor->SetUInt32Value(GAMEOBJECT_BYTES_1,8449);
                 }
                 m_creature->CastSpell(m_creature,69016,false);
@@ -555,7 +564,13 @@ struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
     {
         DoScriptText(-1713715, m_creature, pKiller);
         pInstance->SetData(TYPE_EVENT, 1180);
-        if (pPortal) pPortal->ForcedDespawn();
+        if (pPortal) 
+            ((TemporarySummon *)pPortal)->UnSummon();
+
+        if (pTrigger)
+            ((TemporarySummon *)pTrigger)->UnSummon();
+        
+        ((TemporarySummon *)m_creature)->UnSummon();
     }
 
     void Reset()
@@ -570,7 +585,8 @@ struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
         if(!pInstance)
             return;
 
-        if (pInstance->GetData(TYPE_EVENT_NPC) != NPC_FIZZLEBANG) return;
+        if (pInstance->GetData(TYPE_EVENT_NPC) != NPC_FIZZLEBANG) 
+            return;
 
         UpdateTimer = pInstance->GetData(TYPE_EVENT_TIMER);
         if(UpdateTimer <= diff)
@@ -645,7 +661,8 @@ struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
                 DoScriptText(-1713513, m_creature);
                 break;
             case 1144:
-                if (pTrigger) pTrigger->ForcedDespawn();
+                if (pTrigger) 
+                    pTrigger->ForcedDespawn();
                 pInstance->SetData(TYPE_EVENT, 1150);
                 UpdateTimer = 5000;
                 break;
@@ -824,7 +841,7 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
             case 1010:
                 DoScriptText(-1713510, m_creature);
                 UpdateTimer = 5000;
-                m_creature->SummonCreature(NPC_FIZZLEBANG, SpawnLoc[21].x, SpawnLoc[21].y, SpawnLoc[21].z, 2, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
+                m_creature->SummonCreature(NPC_FIZZLEBANG, SpawnLoc[21].x, SpawnLoc[21].y, SpawnLoc[21].z, 2, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 20000);
                 pInstance->SetData(TYPE_EVENT,1110);
                 break;
 
@@ -1194,24 +1211,22 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
                 break;
             case 4015:
                 pInstance->SetData(TYPE_STAGE,7);
-                pInstance->SetData(TYPE_VALKIRIES,IN_PROGRESS);
-                m_creature->SummonCreature(NPC_LIGHT_ESSENCE, SpawnLoc[24].x, SpawnLoc[24].y, SpawnLoc[24].z, 0, TEMPSUMMON_MANUAL_DESPAWN, 5000);
-                m_creature->SummonCreature(NPC_LIGHT_ESSENCE, SpawnLoc[25].x, SpawnLoc[25].y, SpawnLoc[25].z, 0, TEMPSUMMON_MANUAL_DESPAWN, 5000);
+                m_creature->SummonCreature(NPC_TWINVALKYRIAS, 563.880f, 181.164f, 394.427f, 4.692f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
+                m_creature->SummonCreature(NPC_LIGHT_ESSENCE, SpawnLoc[24].x, SpawnLoc[24].y, SpawnLoc[24].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
+                m_creature->SummonCreature(NPC_LIGHT_ESSENCE, SpawnLoc[25].x, SpawnLoc[25].y, SpawnLoc[25].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
                 m_creature->SummonCreature(NPC_LIGHTBANE, SpawnLoc[3].x, SpawnLoc[3].y, SpawnLoc[3].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_LIGHTBANE))) 
                 {
-                    pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
+                    pTemp->GetMotionMaster()->MovePoint(0, 574.037f, 182.260f, 395.140f);
                     pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                    //pTemp->SetInCombatWithZone(); called in aggro
                 }
-                m_creature->SummonCreature(NPC_DARK_ESSENCE, SpawnLoc[22].x, SpawnLoc[22].y, SpawnLoc[22].z, 0, TEMPSUMMON_MANUAL_DESPAWN, 5000);
-                m_creature->SummonCreature(NPC_DARK_ESSENCE, SpawnLoc[23].x, SpawnLoc[23].y, SpawnLoc[23].z, 0, TEMPSUMMON_MANUAL_DESPAWN, 5000);
+                m_creature->SummonCreature(NPC_DARK_ESSENCE, SpawnLoc[22].x, SpawnLoc[22].y, SpawnLoc[22].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
+                m_creature->SummonCreature(NPC_DARK_ESSENCE, SpawnLoc[23].x, SpawnLoc[23].y, SpawnLoc[23].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000);
                 m_creature->SummonCreature(NPC_DARKBANE, SpawnLoc[4].x, SpawnLoc[4].y, SpawnLoc[4].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_DARKBANE))) 
                 {
-                    pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
+                    pTemp->GetMotionMaster()->MovePoint(0, 553.654f, 180.712f, 395.141f);
                     pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                    //pTemp->SetInCombatWithZone(); called in aggro
                 }
                 UpdateTimer = 10000;
                 pInstance->SetData(TYPE_EVENT,4016);
@@ -1219,7 +1234,7 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
                 break;
 
             case 4040:
-                UpdateTimer = 60000;
+                UpdateTimer = 500000;
                 pInstance->SetData(TYPE_EVENT,5000);
                 break;
 
