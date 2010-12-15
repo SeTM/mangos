@@ -146,6 +146,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public BSWScriptedAI
             return;
         pInstance->SetData(TYPE_SAURFANG, DONE);
         DoScriptText(-1631106,m_creature);
+        DoCast(m_creature,72928,true);
 
         Map::PlayerList const &pList = m_creature->GetMap()->GetPlayers();
         if (pList.isEmpty()) 

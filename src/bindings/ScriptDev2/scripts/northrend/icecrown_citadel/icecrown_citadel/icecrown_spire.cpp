@@ -109,7 +109,8 @@ struct MANGOS_DLL_DECL mob_frost_giantAI : public BSWScriptedAI
     {
         if(!pInstance) return;
         if (killer->GetTypeId() == TYPEID_PLAYER)
-              pInstance->SetData(TYPE_FLIGHT_WAR, DONE);
+            pInstance->SetData(TYPE_FLIGHT_WAR, DONE);
+        DoCast(m_creature,72959,true);
     }
 
     void JustReachedHome()
