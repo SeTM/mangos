@@ -2052,8 +2052,30 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position) c
             advance(r, position);
             return GetMap()->GetUnit((*r)->getUnitGuid());
         }
+		        case ATTACKING_TARGET_RANDOM_PLAYER:
+        {
+            int number_players = 0;
+            for (; i != threatlist.end(); i++)
+            {
+                if (GetMap()->GetUnit((*i)->getUnitGuid())->isType(TYPEMASK_PLAYER)) number_players++;
+            }
+            if (number_players == 0)
+                return NULL;
+            else
+            {
+                int random_player = rand() % number_players;
+                number_players = 0;
+                advance(i, position);
+                for (; i != threatlist.end(); i++)
+                {
+                    if ((GetMap()->GetUnit((*i)->getUnitGuid())->isType(TYPEMASK_PLAYER))&& number_players != random_player)
+                        number_players++;
+                    else
+                        return GetMap()->GetUnit((*i)->getUnitGuid());
+                }
+            }
+        }
         // TODO: implement these
-        //case ATTACKING_TARGET_RANDOM_PLAYER:
         //case ATTACKING_TARGET_TOPAGGRO_PLAYER:
         //case ATTACKING_TARGET_BOTTOMAGGRO_PLAYER:
     }
