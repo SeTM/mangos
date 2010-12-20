@@ -2240,42 +2240,36 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
 
                     break;
                 }
-                                                            // Heartpierce (Item - Icecrown 25 Normal Dagger Proc)
-                case 71880:                                
-                case 71892:
-                                                            // Heartpierce (Item - Icecrown 25 Heroic Dagger Proc)
+                // Heartpierce, Item - Icecrown 25 Normal Dagger Proc
+                case 71880:
                 {
                     if(GetTypeId() != TYPEID_PLAYER)
                         return SPELL_AURA_PROC_FAILED;
- 
-                    // Select powertype defined buff
-                    switch (getPowerType())
+
+                    switch (this->getPowerType())
                     {
-                        case POWER_MANA:
-                        {
-                            triggered_spell_id = ((dummySpell->Id) == 71880) ? 71881 : 71888;
-                            break;
-                        }
-                        case POWER_ENERGY:
-                        {
-                            triggered_spell_id = ((dummySpell->Id) == 71880) ? 71882 : 71887;
-                            break;
-                        }
-                        case POWER_RAGE:
-                        {
-                            triggered_spell_id = ((dummySpell->Id) == 71880) ? 71883 : 71886;
-                            break;
-                        }
-                        case POWER_RUNIC_POWER:
-                        {
-                            triggered_spell_id = ((dummySpell->Id) == 71880) ? 71884 : 71885;
-                            break;
-                        }
+                        case POWER_ENERGY: triggered_spell_id = 71882; break;
+                        case POWER_RAGE:   triggered_spell_id = 71883; break;
+                        case POWER_MANA:   triggered_spell_id = 71881; break;
                         default:
                             return SPELL_AURA_PROC_FAILED;
                     }
- 
-                    target = this;
+                    break;
+                }
+                // Heartpierce, Item - Icecrown 25 Heroic Dagger Proc
+                case 71892:
+                {
+                    if(GetTypeId() != TYPEID_PLAYER)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    switch (this->getPowerType())
+                    {
+                        case POWER_ENERGY: triggered_spell_id = 71887; break;
+                        case POWER_RAGE:   triggered_spell_id = 71886; break;
+                        case POWER_MANA:   triggered_spell_id = 71888; break;
+                        default:
+                            return SPELL_AURA_PROC_FAILED;
+                    }
                     break;
                 }
             }
