@@ -591,6 +591,16 @@ void ArenaTeam::FinishGame(int32 mod)
     {
         if (i->second->GetType() == this->m_Type && i->second->GetStats().rating > m_stats.rating)
             ++m_stats.rank;
+        if (mod > 0)
+        {
+            if (i->second->GetType() == this->m_Type && i->second->GetStats().rating >= m_stats.rating - mod && i->second->GetStats().rating < m_stats.rating)
+                i->second->m_stats.rank--;
+        }
+        else if (mod < 0)
+        {
+            if (i->second->GetType() == this->m_Type && i->second->GetStats().rating > m_stats.rating && i->second->GetStats().rating <= m_stats.rating + mod)
+                i->second->m_stats.rank++;
+        }
     }
 }
 
