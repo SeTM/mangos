@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -44,7 +44,6 @@ enum
     SPELL_ENRAGE              =  28798,
     SPELL_RAINOFFIRE          =  39024,                   //Not sure if targeted AoEs work if casted directly upon a player
     SPELL_RAINOFFIRE_H        =  58936,
-
     SPELL_WIDOWS_EMBRACE      =  28732,					//We will use it, but the real thing will be another
     SPELL_FIREBALL            =  54095,
     SPELL_FIREBALL_H          =  54096
@@ -211,6 +210,7 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
         }
     }
 
+
     void KillWorshipper()
     {
         if (m_creature->HasAura(SPELL_ENRAGE))
@@ -285,7 +285,7 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
             RainOfFire_Timer = 16000;
         }else RainOfFire_Timer -= diff;
 
-        //Enrage_Timer
+        // Enrage Timer
         if (Enrage_Timer < diff)
         {
 			switch (rand()%3)

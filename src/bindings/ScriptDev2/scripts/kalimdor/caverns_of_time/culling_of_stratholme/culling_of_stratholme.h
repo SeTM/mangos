@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -180,9 +180,9 @@ class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
         
         uint64 m_uiOReillyGUID;
 
-        std::list<Creature*> m_lCratesBunnyList;
-        std::list<Creature*> m_lFootmanList;
-        std::list<Creature*> m_lResidentList;
+        std::list<uint64> m_luiCratesBunnyGUIDs;
+        std::list<uint64> m_luiFootmanGUIDs;
+        std::list<uint64> m_luiResidentGUIDs;
 
         std::list<uint64> m_lAgiatedCitizenGUIDList;
         std::list<uint64> m_lAgiatedResidentGUIDList;

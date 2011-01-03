@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -38,7 +38,7 @@ EndContentData */
 ## go_shadowforge_brazier
 ######*/
 
-bool GOHello_go_shadowforge_brazier(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_shadowforge_brazier(Player* pPlayer, GameObject* pGo)
 {
     if (ScriptedInstance* pInstance = (ScriptedInstance*)pGo->GetInstanceData())
     {
@@ -679,7 +679,7 @@ CreatureAI* GetAI_npc_rocknot(Creature* pCreature)
     return new npc_rocknotAI(pCreature);
 }
 
-bool ChooseReward_npc_rocknot(Player* pPlayer, Creature* pCreature, const Quest* pQuest, uint32 item)
+bool QuestRewarded_npc_rocknot(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
 {
     ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
 
@@ -783,7 +783,7 @@ CreatureAI* GetAI_npc_coren_direbrew(Creature* pCreature)
     return new npc_coren_direbrewAI(pCreature);
 }
 
-bool ChooseReward_npc_coren_direbrew(Player* pPlayer, Creature* pCreature, const Quest* pQuest, uint32 item)
+bool ChooseReward_npc_coren_direbrew(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
 {
     if (pQuest->GetQuestId() == 12062)
     {
@@ -836,7 +836,7 @@ void AddSC_blackrock_depths()
 
     pNewScript = new Script;
     pNewScript->Name = "go_shadowforge_brazier";
-    pNewScript->pGOHello = &GOHello_go_shadowforge_brazier;
+    pNewScript->pGOUse = &GOUse_go_shadowforge_brazier;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -869,13 +869,13 @@ void AddSC_blackrock_depths()
     pNewScript = new Script;
     pNewScript->Name = "npc_rocknot";
     pNewScript->GetAI = &GetAI_npc_rocknot;
-    pNewScript->pChooseReward = &ChooseReward_npc_rocknot;
+    pNewScript->pQuestRewardedNPC = &QuestRewarded_npc_rocknot;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_coren_direbrew";
     pNewScript->GetAI = &GetAI_npc_coren_direbrew;
-    pNewScript->pChooseReward = &ChooseReward_npc_coren_direbrew;
+    pNewScript->pQuestRewardedNPC = &ChooseReward_npc_coren_direbrew;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

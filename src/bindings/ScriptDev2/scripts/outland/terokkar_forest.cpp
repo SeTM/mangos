@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Terokkar_Forest
 SD%Complete: 80
-SDComment: Quest support: 9889, 10009, 10873, 10896, 10446/10447, 10852, 10887, 10922, 11096. Skettis->Ogri'la Flight
+SDComment: Quest support: 9889, 10009, 10873, 10896, 10446/10447, 10852, 10887, 10922, 11096, 11093. Skettis->Ogri'la Flight
 SDCategory: Terokkar Forest
 EndScriptData */
 
@@ -28,6 +28,7 @@ mob_rotting_forest_rager
 mob_netherweb_victim
 npc_akuno
 npc_floon
+npc_hungry_nether_ray
 npc_letoll
 npc_mana_bomb_exp_trigger
 go_mana_bomb
@@ -39,6 +40,7 @@ EndContentData */
 
 #include "precompiled.h"
 #include "escort_ai.h"
+#include "pet_ai.h"
 
 /*######
 ## mob_unkor_the_ruthless
@@ -477,6 +479,42 @@ bool GossipSelect_npc_skyguard_handler_deesak(Player* pPlayer, Creature* pCreatu
 }
 
 /*######
+## npc_hungry_nether_ray
+######*/
+
+enum
+{
+    EMOTE_FEED                  = -1000628,
+    NPC_BLACK_WARP_CHASER       = 23219,
+    SPELL_FEED_CREDIT           = 41427,                    // credit for quest 11093
+};
+
+struct MANGOS_DLL_DECL npc_hungry_nether_rayAI : public ScriptedPetAI
+{
+    npc_hungry_nether_rayAI(Creature* pCreature) : ScriptedPetAI(pCreature) { Reset(); }
+
+    void Reset() { }
+
+    void OwnerKilledUnit(Unit* pVictim)
+    {
+        if (pVictim->GetTypeId() == TYPEID_UNIT && pVictim->GetEntry() == NPC_BLACK_WARP_CHASER)
+        {
+            // Distance expected?
+            if (m_creature->IsWithinDistInMap(pVictim, 10.0f))
+            {
+                DoScriptText(EMOTE_FEED, m_creature);
+                m_creature->CastSpell(m_creature, SPELL_FEED_CREDIT, true);
+            }
+        }
+    }
+};
+
+CreatureAI* GetAI_npc_hungry_nether_ray(Creature* pCreature)
+{
+    return new npc_hungry_nether_rayAI(pCreature);
+}
+
+/*######
 ## npc_letoll
 ######*/
 
@@ -834,7 +872,7 @@ CreatureAI* GetAI_npc_mana_bomb_exp_trigger(Creature* pCreature)
 ## go_mana_bomb
 ######*/
 
-bool GOHello_go_mana_bomb(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_mana_bomb(Player* pPlayer, GameObject* pGo)
 {
     if (Creature* pCreature = GetClosestCreatureWithEntry(pGo, NPC_MANA_BOMB_EXPL_TRIGGER, INTERACTION_DISTANCE))
     {
@@ -889,7 +927,7 @@ enum
     SAY_THANKS_4              = -1000593
 };
 
-bool GOHello_veil_skith_cage(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_veil_skith_cage(Player* pPlayer, GameObject* pGo)
 {
     if (pPlayer->GetQuestStatus(QUEST_MISSING_FRIENDS) == QUEST_STATUS_INCOMPLETE)
     {
@@ -958,7 +996,7 @@ void AddSC_terokkar_forest()
     newscript = new Script;
     newscript->Name = "npc_akuno";
     newscript->GetAI = &GetAI_npc_akuno;
-    newscript->pQuestAccept = &QuestAccept_npc_akuno;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_akuno;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -969,9 +1007,14 @@ void AddSC_terokkar_forest()
     newscript->RegisterSelf();
 
     newscript = new Script;
+    newscript->Name = "npc_hungry_nether_ray";
+    newscript->GetAI = &GetAI_npc_hungry_nether_ray;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
     newscript->Name = "npc_letoll";
     newscript->GetAI = &GetAI_npc_letoll;
-    newscript->pQuestAccept = &QuestAccept_npc_letoll;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_letoll;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -981,7 +1024,7 @@ void AddSC_terokkar_forest()
 
     newscript = new Script;
     newscript->Name = "go_mana_bomb";
-    newscript->pGOHello = &GOHello_go_mana_bomb;
+    newscript->pGOUse = &GOUse_go_mana_bomb;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -998,7 +1041,7 @@ void AddSC_terokkar_forest()
 
     newscript = new Script;
     newscript->Name = "go_veil_skith_cage";
-    newscript->pGOHello =  &GOHello_veil_skith_cage;
+    newscript->pGOUse = &GOUse_go_veil_skith_cage;
     newscript->RegisterSelf();
 
     newscript = new Script;

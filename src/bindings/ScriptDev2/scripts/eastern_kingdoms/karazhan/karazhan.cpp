@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -167,7 +167,7 @@ struct MANGOS_DLL_DECL npc_barnesAI : public npc_escortAI
         {
             case 0:
                 m_creature->CastSpell(m_creature, SPELL_TUXEDO, false);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_GO_STAGEDOORLEFT));
+                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_STAGE_DOOR_LEFT));
                 break;
             case 4:
                 m_uiTalkCount = 0;
@@ -183,12 +183,12 @@ struct MANGOS_DLL_DECL npc_barnesAI : public npc_escortAI
                 }
                 break;
             case 8:
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_GO_STAGEDOORLEFT));
+                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_STAGE_DOOR_LEFT));
                 m_bPerformanceReady = true;
                 break;
             case 9:
                 PrepareEncounter();
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_GO_CURTAINS));
+                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_STAGE_CURTAIN));
                 break;
         }
     }

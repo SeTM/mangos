@@ -2514,8 +2514,8 @@ void AddSC_npcs_special()
     newscript = new Script;
     newscript->Name = "npc_chicken_cluck";
     newscript->GetAI = &GetAI_npc_chicken_cluck;
-    newscript->pQuestAccept =   &QuestAccept_npc_chicken_cluck;
-    newscript->pQuestComplete = &QuestComplete_npc_chicken_cluck;
+    newscript->pQuestAcceptNPC =   &QuestAccept_npc_chicken_cluck;
+    newscript->pQuestRewardedNPC = &QuestComplete_npc_chicken_cluck;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -2536,7 +2536,7 @@ void AddSC_npcs_special()
     newscript = new Script;
     newscript->Name = "npc_doctor";
     newscript->GetAI = &GetAI_npc_doctor;
-    newscript->pQuestAccept = &QuestAccept_npc_doctor;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_doctor;
     newscript->RegisterSelf();
 
     newscript = new Script;

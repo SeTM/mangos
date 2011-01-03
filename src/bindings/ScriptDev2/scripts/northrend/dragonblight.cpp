@@ -290,7 +290,7 @@ void AddSC_dragonblight()
 
     newscript = new Script;
     newscript->Name = "npc_liquid_fire_of_elune";
-    newscript->pEffectDummyCreature = &EffectDummyCreature_npc_liquid_fire_of_elune;
+    newscript->pEffectDummyNPC = &EffectDummyCreature_npc_liquid_fire_of_elune;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -307,6 +307,6 @@ void AddSC_dragonblight()
 
     newscript = new Script;
     newscript->Name = "npc_woodlands_walker";
-    newscript->pEffectDummyCreature = &EffectDummyCreature_npc_woodlands_walker;
+    newscript->pEffectDummyNPC = &EffectDummyCreature_npc_woodlands_walker;
     newscript->RegisterSelf();
 }

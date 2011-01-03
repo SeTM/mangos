@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -34,6 +34,7 @@ spell 47575
 spell 50706
 spell 45109
 spell 45111
+spell 39246
 EndContentData */
 
 #include "precompiled.h"
@@ -67,7 +68,7 @@ bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEff
         {
             if (uiEffIndex == EFFECT_INDEX_0)
             {
-                if (pGOTarget->GetEntry() != GO_TASTY_REEF_FISH || pCaster->GetTypeId() != TYPEID_PLAYER)
+                if (pGOTarget->GetRespawnTime() != 0 || pGOTarget->GetEntry() != GO_TASTY_REEF_FISH || pCaster->GetTypeId() != TYPEID_PLAYER)
                     return true;
 
                 if (urand(0, 3))
@@ -81,7 +82,7 @@ bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEff
                         pShark->AI()->AttackStart(pCaster);
                 }
 
-                pGOTarget->Delete();                        // sends despawn anim + destroy
+                pGOTarget->SetLootState(GO_JUST_DEACTIVATED);
                 return true;
             }
             return true;
@@ -90,7 +91,7 @@ bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEff
         {
             if (uiEffIndex == EFFECT_INDEX_0)
             {
-                if (pGOTarget->GetEntry() != GO_RED_SNAPPER || pCaster->GetTypeId() != TYPEID_PLAYER)
+                if (pGOTarget->GetRespawnTime() != 0 || pGOTarget->GetEntry() != GO_RED_SNAPPER || pCaster->GetTypeId() != TYPEID_PLAYER)
                     return true;
 
                 if (urand(0, 2))
@@ -104,7 +105,7 @@ bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEff
                         ((Player*)pCaster)->SendNewItem(pItem, 1, true, false);
                 }
 
-                pGOTarget->Delete();                        // sends despawn anim + destroy
+                pGOTarget->SetLootState(GO_JUST_DEACTIVATED);
                 return true;
             }
             return true;
@@ -241,13 +242,66 @@ enum
     SPELL_ENRAGE                        = 45111,
     NPC_FREED_GREENGILL_SLAVE           = 25085,
     NPC_DARKSPINE_MYRMIDON              = 25060,
-    NPC_DARKSPINE_SIREN                 = 25073
+    NPC_DARKSPINE_SIREN                 = 25073,
+
+    // quest 14107
+    SPELL_BLESSING_OF_PEACE             = 66719,
+    NPC_FALLEN_HERO_SPIRIT              = 32149,
+    NPC_FALLEN_HERO_SPIRIT_PROXY        = 35055,
+    SAY_BLESS_1                         = -1000594,
+    SAY_BLESS_2                         = -1000595,
+    SAY_BLESS_3                         = -1000596,
+    SAY_BLESS_4                         = -1000597,
+    SAY_BLESS_5                         = -1000598,
+
+    // quest "The Big Bone Worm" 10930
+    SPELL_FUMPING                       = 39246,
+    SPELL_SUMMON_HAISHULUD              = 39248,
+    NPC_SAND_GNOME                      = 22483,
+    NPC_MATURE_BONE_SIFTER              = 22482,
+
+    // quest 12813, by item 40587
+    SPELL_DARKMENDER_TINCTURE           = 52741,
+    SPELL_SUMMON_CORRUPTED_SCARLET      = 54415,
+    NPC_CORPSES_RISE_CREDIT_BUNNY       = 29398,
 };
 
 bool EffectAuraDummy_spell_aura_dummy_npc(const Aura* pAura, bool bApply)
 {
     switch(pAura->GetId())
     {
+        case SPELL_BLESSING_OF_PEACE:
+        {
+            Creature* pCreature = (Creature*)pAura->GetTarget();
+
+            if (!pCreature || pCreature->GetEntry() != NPC_FALLEN_HERO_SPIRIT)
+                return true;
+
+            if (pAura->GetEffIndex() != EFFECT_INDEX_0)
+                return true;
+
+            if (bApply)
+            {
+                switch(urand(0, 4))
+                {
+                    case 0: DoScriptText(SAY_BLESS_1, pCreature); break;
+                    case 1: DoScriptText(SAY_BLESS_2, pCreature); break;
+                    case 2: DoScriptText(SAY_BLESS_3, pCreature); break;
+                    case 3: DoScriptText(SAY_BLESS_4, pCreature); break;
+                    case 4: DoScriptText(SAY_BLESS_5, pCreature); break;
+                }
+            }
+            else
+            {
+                if (Player* pPlayer = (Player*)pAura->GetCaster())
+                {
+                    pPlayer->KilledMonsterCredit(NPC_FALLEN_HERO_SPIRIT_PROXY, pCreature->GetGUID());
+                    pCreature->ForcedDespawn();
+                }
+            }
+
+            return true;
+        }
         case SPELL_HEALING_SALVE:
         {
             if (pAura->GetEffIndex() != EFFECT_INDEX_0)
@@ -339,18 +393,20 @@ bool EffectAuraDummy_spell_aura_dummy_npc(const Aura* pAura, bool bApply)
         }
         case SPELL_ENRAGE:
         {
-            if (pAura->GetTarget()->GetTypeId() != TYPEID_UNIT || !bApply)
+            if (!bApply || pAura->GetTarget()->GetTypeId() != TYPEID_UNIT)
                 return false;
 
-            if (Creature* pCreature = GetClosestCreatureWithEntry(pAura->GetTarget(), NPC_DARKSPINE_MYRMIDON, 25.0f))
+            Creature* pTarget = (Creature*)pAura->GetTarget();
+
+            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_MYRMIDON, 25.0f))
             {
-                dynamic_cast<Creature*>(pAura->GetTarget())->AI()->AttackStart(pCreature);
+                pTarget->AI()->AttackStart(pCreature);
                 return true;
             }
 
-            if (Creature* pCreature = GetClosestCreatureWithEntry(pAura->GetTarget(), NPC_DARKSPINE_SIREN, 25.0f))
+            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_SIREN, 25.0f))
             {
-                dynamic_cast<Creature*>(pAura->GetTarget())->AI()->AttackStart(pCreature);
+                pTarget->AI()->AttackStart(pCreature);
                 return true;
             }
 
@@ -392,6 +448,24 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
                 if (pCreatureTarget->GetEntry() == NPC_SICKLY_GAZELLE && ((Player*)pCaster)->GetTeam() == HORDE)
                     pCreatureTarget->UpdateEntry(NPC_CURED_GAZELLE);
 
+                return true;
+            }
+            return true;
+        }
+        case SPELL_DARKMENDER_TINCTURE:
+        {
+            if (uiEffIndex == EFFECT_INDEX_0)
+            {
+                if (pCaster->GetTypeId() != TYPEID_PLAYER)
+                    return true;
+
+                // TODO: find/fix visual for effect, no related spells found doing this
+
+                pCreatureTarget->CastSpell(pCreatureTarget, SPELL_SUMMON_CORRUPTED_SCARLET, true);
+
+                ((Player*)pCaster)->KilledMonsterCredit(NPC_CORPSES_RISE_CREDIT_BUNNY);
+
+                pCreatureTarget->ForcedDespawn();
                 return true;
             }
             return true;
@@ -591,7 +665,7 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
         {
             if (uiEffIndex == EFFECT_INDEX_0)
             {
-                if (pCreatureTarget->isDead())
+                if (pCreatureTarget->IsCorpse())
                 {
                     uint32 newSpellId = 0;
 
@@ -622,11 +696,45 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
         {
             pCreatureTarget->CastSpell(pCaster, SPELL_GREENGILL_SLAVE_FREED, true);
 
-            if (pCreatureTarget->GetTypeId() == TYPEID_UNIT)
-                dynamic_cast<Creature*>(pCreatureTarget)->UpdateEntry(NPC_FREED_GREENGILL_SLAVE); // Freed Greengill Slave
+            // Freed Greengill Slave
+            pCreatureTarget->UpdateEntry(NPC_FREED_GREENGILL_SLAVE);
 
             pCreatureTarget->CastSpell(pCreatureTarget, SPELL_ENRAGE, true);
 
+            return true;
+        }
+        case SPELL_FUMPING:
+        {
+            if (uiEffIndex == EFFECT_INDEX_2)
+            {
+                switch(urand(0,2))
+                {
+                    case 0:
+                    {
+                        pCaster->CastSpell(pCreatureTarget, SPELL_SUMMON_HAISHULUD, true);
+                        break;
+                    }
+                    case 1:
+                    {
+                        for (int i = 0; i<2; ++i)
+                        {
+                            if (Creature* pSandGnome = pCaster->SummonCreature(NPC_SAND_GNOME, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                                pSandGnome->AI()->AttackStart(pCaster);
+                        }
+                        break;
+                    }
+                    case 2:
+                    {
+                        for (int i = 0; i<2; ++i)
+                        {
+                            if (Creature* pMatureBoneSifter = pCaster->SummonCreature(NPC_MATURE_BONE_SIFTER, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                                pMatureBoneSifter->AI()->AttackStart(pCaster);
+                        }
+                        break;
+                    }
+                }
+                pCreatureTarget->ForcedDespawn();
+            }
             return true;
         }
     }
@@ -640,12 +748,12 @@ void AddSC_spell_scripts()
 
     newscript = new Script;
     newscript->Name = "spell_dummy_go";
-    newscript->pEffectDummyGameObj = &EffectDummyGameObj_spell_dummy_go;
+    newscript->pEffectDummyGO = &EffectDummyGameObj_spell_dummy_go;
     newscript->RegisterSelf();
 
     newscript = new Script;
     newscript->Name = "spell_dummy_npc";
-    newscript->pEffectDummyCreature = &EffectDummyCreature_spell_dummy_npc;
+    newscript->pEffectDummyNPC = &EffectDummyCreature_spell_dummy_npc;
     newscript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_npc;
     newscript->RegisterSelf();
 }

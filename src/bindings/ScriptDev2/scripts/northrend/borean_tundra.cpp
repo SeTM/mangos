@@ -492,6 +492,6 @@ void AddSC_borean_tundra()
     newscript = new Script;
     newscript->Name = "npc_lurgglbr";
     newscript->GetAI = &GetAI_npc_lurgglbr;
-    newscript->pQuestAccept = &QuestAccept_npc_lurgglbr;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_lurgglbr;
     newscript->RegisterSelf();
 }

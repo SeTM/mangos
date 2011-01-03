@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,10 +15,14 @@
  */
 
 /* ScriptData
-SDName: boss_zarithian
-SD%Complete:
-SDComment:placeholder
-SDCategory: Ruby Sanctum
+SDName: boss_zumrah
+SD%Complete: 0
+SDComment: Placeholder - Needs SD2 support for summoning zombies from graves
+SDCategory: Zul'Farrak
 EndScriptData */
 
 #include "precompiled.h"
+
+void AddSC_boss_zumrah()
+{
+}

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,23 +15,14 @@
  */
 
 /* ScriptData
-SDName: Boss_Gatewatcher_Gyrokill
+SDName: boss_coren_direbrew
 SD%Complete: 0
-SDComment: Place Holder
-SDCategory: Tempest Keep, The Mechanar
+SDComment: Placeholder
+SDCategory: Blackrock Depths
 EndScriptData */
 
 #include "precompiled.h"
 
-#define SAY_AGGRO                       -1554000
-#define SAY_SAW_ATTACK1                 -1554001
-#define SAY_SAW_ATTACK2                 -1554002
-#define SAY_SLAY1                       -1554003
-#define SAY_SLAY2                       -1554004
-#define SAY_DEATH                       -1554005
-
-#define SPELL_STREAM_OF_MACHINE_FLUID   35311
-#define SPELL_SAW_BLADE                 35318
-#define H_SPELL_SAW_BLADE               39192
-#define SPELL_SHADOW_POWER              35322
-#define H_SPELL_SHADOW_POWER            39193
+void AddSC_boss_coren_direbrew()
+{
+}

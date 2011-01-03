@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,13 +23,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "shattered_halls.h"
-
-enum
-{
-    MAX_ENCOUNTER       = 2,
-    GO_DOOR_NETHEKURSE  = 1,                                //entry unknown
-    NPC_NETHEKURSE      = 16807
-};
 
 struct MANGOS_DLL_DECL instance_shattered_halls : public ScriptedInstance
 {
@@ -57,7 +50,7 @@ struct MANGOS_DLL_DECL instance_shattered_halls : public ScriptedInstance
 
     void OnObjectCreate(GameObject* pGo)
     {
-        if (pGo->GetEntry() == GO_DOOR_NETHEKURSE)
+        if (pGo->GetEntry() == GO_NETHEKURSE_DOOR)
             m_uiNethekurseDoorGUID = pGo->GetGUID();
     }
 
@@ -73,6 +66,8 @@ struct MANGOS_DLL_DECL instance_shattered_halls : public ScriptedInstance
         {
             case TYPE_NETHEKURSE:
                 m_auiEncounter[0] = uiData;
+                if (uiData == DONE)
+                    DoUseDoorOrButton(m_uiNethekurseDoorGUID);
                 break;
             case TYPE_OMROGG:
                 m_auiEncounter[1] = uiData;
@@ -96,9 +91,9 @@ struct MANGOS_DLL_DECL instance_shattered_halls : public ScriptedInstance
     {
         switch(uiData)
         {
-            case DATA_NETHEKURSE:
+            case NPC_NETHEKURSE:
                 return m_uiNethekurseGUID;
-            case DATA_NETHEKURSE_DOOR:
+            case GO_NETHEKURSE_DOOR:
                 return m_uiNethekurseDoorGUID;
         }
         return 0;
@@ -112,9 +107,10 @@ InstanceData* GetInstanceData_instance_shattered_halls(Map* pMap)
 
 void AddSC_instance_shattered_halls()
 {
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "instance_shattered_halls";
-    newscript->GetInstanceData = &GetInstanceData_instance_shattered_halls;
-    newscript->RegisterSelf();
+    Script* pNewScript;
+
+    pNewScript = new Script;
+    pNewScript->Name = "instance_shattered_halls";
+    pNewScript->GetInstanceData = &GetInstanceData_instance_shattered_halls;
+    pNewScript->RegisterSelf();
 }

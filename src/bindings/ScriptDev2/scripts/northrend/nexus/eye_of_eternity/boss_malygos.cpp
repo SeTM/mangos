@@ -1241,7 +1241,7 @@ void AddSC_boss_malygos()
 
     newscript = new Script;
     newscript->Name = "go_focusing_iris";
-    newscript->pGOHello = &GOHello_go_focusing_iris;
+    newscript->pGOUse = &GOHello_go_focusing_iris;
     newscript->RegisterSelf();
 
     newscript = new Script;

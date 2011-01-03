@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,6 +22,7 @@ SDCategory: Drak'Tharon Keep
 EndScriptData */
 
 #include "precompiled.h"
+#include "draktharon_keep.h"
 
 enum
 {
@@ -58,6 +59,9 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_THARONJA, IN_PROGRESS);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -69,6 +73,15 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 		DoCast(m_creature, 61863, true); // Achievement Criteria
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_THARONJA, DONE);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_THARONJA, FAIL);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -87,10 +100,10 @@ CreatureAI* GetAI_boss_tharonja(Creature* pCreature)
 
 void AddSC_boss_tharonja()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_tharonja";
-    newscript->GetAI = &GetAI_boss_tharonja;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_tharonja";
+    pNewScript->GetAI = &GetAI_boss_tharonja;
+    pNewScript->RegisterSelf();
 }

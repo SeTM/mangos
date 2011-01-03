@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -110,6 +110,9 @@ struct MANGOS_DLL_DECL boss_talon_king_ikissAI : public ScriptedAI
             case 1: DoScriptText(SAY_AGGRO_2, m_creature); break;
             case 2: DoScriptText(SAY_AGGRO_3, m_creature); break;
         }
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_IKISS, IN_PROGRESS);
     }
 
     void JustDied(Unit* Killer)
@@ -117,7 +120,13 @@ struct MANGOS_DLL_DECL boss_talon_king_ikissAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
-            m_pInstance->SetData(DATA_IKISSDOOREVENT, DONE);
+            m_pInstance->SetData(TYPE_IKISS, DONE);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_IKISS, FAIL);
     }
 
     void KilledUnit(Unit* victim)

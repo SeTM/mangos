@@ -624,7 +624,7 @@ void AddSC_boss_kalecgos()
     newscript->RegisterSelf();
 
     newscript = new Script;
-    newscript->pGOHello = &GOHello_go_spectral_rift;
+    newscript->pGOUse = &GOHello_go_spectral_rift;
     newscript->Name = "go_spectral_rift";
     newscript->RegisterSelf();
 }

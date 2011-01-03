@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -85,7 +85,7 @@ class MANGOS_DLL_DECL instance_gnomeregan : public ScriptedInstance
         uint64 m_uiCaveInSouthGUID;
         uint64 m_uiDoorFinalChamberGUID;
 
-        std::list<GameObject*> m_lExplosiveCharges;
+        std::list<uint64> m_luiExplosiveChargeGUIDs;
         std::list<uint64> m_luiSpawnedExplosiveChargeGUIDs;
         std::list<uint64> m_lRedRocketGUIDs;
 };

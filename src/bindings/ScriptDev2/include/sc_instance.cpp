@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -10,9 +10,7 @@ void ScriptedInstance::DoUseDoorOrButton(uint64 uiGuid, uint32 uiWithRestoreTime
     if (!uiGuid)
         return;
 
-    GameObject* pGo = instance->GetGameObject(uiGuid);
-
-    if (pGo)
+    if (GameObject* pGo = instance->GetGameObject(uiGuid))
     {
         if (pGo->GetGoType() == GAMEOBJECT_TYPE_DOOR || pGo->GetGoType() == GAMEOBJECT_TYPE_BUTTON)
         {
@@ -39,6 +37,7 @@ void ScriptedInstance::DoRespawnGameObject(uint64 uiGuid, uint32 uiTimeToDespawn
             return;
 
         pGo->SetRespawnTime(uiTimeToDespawn);
+        pGo->Refresh();
     }
 }
 

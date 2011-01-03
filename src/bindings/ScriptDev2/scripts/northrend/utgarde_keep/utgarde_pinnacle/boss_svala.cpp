@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Svala
-SD%Complete: 95%
-SDComment: Originaly by sd2 modified by ScrappyDoo (c) Andeeria
+SD%Complete: 30%
+SDComment: TODO: abilities. The way spells for intro works could use more research.
 SDCategory: Utgarde Pinnacle
 EndScriptData */
 
@@ -106,6 +106,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
     uint64 m_uiPlayerGUID;
     ObjectGuid m_uiAddsGUID[3];
 
+
     void Reset()
     {
         m_uiPlayerGUID;
@@ -162,8 +163,8 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        if (m_creature->HasSplineFlag(SPLINEFLAG_TRAJECTORY))
-            m_creature->RemoveSplineFlag(SPLINEFLAG_TRAJECTORY);
+        if (m_creature->HasSplineFlag(SPLINEFLAG_FLYING))
+            m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
 
         DoScriptText(SAY_AGGRO, m_creature);
     }
@@ -218,7 +219,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         float fX, fZ, fY;
         m_creature->GetRespawnCoord(fX, fY, fZ);
 
-        m_creature->AddSplineFlag(SPLINEFLAG_TRAJECTORY);
+        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
 
         m_creature->SendMonsterMoveWithSpeed(fX, fY, fZ + 5.0f, m_uiIntroTimer);
         m_creature->GetMap()->CreatureRelocation(m_creature, fX, fY, fZ + 5.0f, m_creature->GetOrientation());
@@ -260,7 +261,6 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                         case 5:
                             DoScriptText(SAY_INTRO_5, m_creature);
                             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                             m_creature->GetMap()->CreatureRelocation(m_creature, fCoord[0][0], fCoord[0][1], fCoord[0][2], m_creature->GetOrientation());
                             m_bIsIntroDone = true;
                             break;
                     }

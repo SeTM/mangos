@@ -1706,7 +1706,7 @@ void AddSC_boss_kiljaeden()
 
     newscript = new Script;
     newscript->Name = "go_orb_of_the_blue_flight";
-    newscript->pGOHello = &GOHello_orb_of_the_blue_flight;
+    newscript->pGOUse = &GOHello_orb_of_the_blue_flight;
     newscript->RegisterSelf();
 
     newscript = new Script;

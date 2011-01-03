@@ -250,6 +250,6 @@ void AddSC_instance_nexus()
 
     newscript = new Script;
     newscript->Name = "go_containment_sphere";
-    newscript->pGOHello = &GOHello_go_containment_sphere;
+    newscript->pGOUse = &GOHello_go_containment_sphere;
     newscript->RegisterSelf();
 }

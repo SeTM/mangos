@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -28,7 +28,7 @@ enum
     SAY_HI  = -1999925
 };
 
-bool AT_example_areatrigger(Player* pPlayer, AreaTriggerEntry const* pAt)
+bool AreaTrigger_at_example(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     DoScriptText(SAY_HI, pPlayer);
     return true;
@@ -41,7 +41,7 @@ bool ItemUse_example_item(Player* pPlayer, Item* pItem, SpellCastTargets const& 
     return true;
 }
 
-bool GOHello_example_go_teleporter(Player* pPlayer, GameObject* pGo)
+bool GOUse_example_go_teleporter(Player* pPlayer, GameObject* pGo)
 {
     pPlayer->TeleportTo(0, 1807.07f, 336.105f, 70.3975f, 0.0f);
     return false;
@@ -49,20 +49,20 @@ bool GOHello_example_go_teleporter(Player* pPlayer, GameObject* pGo)
 
 void AddSC_example_misc()
 {
-    Script* newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "example_areatrigger";
-    newscript->pAreaTrigger = &AT_example_areatrigger;
-    newscript->RegisterSelf(false);
+    pNewScript = new Script;
+    pNewScript->Name = "at_example";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_example;
+    pNewScript->RegisterSelf(false);
 
-    newscript = new Script;
-    newscript->Name = "example_item";
-    newscript->pItemUse = &ItemUse_example_item;
-    newscript->RegisterSelf(false);
+    pNewScript = new Script;
+    pNewScript->Name = "example_item";
+    pNewScript->pItemUse = &ItemUse_example_item;
+    pNewScript->RegisterSelf(false);
 
-    newscript = new Script;
-    newscript->Name = "example_go_teleporter";
-    newscript->pGOHello = &GOHello_example_go_teleporter;
-    newscript->RegisterSelf(false);
+    pNewScript = new Script;
+    pNewScript->Name = "example_go_teleporter";
+    pNewScript->pGOUse = &GOUse_example_go_teleporter;
+    pNewScript->RegisterSelf(false);
 }
