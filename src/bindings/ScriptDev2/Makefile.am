@@ -118,9 +118,7 @@ scripts/eastern_kingdoms/blackwing_lair/boss_razorgore.cpp \
 scripts/eastern_kingdoms/blackwing_lair/boss_vaelastrasz.cpp \
 scripts/eastern_kingdoms/blackwing_lair/boss_victor_nefarius.cpp \
 scripts/eastern_kingdoms/blackwing_lair/instance_blackwing_lair.cpp \
-scripts/eastern_kingdoms/blasted_lands.cpp \
 scripts/eastern_kingdoms/boss_kruul.cpp \
-scripts/eastern_kingdoms/burning_steppes.cpp \
 scripts/eastern_kingdoms/deadmines/deadmines.cpp \
 scripts/eastern_kingdoms/deadmines/deadmines.h \
 scripts/eastern_kingdoms/deadmines/instance_deadmines.cpp \
@@ -142,8 +140,6 @@ scripts/eastern_kingdoms/karazhan/chess_event.cpp \
 scripts/eastern_kingdoms/karazhan/instance_karazhan.cpp \
 scripts/eastern_kingdoms/karazhan/karazhan.cpp \
 scripts/eastern_kingdoms/karazhan/karazhan.h \
-scripts/eastern_kingdoms/loch_modan.cpp \
-scripts/eastern_kingdoms/redridge_mountains.cpp \
 scripts/eastern_kingdoms/magisters_terrace/boss_felblood_kaelthas.cpp \
 scripts/eastern_kingdoms/magisters_terrace/boss_priestess_delrissa.cpp \
 scripts/eastern_kingdoms/magisters_terrace/boss_selin_fireheart.cpp \
@@ -195,11 +191,6 @@ scripts/eastern_kingdoms/shadowfang_keep/boss_hummel.cpp \
 scripts/eastern_kingdoms/shadowfang_keep/instance_shadowfang_keep.cpp \
 scripts/eastern_kingdoms/shadowfang_keep/shadowfang_keep.cpp \
 scripts/eastern_kingdoms/shadowfang_keep/shadowfang_keep.h \
-scripts/eastern_kingdoms/silvermoon_city.cpp \
-scripts/eastern_kingdoms/silverpine_forest.cpp \
-scripts/eastern_kingdoms/stormwind_city.cpp \
-scripts/eastern_kingdoms/stranglethorn_vale.cpp \
-scripts/eastern_kingdoms/swamp_of_sorrows.cpp \
 scripts/eastern_kingdoms/stratholme/boss_baron_rivendare.cpp \
 scripts/eastern_kingdoms/stratholme/boss_baroness_anastari.cpp \
 scripts/eastern_kingdoms/stratholme/boss_cannon_master_willey.cpp \
@@ -224,7 +215,6 @@ scripts/eastern_kingdoms/sunwell_plateau/boss_kalecgos.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/boss_kiljaeden.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/def_sunwell_plateau.h \
 scripts/eastern_kingdoms/sunwell_plateau/instance_sunwell_plateau.cpp \
-scripts/eastern_kingdoms/tirisfal_glades.cpp \
 scripts/eastern_kingdoms/uldaman/boss_archaedas.cpp \
 scripts/eastern_kingdoms/uldaman/uldaman.h \
 scripts/eastern_kingdoms/uldaman/uldaman.cpp \
