@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -55,22 +55,32 @@ struct MANGOS_DLL_DECL boss_lavanthorAI : public ScriptedAI
 
     void Reset()
     {
+        if (!m_pInstance) return;
         m_uiCauterizingFlames_Timer = urand(40000, 41000);
         m_uiFlameBreath_Timer = urand(15000, 16000);
         m_uiFirebolt_Timer = urand(10000, 11000);
         MovementStarted = false;
-
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    }
+    void JustReachedHome()
+    {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_LAVANTHOR, NOT_STARTED);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-
+        {
+            m_pInstance->SetData(TYPE_LAVANTHOR, FAIL);
+            m_pInstance->SetData(TYPE_EVENT, FAIL);
+            m_pInstance->SetData(TYPE_RIFT, FAIL);
+            if(m_pInstance->GetData(TYPE_PORTAL6) == IN_PROGRESS) {m_pInstance->SetData(TYPE_PORTAL6, NOT_STARTED);}
+            else {m_pInstance->SetData(TYPE_PORTAL12, NOT_STARTED);}
+            }
     }
 
     void Aggro(Unit* pWho)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_LAVANTHOR, IN_PROGRESS);
+        if (!m_pInstance) return;
+        m_pInstance->SetData(TYPE_LAVANTHOR, IN_PROGRESS);
+        m_creature->GetMotionMaster()->MovementExpired();
+        SetCombatMovement(true);
     }
 
     void AttackStart(Unit* pWho)
@@ -93,15 +103,33 @@ struct MANGOS_DLL_DECL boss_lavanthorAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void StartMovement(uint32 id)
     {
-        if (m_pInstance->GetData(TYPE_LAVANTHOR) == SPECIAL && !MovementStarted) {
-        m_creature->GetMotionMaster()->MovePoint(0, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z);
+        m_creature->GetMotionMaster()->MovePoint(id, PortalLoc[id].x, PortalLoc[id].y, PortalLoc[id].z);
         m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         MovementStarted = true;
+        m_creature->SetInCombatWithZone();
+    }
+
+    void MovementInform(uint32 type, uint32 id)
+    {
+        if (type != POINT_MOTION_TYPE || !MovementStarted) return;
+        if (id == 0 )
+        {
+            MovementStarted = false;
+            m_creature->GetMotionMaster()->MovementExpired();
+            SetCombatMovement(true);
+            m_creature->SetInCombatWithZone();
         }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_pInstance->GetData(TYPE_LAVANTHOR) == SPECIAL && !MovementStarted)
+            StartMovement(0);
+
         //Return since we have no target
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -115,7 +143,7 @@ struct MANGOS_DLL_DECL boss_lavanthorAI : public ScriptedAI
 
         if (m_uiFirebolt_Timer < uiDiff)
         {
-            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FIREBOLT_H : SPELL_FIREBOLT);
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FIREBOLT: SPELL_FIREBOLT_H );
             m_uiFirebolt_Timer = urand(10000, 11000);
         }
         else m_uiFirebolt_Timer -= uiDiff;
@@ -125,10 +153,11 @@ struct MANGOS_DLL_DECL boss_lavanthorAI : public ScriptedAI
             switch (urand(0, 1))
             {
                 case 0:
-                    DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH_H : SPELL_FLAME_BREATH);
+                    DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH : SPELL_FLAME_BREATH_H);
                     break;
                 case 1:
-                    DoCast(m_creature, m_bIsRegularMode ? SPELL_LAVA_BURN_H : SPELL_LAVA_BURN);
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    DoCast(pTarget, m_bIsRegularMode ? SPELL_LAVA_BURN : SPELL_LAVA_BURN_H);
                     break;
             }
             m_uiFlameBreath_Timer = urand(15000, 16000);
@@ -140,8 +169,11 @@ struct MANGOS_DLL_DECL boss_lavanthorAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if (m_pInstance)
+        if (m_pInstance){
             m_pInstance->SetData(TYPE_LAVANTHOR, DONE);
+            if(m_pInstance->GetData(TYPE_PORTAL6) == IN_PROGRESS) {m_pInstance->SetData(TYPE_PORTAL6, DONE);}
+            else {m_pInstance->SetData(TYPE_PORTAL12, DONE);}
+        }
     }
 };
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -45,8 +45,7 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
 
     bool bIsInBoss;
 
-    uint8 m_uiBossID;
-    uint8 m_uiBoss2ID;
+    uint8 m_uiLastBossID;
     uint8 m_uiLastBossIDConst;
     uint8 m_uiRiftPortalCount;
     uint32 m_uiShieldPercent;
@@ -75,8 +74,7 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
 
     void Initialize()
     {
-//        memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
-	    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+        for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
             m_auiEncounter[i] = NOT_STARTED;
 
         m_uiSinclariGUID = 0;
@@ -89,7 +87,7 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         m_uiXevozzGUID      = 0;
         m_uiLavanthorGUID   = 0;
         m_uiZuramatGUID     = 0;
-        
+
         m_uiDisruptions     = 0;
 
         m_uiSealDoorGUID        = 0;
@@ -101,14 +99,13 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         m_uiXevozzDoorGUID      = 0;
         m_uiLavanthorDoorGUID   = 0;
         m_uiZuramatDoorGUID     = 0;
-        m_uiBossID = 0;
-        m_uiBoss2ID = 0;
         Clear();
     }
 
-    void Clear()
-    {
+    void Clear(){
         bIsInBoss = false;
+
+        m_uiLastBossID = 0;
         m_uiRiftPortalCount = 0;
         m_uiPortalTime = 0;
         m_uiShieldPercent = 100;
@@ -125,23 +122,8 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
     {
         if(m_auiEncounter[0] != NOT_STARTED)
             pPlayer->SendUpdateWorldState(WORLD_STATE_VH,1);
-
-        if (GetData(TYPE_BOSS) == 0)
-            SetData(TYPE_BOSS, urand(2, 7));
-        if (GetData(TYPE_BOSS2) == 0)
-        {
-            uint8 tmp;
-
-            do
-            {
-                tmp = urand(2, 7);
-            }
-            while ( tmp == GetData(TYPE_BOSS));
-            
-            SetData(TYPE_BOSS2, tmp);
-        }
     }
-    
+
     bool IsEncounterInProgress() const
     {
         for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
@@ -157,7 +139,6 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         {
             case NPC_SINCLARI:
                 m_uiSinclariGUID = pCreature->GetGUID();
-                pCreature->SetActiveObjectState(true);
                 break;
             case NPC_DOOR_SEAL:
                 m_uiNPCSealDoorGUID = pCreature->GetGUID();
@@ -229,9 +210,10 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
                 }
                 else if (uiData == FAIL || uiData == DONE)
                 {
-                    DoUpdateWorldState(WORLD_STATE_VH, 0);
-                    DoUseDoorOrButton(m_uiSealDoorGUID);
-                }
+                DoUpdateWorldState(WORLD_STATE_VH, 0);
+                DoUseDoorOrButton(m_uiSealDoorGUID);
+                if (Creature* pSinclari = instance->GetCreature(m_uiSinclariGUID))
+                {pSinclari->ForcedDespawn(1000);}}
                 m_auiEncounter[0] = uiData;
                 break;
             case TYPE_EREKEM:
@@ -258,9 +240,18 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
                 m_auiEncounter[7] = uiData;
                 if (uiData == IN_PROGRESS) bIsInBoss = true;
                 break;
+            case TYPE_CYANIGOSA:
+                m_auiEncounter[8] = uiData;
+                if (uiData == IN_PROGRESS) bIsInBoss = true;
+                break;
+            case TYPE_PORTAL6:
+                m_auiEncounter[9] = uiData;
+                break;
+            case TYPE_PORTAL12:
+                m_auiEncounter[10] = uiData;
+                break;
             case TYPE_RIFT:
-                if (uiData == FAIL) 
-                    DoUseDoorOrButton(m_uiSealDoorGUID);
+                if (uiData == FAIL) DoUseDoorOrButton(m_uiSealDoorGUID);
                 m_auiEncounter[1] = uiData;
                 break;
             case TYPE_DOOR:
@@ -281,14 +272,8 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
 //            DoUpdateWorldState(WORLD_STATE_VH_PRISON, 100-m_uiDisruptions*5);
             break;
             case TYPE_LASTBOSS_ID:
-                m_uiLastBossIDConst = uiData;
-                break;
-            case TYPE_BOSS:
-                m_uiBossID = uiData;
-                break;
-            case TYPE_BOSS2:
-                m_uiBoss2ID = uiData;
-                break;
+            m_uiLastBossIDConst = uiData;
+            break;
 
         }
         if (uiData == DONE)
@@ -298,13 +283,8 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
 
             std::ostringstream saveStream;
 
-            uint32 boss1 = m_uiBossID;
-            uint32 boss2 = m_uiBoss2ID;
-
-            saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
-                << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5] << " "
-                << m_auiEncounter[6] << " " << m_auiEncounter[7] << " " << m_auiEncounter[8] << " "
-                << boss1 << " " << boss2;
+            for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+                saveStream << m_auiEncounter[i] << " ";
 
             m_strInstData = saveStream.str();
 
@@ -332,14 +312,38 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
                 return m_auiEncounter[6];
             case TYPE_ZURAMAT:
                 return m_auiEncounter[7];
+            case TYPE_CYANIGOSA:
+                return m_auiEncounter[8];
+            case TYPE_PORTAL6:
+                return m_auiEncounter[9];
+            case TYPE_PORTAL12:
+                return m_auiEncounter[10];
             case TYPE_RIFT:
-                return m_auiEncounter[1];
+                return m_uiRiftPortalCount;
             case TYPE_LASTBOSS_ID:
                 return m_uiLastBossIDConst;
-            case TYPE_BOSS:
-                return m_uiBossID;
-            case TYPE_BOSS2:
-                return m_uiBoss2ID;
+            case TYPE_LASTBOSS:
+            {
+                if (m_uiLastBossID == 0)
+                    m_uiLastBossID = urand(2, 7);
+                else
+                {
+                    m_uiLastBossID = urand(2, 7);
+                    if ( m_auiEncounter[2] == DONE &&
+                         m_auiEncounter[3] == DONE &&
+                         m_auiEncounter[4] == DONE &&
+                         m_auiEncounter[5] == DONE &&
+                         m_auiEncounter[6] == DONE &&
+                         m_auiEncounter[7] == DONE) return 0;
+                    while ( m_auiEncounter[m_uiLastBossID] == DONE
+                            || m_auiEncounter[m_uiLastBossID] == IN_PROGRESS 
+                            || m_auiEncounter[m_uiLastBossID] == SPECIAL ) 
+                        {
+                            m_uiLastBossID = urand(2, 7);
+                        }
+                }
+                return m_uiLastBossID;
+            }
             case DATA_BOSSTIME:
                 return bIsInBoss;
             case TYPE_DISRUPTIONS:
@@ -391,40 +395,32 @@ struct MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
     }
 
 const char* Save()
-{
-    return m_strInstData.c_str();
-}
+    {
+        return m_strInstData.c_str();
+    }
 
 void Load(const char* strIn)
-{
-    if (!strIn)
     {
-        OUT_LOAD_INST_DATA_FAIL;
-        return;
+        if (!strIn)
+        {
+            OUT_LOAD_INST_DATA_FAIL;
+            return;
+        }
+
+        OUT_LOAD_INST_DATA(strIn);
+
+        std::istringstream loadStream(strIn);
+
+        for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+        {
+            loadStream >> m_auiEncounter[i];
+
+            if (m_auiEncounter[i] == IN_PROGRESS && i != 1)
+                m_auiEncounter[i] = NOT_STARTED;
+        }
+
+        OUT_LOAD_INST_DATA_COMPLETE;
     }
-
-    OUT_LOAD_INST_DATA(strIn);
-
-    std::istringstream loadStream(strIn);
-
-    uint32 boss1;
-    uint32 boss2;
-
-    loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
-    >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
-    >> m_auiEncounter[8] >> boss1 >> boss2;
-
-    m_uiBossID = boss1;
-    m_uiBoss2ID = boss2;
-
-    for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-    {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
-    }
-
-    OUT_LOAD_INST_DATA_COMPLETE;
-}
 };
 
 InstanceData* GetInstanceData_instance_violet_hold(Map* pMap)

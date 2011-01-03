@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -7,7 +7,7 @@
 
 enum
 {
-    MAX_ENCOUNTER           = 9,
+    MAX_ENCOUNTER           = 11,
 
     TYPE_EVENT              = 0,
     TYPE_RIFT               = 1,
@@ -18,14 +18,15 @@ enum
     TYPE_LAVANTHOR          = 6,
     TYPE_ZURAMAT            = 7,
     TYPE_CYANIGOSA          = 8,
+    TYPE_PORTAL6            = 9,
+    TYPE_PORTAL12           = 10,
 
 
     WORLD_STATE_VH          = 3816,
     WORLD_STATE_VH_PRISON   = 3815,
     WORLD_STATE_VH_PORTALS  = 3810,
 
-    TYPE_BOSS               = 19,
-    TYPE_BOSS2              = 42,
+    TYPE_LASTBOSS           = 19,
     TYPE_DOOR               = 21,
     TYPE_PORTAL_TIME        = 22,
 
@@ -90,7 +91,11 @@ enum
     GO_DOOR_ZURAMAT        = 191565,
 
     SPELL_PORTAL_CHANNEL   = 58012,
-    SPELL_CORRUPT          = 58040
+    SPELL_CORRUPT          = 58040,
+
+    EMOTE_GUARDIAN_PORTAL       = -1608005,
+    EMOTE_DRAGONFLIGHT_PORTAL   = -1608006,
+    EMOTE_KEEPER_PORTAL         = -1608007
 };
 
 struct Locations
@@ -98,6 +103,7 @@ struct Locations
     float x, y, z;
     uint32 id;
 };
+
 struct WayPoints
 {
     WayPoints(uint32 _id, float _x, float _y, float _z)
@@ -109,6 +115,16 @@ struct WayPoints
     }
     uint32 id;
     float x, y, z;
+};
+
+static Locations SinclariWP[]=
+{
+    {1830.5f, 799.357f, 44.3418f}, // 0 use activation
+    {1832.46f, 800.431f, 44.3117f}, // 1 SAY_BEGIN call back guards
+    {1824.79f, 803.828f, 44.3634f}, // 2 SAY_LOCK_DOOR close door
+    {1807.25f, 803.904f, 44.3634f}, // 3 
+    {1808.07f, 804.259f, 44.3641f}, // 4 
+
 };
 
 static Locations PortalLoc[]=
@@ -133,17 +149,18 @@ static Locations BossLoc[]=
     {1857.125f, 763.295f, 38.654f}, // Lavanthor
     {1925.480f, 849.981f, 47.174f}, // Zuramat
 };
+
 static Locations DragonsWP[]=
 {
     //center, ichoron
     {1869.393f, 803.902f, 38.768f}, // 0 
     {1859.843f, 804.222f, 44.008f}, // 1 
-    {1827.960f, 804.208f, 44.364f}, // 2 
+    {1829.64f,  804.194f, 44.355f}, // 2 
 
     //From left side (lavanthor)
     {1861.016f, 789.717f, 38.908f}, // 3 
     {1856.217f, 796.705f, 44.008f}, // 4 
-    {1827.960f, 804.208f, 44.364f}, // 5 
+    {1829.64f,  804.194f, 44.355f}, // 5 
 
     //From Zuramat
     {1931.446f, 826.734f, 47.556f}, // 6 
@@ -151,28 +168,28 @@ static Locations DragonsWP[]=
     {1827.960f, 804.208f, 44.364f}, // 8 
     {1869.393f, 803.902f, 38.768f}, // 9 
     {1859.843f, 804.222f, 44.008f}, // 10 
-    {1827.960f, 804.208f, 44.364f}, // 11 
+    {1829.64f,  804.194f, 44.355f}, // 11 
 
     //From Morag
     {1887.500f, 763.096f, 47.666f}, // 12 
     {1880.837f, 775.769f, 38.796f}, // 13 
     {1861.016f, 789.717f, 38.908f}, // 14 
     {1856.217f, 796.705f, 44.008f}, // 15 
-    {1827.960f, 804.208f, 44.364f}, // 16 
+    {1829.64f,  804.194f, 44.355f}, // 16 
 
     //From erekem
     {1878.280f, 843.267f, 43.333f}, // 17 
     {1872.311f, 835.531f, 38.780f}, // 18 
     {1861.997f, 818.766f, 38.650f}, // 19 
     {1857.348f, 811.230f, 44.008f}, // 20
-    {1827.960f, 804.208f, 44.364f}, // 21 
+    {1829.64f,  804.194f, 44.355f}, // 21 
 
     //From Highest platform
     {1937.298f, 824.557f, 52.332f}, // 22
     {1913.049f, 823.930f, 38.792f}, // 23
     {1869.393f, 803.902f, 38.768f}, // 24
     {1859.843f, 804.222f, 44.008f}, // 25
-    {1827.960f, 804.208f, 44.364f}, // 26
+    {1829.64f,  804.194f, 44.355f}, // 26
 };
 
 #endif

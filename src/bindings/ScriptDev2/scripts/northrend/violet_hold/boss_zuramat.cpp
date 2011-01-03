@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: boss_zuramat
 SDAuthor: ckegg
-SD%Complete: 0
+SD%Complete: 60%
 SDComment: 
 SDCategory: The Violet Hold
 EndScriptData */
@@ -47,6 +47,7 @@ enum
     SPELL_VOID_SENTRY_AURA_H                  = 54351,
     SPELL_SHADOW_BOLT_VOLLEY                  = 54358, // 54342? 54358?
     SPELL_SHADOW_BOLT_VOLLEY_H                = 59747,
+    SPELL_VOID_SHIFTED                        = 54343
 };
 
 struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
@@ -61,7 +62,7 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
 
     bool m_bIsRegularMode;
     bool MovementStarted;
-    std::list<ObjectGuid> m_lSentryGUIDList;
+    std::list<uint64> m_lSentryGUIDList;
 
     uint32 m_uiShroudDarkness_Timer;
     uint32 m_uiVoidShift_Timer;
@@ -70,24 +71,36 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
     void Reset()
     {
         m_uiShroudDarkness_Timer = urand(8000, 9000);
-        m_uiSummonVoidSentry_Timer = urand(5000, 10000);
+        m_uiSummonVoidSentry_Timer = 10000;
         m_uiVoidShift_Timer = 10000;
         MovementStarted = false;
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
+    }
+
+    void JustReachedHome()
+    {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_ZURAMAT, NOT_STARTED);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        {
+            m_pInstance->SetData(TYPE_ZURAMAT, FAIL);
+            m_pInstance->SetData(TYPE_EVENT, FAIL);
+            m_pInstance->SetData(TYPE_RIFT, FAIL);
 
+            if(m_pInstance->GetData(TYPE_PORTAL6) == IN_PROGRESS) 
+                m_pInstance->SetData(TYPE_PORTAL6, NOT_STARTED);
+            else 
+                m_pInstance->SetData(TYPE_PORTAL12, NOT_STARTED);
+        }
     }
 
     void Aggro(Unit* pWho)
     {
+        if (!m_pInstance) return;
         DoScriptText(SAY_AGGRO, m_creature);
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ZURAMAT, IN_PROGRESS);
-
+        m_pInstance->SetData(TYPE_ZURAMAT, IN_PROGRESS);
+        m_creature->GetMotionMaster()->MovementExpired();
+        SetCombatMovement(true);
     }
 
     void AttackStart(Unit* pWho)
@@ -122,9 +135,9 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
         if (m_lSentryGUIDList.empty())
             return;
 
-        for(std::list<ObjectGuid>::iterator itr = m_lSentryGUIDList.begin(); itr != m_lSentryGUIDList.end(); ++itr)
+        for(std::list<uint64>::iterator itr = m_lSentryGUIDList.begin(); itr != m_lSentryGUIDList.end(); ++itr)
         {
-            if (Creature* pTemp = (Creature*)m_creature->GetMap()->GetUnit(*itr))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
             {
                 if (pTemp->isAlive())
                     //pTemp->ForcedDespawn();
@@ -135,15 +148,32 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
         m_lSentryGUIDList.clear();
     }
 
-    void UpdateAI(const uint32 uiDiff) 
+    void StartMovement(uint32 id)
     {
-        if (m_pInstance->GetData(TYPE_ZURAMAT) == SPECIAL && !MovementStarted) {
-	m_creature->GetMotionMaster()->MovePoint(0, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z);
+        m_creature->GetMotionMaster()->MovePoint(id, PortalLoc[id].x, PortalLoc[id].y, PortalLoc[id].z);
         m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         MovementStarted = true;
+        m_creature->SetInCombatWithZone();
+    }
+
+    void MovementInform(uint32 type, uint32 id)
+    {
+        if (type != POINT_MOTION_TYPE || !MovementStarted) return;
+        if (id == 0)
+        {
+            MovementStarted = false;
+            m_creature->GetMotionMaster()->MovementExpired();
+            SetCombatMovement(true);
+            m_creature->SetInCombatWithZone();
         }
+    }
+
+    void UpdateAI(const uint32 uiDiff) 
+    {
+        if (m_pInstance->GetData(TYPE_ZURAMAT) == SPECIAL && !MovementStarted)
+            StartMovement(0);
 
         //Return since we have no target
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -151,7 +181,7 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
 
         if (m_uiShroudDarkness_Timer < uiDiff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_SHROUD_OF_DARKNESS_H : SPELL_SHROUD_OF_DARKNESS);
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_SHROUD_OF_DARKNESS : SPELL_SHROUD_OF_DARKNESS_H);
             m_uiShroudDarkness_Timer = urand(7000, 8000);
         }
         else m_uiShroudDarkness_Timer -= uiDiff;
@@ -159,7 +189,10 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
         if (m_uiVoidShift_Timer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCast(pTarget, m_bIsRegularMode ? SPELL_VOID_SHIFT_H : SPELL_VOID_SHIFT);
+            {
+                DoCast(pTarget, m_bIsRegularMode ? SPELL_VOID_SHIFT : SPELL_VOID_SHIFT_H);
+                pTarget->CastSpell(pTarget, SPELL_VOID_SHIFTED, true);
+            }
             m_uiVoidShift_Timer = urand(10000, 11000);
         }
         else m_uiVoidShift_Timer -= uiDiff;
@@ -167,7 +200,7 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
         if (m_uiSummonVoidSentry_Timer < uiDiff)
         {
             m_creature->SummonCreature(NPC_VOID_SENTRY, m_creature->GetPositionX()-10+rand()%20, m_creature->GetPositionY()-10+rand()%20, m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
-            m_uiSummonVoidSentry_Timer = urand(10000, 11000);
+            m_uiSummonVoidSentry_Timer = urand(10000, 10000);
         }
         else m_uiSummonVoidSentry_Timer -= uiDiff;
 
@@ -179,8 +212,11 @@ struct MANGOS_DLL_DECL boss_zuramatAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
         DespawnSentry();
 
-        if (m_pInstance)
+        if (m_pInstance){
             m_pInstance->SetData(TYPE_ZURAMAT, DONE);
+        if(m_pInstance->GetData(TYPE_PORTAL6) == IN_PROGRESS) {m_pInstance->SetData(TYPE_PORTAL6, DONE);}
+            else {m_pInstance->SetData(TYPE_PORTAL12, DONE);}
+        }
     }
 
     void KilledUnit(Unit* pVictim)
@@ -205,13 +241,32 @@ struct MANGOS_DLL_DECL mob_zuramat_sentryAI : public ScriptedAI
     }
     ScriptedInstance *m_pInstance;
     bool m_bIsRegularMode;
+    uint32 m_uiShadowBoltVolley_Timer;
 
     void Reset()
     {
-        //DoCast(m_creature, m_bIsRegularMode ? SPELL_VOID_SENTRY_AURA_H : SPELL_VOID_SENTRY_AURA); ??
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        DoCast(m_creature, m_bIsRegularMode ? SPELL_SHADOW_BOLT_VOLLEY_H : SPELL_SHADOW_BOLT_VOLLEY);
+        m_uiShadowBoltVolley_Timer = 3000;
+//        DoCast(m_creature, m_bIsRegularMode ? SPELL_VOID_SENTRY_AURA_H : SPELL_VOID_SENTRY_AURA); 
+//        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);*/ 
+        DoCast(m_creature, m_bIsRegularMode ? SPELL_SHADOW_BOLT_VOLLEY : SPELL_SHADOW_BOLT_VOLLEY_H);
     }
+
+    void DamageTaken(Unit *killer, uint32 &damage)
+    {
+        if(!killer->HasAura(SPELL_VOID_SHIFTED))
+            damage=0;
+    }
+
+    void UpdateAI(const uint32 uiDiff) 
+    {
+        if (m_uiShadowBoltVolley_Timer < uiDiff)
+        {
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_SHADOW_BOLT_VOLLEY : SPELL_SHADOW_BOLT_VOLLEY_H);
+            m_uiShadowBoltVolley_Timer = 3000;
+        }
+        else m_uiShadowBoltVolley_Timer -= uiDiff;
+    }
+
 };
 
 CreatureAI* GetAI_boss_zuramat(Creature* pCreature)

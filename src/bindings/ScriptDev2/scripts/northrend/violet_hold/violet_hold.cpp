@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -24,6 +24,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "def_violet_hold.h"
+#include "escort_ai.h"
 enum
 {
     SPELL_TELEPORT_INSIDE                 = 62139,
@@ -47,6 +48,19 @@ enum
     //Azure stalker
     SPELL_BACKSTAB                        = 58471,
     SPELL_TACTICAL_BLINK                  = 58470,
+
+    AZURE_SAY_AGGRO_1                     = -1608055,
+    AZURE_SAY_AGGRO_2                     = -1608056,
+    AZURE_SAY_AGGRO_3                     = -1608057,
+    AZURE_SAY_AGGRO_4                     = -1608058,
+    PORTAL_KEEPER_GUARDIAN_AGGRO_1        = -1608059,
+    PORTAL_KEEPER_GUARDIAN_AGGRO_2        = -1608060,
+    PORTAL_KEEPER_GUARDIAN_AGGRO_3        = -1608061,
+    PORTAL_KEEPER_GUARDIAN_DEATH_1        = -1608062,
+    PORTAL_KEEPER_GUARDIAN_DEATH_2        = -1608063,
+    PORTAL_KEEPER_GUARDIAN_DEATH_3        = -1608064,
+    AZURE_CAPTAIN_AGGRO_1                 = -1608065
+
 };
 
 uint32 m_uiNextPortal_Timer;
@@ -97,8 +111,7 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
     uint32 m_uiBackstab_Timer;
     uint32 m_uiBlink_Timer;
 
-    void Reset()
-    {
+    void Reset(){
         creatureEntry = m_creature->GetEntry();
         motherPortalID = 0;
         WalkTimer = 200;
@@ -107,7 +120,7 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
         IsInCombat = false;
         MovementStarted = false;
         pDoorSeal = GetClosestCreatureWithEntry(m_creature, NPC_DOOR_SEAL, 150.0f);
-       
+
         //Azure Captain
         m_uiMortalStrike_Timer = 3000;
         m_uiWhirlwind_Timer = 5000;
@@ -123,7 +136,16 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
         //Azure Stalker
         m_uiBackstab_Timer = 7100;
         m_uiBlink_Timer = 7000;
+
+        if (creatureEntry == NPC_KEEPER
+            || creatureEntry == NPC_GUARDIAN)
+        {
+            SetCombatMovement(false);
+            m_creature->GetMotionMaster()->MoveRandom();
+        };
+
     }
+
     void StartMovement()
     {
         if(!WayPointList.empty() || MovementStarted)
@@ -179,6 +201,14 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
         IsWalking = true;
         MovementStarted = true;
     }
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+        {
+            m_pInstance->SetData(TYPE_EVENT, FAIL);
+            m_pInstance->SetData(TYPE_RIFT, FAIL);
+        }
+    }
     void AddWaypoint(uint32 id, float x, float y, float z)
     {
         WayPoints DWP(id, x, y, z);
@@ -195,8 +225,58 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
         ++WayPoint;
         WalkTimer = 200;
     }
-    void UpdateAI(const uint32 uiDiff)
+    void JustDied(Unit* pKiller)
     {
+        switch(creatureEntry)
+        {
+            case NPC_GUARDIAN:
+            case NPC_KEEPER:
+                switch(urand(0,2))
+                    {
+                    case 0: DoScriptText(PORTAL_KEEPER_GUARDIAN_DEATH_1, m_creature); break;
+                    case 1: DoScriptText(PORTAL_KEEPER_GUARDIAN_DEATH_2, m_creature); break;
+                    case 2: DoScriptText(PORTAL_KEEPER_GUARDIAN_DEATH_3, m_creature); break;
+                    }
+                break;
+        }
+    }
+    void Aggro(Unit* pWho)
+    {
+        switch(creatureEntry)
+        {
+            case NPC_AZURE_CAPTAIN:
+                DoScriptText(AZURE_CAPTAIN_AGGRO_1, m_creature);
+                break;
+            case NPC_AZURE_RAIDER:
+            case NPC_AZURE_SORCEROR:
+            case NPC_AZURE_STALKER:
+            case NPC_AZURE_BINDER:
+            case NPC_AZURE_INVADER:
+            case NPC_AZURE_MAGE_SLAYER:
+            case NPC_AZURE_SPELLBREAKER:
+                    switch(urand(0,3))
+                    {
+                    case 0: DoScriptText(AZURE_SAY_AGGRO_1, m_creature); break;
+                    case 1: DoScriptText(AZURE_SAY_AGGRO_2, m_creature); break;
+                    case 2: DoScriptText(AZURE_SAY_AGGRO_3, m_creature); break;
+                    case 3: DoScriptText(AZURE_SAY_AGGRO_4, m_creature); break;
+                    }
+                break;
+            case NPC_GUARDIAN:
+            case NPC_KEEPER:
+                switch(urand(0,2))
+                    {
+                    case 0: DoScriptText(PORTAL_KEEPER_GUARDIAN_AGGRO_1, m_creature); break;
+                    case 1: DoScriptText(PORTAL_KEEPER_GUARDIAN_AGGRO_2, m_creature); break;
+                    case 2: DoScriptText(PORTAL_KEEPER_GUARDIAN_AGGRO_3, m_creature); break;
+                    }
+                break;
+            default:
+                debug_log("SD2: The Violet Hold: Unhandled dragon entry %u!", m_creature->GetEntry());
+                break;
+        }
+    }
+    void UpdateAI(const uint32 uiDiff){
         if(portalLoc != -1)
             StartMovement();
 
@@ -213,28 +293,24 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
         }
 
         //Corrupt Seal
-        if(pDoorSeal && !IsInCombat)
-        {
-            if(m_creature->IsWithinDist(pDoorSeal, 27.0f, false))
+
+        if(Creature *pDoorSeal2 = GetClosestCreatureWithEntry(m_creature, NPC_DOOR_SEAL, 150.0f)){
+            if(m_creature->IsWithinDist(pDoorSeal2, 27.0f, false) && !IsInCombat)
             {
                 IsWalking = false;
                 WayPointList.clear();
                 m_creature->GetMotionMaster()->Clear(false);
                 m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
-                DoCast(pDoorSeal, SPELL_CORRUPT);
+                DoCast(pDoorSeal2, SPELL_CORRUPT);
                 m_pInstance->SetData(TYPE_DOOR,SPECIAL);
             }
         }
-      
-        if(!IsWalking && !IsInCombat) 
-        {
-            m_creature->SetInCombatWithZone();
-            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-                return;
-            if (Unit* m_uEmbraceTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
+        if(!IsWalking && !IsInCombat) {
+                if (Unit* m_uEmbraceTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
                 m_creature->GetMotionMaster()->MoveChase(m_uEmbraceTarget);
-            IsInCombat = true;
-        }
+                m_creature->SetInCombatWithZone();
+                IsInCombat = true;
+                }
 
 
         //Return since we have no target
@@ -370,10 +446,31 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
         portalType = 0;
         portalID = 0;
         portalLoc = -1;
-        
         TimeRiftWave_Timer = 15000;
         Check_Timer = 5000;
+
+        m_creature->SetRespawnDelay(DAY);
     }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        switch(pSummoned->GetEntry())
+        {
+            case NPC_GUARDIAN:
+                DoScriptText(EMOTE_GUARDIAN_PORTAL, pSummoned);
+                break;
+            case NPC_KEEPER:
+                DoScriptText(EMOTE_KEEPER_PORTAL, pSummoned);
+                break;
+            case NPC_AZURE_CAPTAIN:
+                DoScriptText(EMOTE_DRAGONFLIGHT_PORTAL, pSummoned);
+                break;
+            default:
+                return;
+        }
+
+   }
+
     uint32 SelectRandSummon()
     {
         uint32 entry = 0;
@@ -385,16 +482,15 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
                 case 1: entry = NPC_AZURE_INVADER; break;
                 case 2: entry = NPC_AZURE_MAGE_SLAYER; break;
                 case 3: entry = NPC_AZURE_SPELLBREAKER; break;
-            }      
-        }else
-        {
+            }
+        }else{
             switch (urand(0, 3))
             {
-            case 0: entry = NPC_AZURE_CAPTAIN; break;
-            case 1: entry = NPC_AZURE_RAIDER; break;
-            case 2: entry = NPC_AZURE_SORCEROR; break;
-            case 3: entry = NPC_AZURE_STALKER; break;
-            } 
+                case 0: entry = NPC_AZURE_CAPTAIN; break;
+                case 1: entry = NPC_AZURE_RAIDER; break;
+                case 2: entry = NPC_AZURE_SORCEROR; break;
+                case 3: entry = NPC_AZURE_STALKER; break;
+            }
         }
         return entry;
     }
@@ -403,12 +499,11 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
         if(portalType == 0)
             return;
 
-        // fix it
         uint8 uiSpawnCount = (m_pInstance->GetData(TYPE_RIFT) < 12) ? 3 : 4;
         for(uint8 i = 0; i < uiSpawnCount; i++)
         {
             uint32 uiSpawnEntry = SelectRandSummon();
-            if(Creature* pSummoned = m_creature->SummonCreature(uiSpawnEntry, m_creature->GetPositionX()-5+rand()%10, m_creature->GetPositionY()-5+rand()%10, m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+            if(Creature* pSummoned = m_creature->SummonCreature(uiSpawnEntry, m_creature->GetPositionX()-5+rand()%10, m_creature->GetPositionY()-5+rand()%10, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
             {
                 debug_log("Spawn NPC %u, motherPortalID %u, portalLoc %u", uiSpawnEntry, portalID, portalLoc);
                 ((mob_vh_dragonsAI*)pSummoned->AI())->motherPortalID = portalID;
@@ -416,7 +511,6 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
             }
         }
     }
-
     bool IsThereNearElite(float range)
     {
         //Azure captain
@@ -446,26 +540,6 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
         return false;
     }
 
-    bool IsNoThereNearDefender()
-    {
-        std::list<Creature*> pTemp;
-        GetCreatureListWithEntryInGrid(pTemp, m_creature, NPC_GUARDIAN, 200);
-        if (!pTemp.empty())
-            for(std::list<Creature*>::iterator iter = pTemp.begin(); iter != pTemp.end(); ++iter)
-                if(((mob_vh_dragonsAI*)(*iter)->AI())->motherPortalID == portalID && !(*iter)->isAlive())
-                    return true;
-
-        pTemp.clear();
-
-        GetCreatureListWithEntryInGrid(pTemp, m_creature, NPC_KEEPER, 200);
-        if (!pTemp.empty())
-            for(std::list<Creature*>::iterator iter = pTemp.begin(); iter != pTemp.end(); ++iter)
-                if(((mob_vh_dragonsAI*)(*iter)->AI())->motherPortalID == portalID && !(*iter)->isAlive())
-                    return true;
-
-        return false;
-    }
-
     void UpdateAI(const uint32 diff)
     {
         if (!m_pInstance)
@@ -486,19 +560,12 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
                     TimeRiftWave_Timer = 15000;
                 }else TimeRiftWave_Timer -= diff;
 
-                /*if (!m_creature->IsNonMeleeSpellCasted(false))
+                if (!m_creature->IsNonMeleeSpellCasted(false))
                 {
                     m_uiNextPortal_Timer = 5000;
                     debug_log("SD2: npc_time_rift: not casting anylonger, i need to die.");
-                    m_creature->SetDeathState(JUST_DIED);
-                }*/
-                if (IsNoThereNearDefender()) // alt check
-                {
-                    m_uiNextPortal_Timer = 5000;
-                    debug_log("SD2: npc_time_rift: not casting anylonger, i need to die.");
-                    m_creature->SetDeathState(JUST_DIED);
+                    m_creature->ForcedDespawn();
                 }
-
                 break;
             case 2:
                 if(!m_uiGroupSpawned)
@@ -512,7 +579,7 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
                     {
                         m_uiNextPortal_Timer = 5000;
                         debug_log("SD2: npc_time_rift: No elite, i need to die.");
-                        m_creature->SetDeathState(JUST_DIED);
+                        m_creature->ForcedDespawn();
                     }
                     Check_Timer = 1000;
                 }else Check_Timer -= diff;
@@ -523,6 +590,19 @@ struct MANGOS_DLL_DECL npc_violet_portalAI : public ScriptedAI
 /*######
 ## npc_sinclari
 ######*/
+enum
+{
+    SAY_BEGIN                   = -1608000,
+    SAY_LOCK_DOOR               = -1608001,
+
+    GOSSIP_ITEM_INTRO           = -3608000,
+    GOSSIP_ITEM_START           = -3608001,
+
+    GOSSIP_TEXT_ID_INTRO        = 13853,
+    GOSSIP_TEXT_ID_START        = 13854,
+    SAY_END                     = -1608009,
+};
+
 struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
 {
     npc_sinclariAI(Creature *pCreature) : ScriptedAI(pCreature)
@@ -536,49 +616,70 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
     uint8 m_bIsRegular;
     uint32 m_uiBossCheck_Timer;
     uint32 m_uiPortalCheck_Timer;
-    uint32 m_uiResetCheck_Timer;
-    uint8 m_uiLastRift;
+    std::list<Creature*> m_lGuardsList;
+    uint32 m_uiWaypoint;
+    bool start;
+    uint32 m_uiWalkTimer;
 
     void Reset()
     {
-        m_uiLastRift = m_uiLastRift > 20 ? 0 : m_uiLastRift;
-        m_uiRiftPortalCount = m_uiLastRift ? m_uiLastRift : 0;
+        m_uiRiftPortalCount = 0;
+        m_uiWalkTimer = 0;
         m_uiNextPortal_Timer = 0;
         m_uiBossCheck_Timer = 0;
         m_uiPortalCheck_Timer = 1000;
         m_bIsRegular = m_creature->GetMap()->IsRegularDifficulty();
-        m_uiResetCheck_Timer = 30000;
-    }
+        m_uiWaypoint = 0;
+        start = false;
+     }
 
+    void CallGuards(bool bRespawn)
+    {
+    GetCreatureListWithEntryInGrid(m_lGuardsList, m_creature, NPC_GUARD, 50.0f);
+    for(std::list<Creature*>::iterator i = m_lGuardsList.begin(); i != m_lGuardsList.end(); ++i)
+    {
+        if (Creature* pGuard = *i)
+        {
+            if (bRespawn)
+            {
+                pGuard->Respawn();
+            }
+            else if (pGuard->isAlive())
+            {
+                pGuard->AI()->EnterEvadeMode();
+
+                if (Creature* pSinclari = GetClosestCreatureWithEntry(pGuard,NPC_SINCLARI,50.0f))
+                    pGuard->GetMotionMaster()->MoveFollow(pSinclari, 0.0f, 0.0f);
+
+                pGuard->ForcedDespawn(20000);
+            }
+        }
+    }
+}
+
+    
     void SetEvent()
     {
-        m_uiLastRift = 0;
-        m_creature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
+     
         m_uiNextPortal_Timer = 5000;
-        m_creature->GetMotionMaster()->MovePoint(0, 1815.571f, 800.112f, 44.364f);
-        if (m_pInstance)
-        {
+     
+        if (m_pInstance){
             m_pInstance->SetData(TYPE_EVENT, IN_PROGRESS);
             m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_SEAL_DOOR));
         }
     }
-
-    void DespawnMobs(uint32 entry)
+    void EventEscort()
     {
-        std::list<Creature*> assistList;
-        GetCreatureListWithEntryInGrid(assistList,m_creature, entry, 150.0f);
+        start=true;
+        m_uiWalkTimer = 1000;
 
-        if (assistList.empty())
-            return;
 
-        for(std::list<Creature*>::iterator iter = assistList.begin(); iter != assistList.end(); ++iter)
-            (*iter)->DealDamage((*iter), (*iter)->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
     }
 
     void DoSpawnPortal()
     {
         int tmp = urand(1, 6);
-        if (Creature* pTemp = m_creature->SummonCreature(NPC_PORTAL, PortalLoc[tmp].x, PortalLoc[tmp].y, PortalLoc[tmp].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+        if (Creature* pTemp = m_creature->SummonCreature(NPC_PORTAL, PortalLoc[tmp].x, PortalLoc[tmp].y, PortalLoc[tmp].z, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
         {
             pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -589,11 +690,11 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
             ((npc_violet_portalAI*)pTemp->AI())->portalType = portalType; 
             ((npc_violet_portalAI*)pTemp->AI())->portalID = portalID;
             ((npc_violet_portalAI*)pTemp->AI())->portalLoc = tmp;
-            
+
             if(portalType == 1)
             {
                 uint32 entry = urand(0, 1) ? NPC_GUARDIAN : NPC_KEEPER;
-                if (Creature* pSummoned = pTemp->SummonCreature(entry, PortalLoc[tmp].x, PortalLoc[tmp].y, PortalLoc[tmp].z, pTemp->GetOrientation(), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 600000))
+                if (Creature* pSummoned = pTemp->SummonCreature(entry, PortalLoc[tmp].x, PortalLoc[tmp].y, PortalLoc[tmp].z, pTemp->GetOrientation(), TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
                 {
                     pSummoned->AddThreat(pTemp);
                     pTemp->CastSpell(pSummoned, SPELL_PORTAL_CHANNEL,false);
@@ -605,69 +706,53 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_pInstance->GetData(TYPE_EVENT) != IN_PROGRESS)
+        if(start)
+        {
+            if (m_uiWalkTimer <= uiDiff)
+            {
+                switch(m_uiWaypoint)
+                {
+                case 0: m_creature->GetMotionMaster()->MovePoint(m_uiWaypoint, SinclariWP[m_uiWaypoint].x, SinclariWP[m_uiWaypoint].y, SinclariWP[m_uiWaypoint].z); 
+                    m_uiWalkTimer = 1000;
+                    m_uiWaypoint++;
+                    break;
+                case 1: m_creature->GetMotionMaster()->MovePoint(m_uiWaypoint, SinclariWP[m_uiWaypoint].x, SinclariWP[m_uiWaypoint].y, SinclariWP[m_uiWaypoint].z); 
+                    DoScriptText(SAY_BEGIN, m_creature);
+                    CallGuards(false);
+                    m_uiWalkTimer = 2000;
+                    m_uiWaypoint++;
+                    break;
+                case 2:
+                    m_creature->GetMotionMaster()->MovePoint(m_uiWaypoint, SinclariWP[m_uiWaypoint].x, SinclariWP[m_uiWaypoint].y, SinclariWP[m_uiWaypoint].z); 
+                    m_uiWalkTimer = 3000;
+                    m_uiWaypoint++;
+                    break;
+                case 3: m_creature->GetMotionMaster()->MovePoint(m_uiWaypoint, SinclariWP[m_uiWaypoint].x, SinclariWP[m_uiWaypoint].y, SinclariWP[m_uiWaypoint].z); 
+                    DoScriptText(SAY_LOCK_DOOR, m_creature);
+                    m_uiWalkTimer = 3000;
+                    m_uiWaypoint++;
+                    break;
+                case 4:
+                    m_creature->GetMotionMaster()->MovePoint(4, 1815.571f, 800.112f, 44.364f);
+                    SetEvent();
+                    m_uiWalkTimer = 3000;
+                    m_uiWaypoint++;
+                    break;
+                case 5:
+                    m_creature->GetMotionMaster()->Clear();
+                    start = false;
+                    m_uiWalkTimer = 0;
+                    break;
+
+                }
+            }
+            else m_uiWalkTimer -= uiDiff;
+        }
+
+        if(m_pInstance->GetData(TYPE_EVENT) != IN_PROGRESS || m_pInstance->GetData(TYPE_CYANIGOSA) == IN_PROGRESS)
             return;
 
-        if (m_uiResetCheck_Timer <= uiDiff)
-        {
-            uint32 Players = 0;
-            Map* pMap = m_creature->GetMap();
-            if (pMap && pMap->IsDungeon())
-            {
-                Map::PlayerList const &PlayerList = pMap->GetPlayers();
-                if (!PlayerList.isEmpty())
-                    for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-                        if (i->getSource()->isAlive())
-                            Players++;
-            }
-
-            if (Players == 0)
-            {
-                uint8 m_uiBoss, m_uiBossID;
-                
-                if (m_uiRiftPortalCount == 6 || m_uiRiftPortalCount == 12)
-                {
-                    m_uiBoss = m_pInstance->GetData(TYPE_LASTBOSS_ID);
-                    if (m_uiBoss == 1)
-                        m_uiBossID = m_pInstance->GetData(TYPE_BOSS);
-                    else
-                        m_uiBossID = m_pInstance->GetData(TYPE_BOSS2);
-
-                    if (m_pInstance->GetData(m_uiBossID) == DONE)
-                        m_uiLastRift = m_uiRiftPortalCount;
-                    else
-                        m_uiLastRift = m_uiRiftPortalCount-1;
-                }
-                else
-                    m_uiLastRift = m_uiRiftPortalCount-1;
-                
-                DespawnMobs(NPC_AZURE_CAPTAIN);
-                DespawnMobs(NPC_AZURE_RAIDER);
-                DespawnMobs(NPC_AZURE_SORCEROR);
-                DespawnMobs(NPC_AZURE_STALKER);
-
-                DespawnMobs(NPC_AZURE_BINDER);
-                DespawnMobs(NPC_AZURE_INVADER);
-                DespawnMobs(NPC_AZURE_MAGE_SLAYER);
-                DespawnMobs(NPC_AZURE_SPELLBREAKER);
-                DespawnMobs(NPC_KEEPER);
-                DespawnMobs(NPC_GUARDIAN);
-
-                m_creature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                float x, y, z, o;
-                m_creature->GetRespawnCoord(x, y, z, &o);
-                m_creature->GetMotionMaster()->MovePoint(0, x, y, z);
-                if (m_pInstance)
-                {
-                    m_pInstance->SetData(TYPE_EVENT, NOT_STARTED);
-                    m_pInstance->SetData(TYPE_RIFT, NOT_STARTED);
-                    m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_SEAL_DOOR));
-                }
-                Reset();
-            }
-        } else m_uiResetCheck_Timer -= uiDiff;
-
-        if (m_uiNextPortal_Timer && m_pInstance->GetData(TYPE_RIFT) != DONE)
+        if (m_uiNextPortal_Timer && m_pInstance->GetData(TYPE_RIFT) != DONE  )
         {
             if (m_uiNextPortal_Timer <= uiDiff)
             {
@@ -679,8 +764,10 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
                 }
 
                 if ( m_uiRiftPortalCount != 6
-                    && m_uiRiftPortalCount != 12
-                    && m_uiRiftPortalCount != 19)
+                     && m_uiRiftPortalCount != 12 
+                     && m_uiRiftPortalCount != 18
+                     && m_uiRiftPortalCount < 18 
+                   )
                 {
                     DoSpawnPortal();
                     if (m_uiRiftPortalCount < 12)
@@ -688,30 +775,36 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
                     else
                         m_uiNextPortal_Timer = 90000;
                 }
-                else if ( m_uiRiftPortalCount == 6 
+                else if ( m_uiRiftPortalCount == 6
                          || m_uiRiftPortalCount == 12)
                 {
-                    if (m_uiRiftPortalCount == 6)
-                        m_pInstance->SetData(TYPE_LASTBOSS_ID, 1);
-                    else
-                        m_pInstance->SetData(TYPE_LASTBOSS_ID, 2);
-
-                    if (Creature* pTemp = m_creature->SummonCreature(NPC_PORTAL, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN, 1500))
+                    if(m_uiRiftPortalCount == 6 && m_pInstance->GetData(TYPE_PORTAL6) != DONE || m_uiRiftPortalCount == 12 && m_pInstance->GetData(TYPE_PORTAL12) != DONE)
                     {
-                        Creature* pSummoned = m_creature->SummonCreature(NPC_AZURE_SABOTEUR, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
-                        pSummoned->AddThreat(pTemp);
-                        pTemp->CastSpell(pSummoned, SPELL_PORTAL_CHANNEL, false);
+                        if (Creature* pTemp = m_creature->SummonCreature(NPC_PORTAL, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000))
+                        {
+                            pTemp->SetRespawnDelay(7*DAY*IN_MILLISECONDS);
+                            Creature* pSummoned = m_creature->SummonCreature(NPC_AZURE_SABOTEUR, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+//                          pSummoned->AddThreat(pTemp);
+                            pTemp->CastSpell(pSummoned, SPELL_PORTAL_CHANNEL, false);
+                            if(m_uiRiftPortalCount == 6) {m_pInstance->SetData(TYPE_PORTAL6, IN_PROGRESS);}
+                            else m_pInstance->SetData(TYPE_PORTAL12, IN_PROGRESS);
+                        }
+                        m_uiNextPortal_Timer =  m_bIsRegular ? 180000 : 120000;
                     }
+                    else m_uiNextPortal_Timer = 4000;
                     m_pInstance->SetData(TYPE_RIFT, IN_PROGRESS);
                     m_uiBossCheck_Timer = 1000;
-                    m_uiNextPortal_Timer =  m_bIsRegular ? 180000 : 120000;
                 }
-                else if (m_uiRiftPortalCount == 19 && m_pInstance->GetData(TYPE_RIFT) != DONE)
+                else if (m_uiRiftPortalCount == 18 && m_pInstance->GetData(TYPE_RIFT) != DONE)
                 {
-                    m_creature->SummonCreature(NPC_CYANIGOSA, PortalLoc[0].x, PortalLoc[0].y, PortalLoc[0].z, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 180000);
-                    m_pInstance->SetData(TYPE_RIFT, DONE);
-                    m_pInstance->SetData(TYPE_DISRUPTIONS, 20);
-                    m_uiNextPortal_Timer = 10000;
+                    Creature* pCyanigossa = GetClosestCreatureWithEntry(m_creature, NPC_CYANIGOSA, 300.0f);
+
+                    if (!pCyanigossa) 
+                    {
+                        m_creature->SummonCreature(NPC_CYANIGOSA, 1922.420f, 803.240f, 52.40f, 3.022f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN , 99999999);}
+                        m_pInstance->SetData(TYPE_RIFT, DONE);
+                        m_pInstance->SetData(TYPE_DISRUPTIONS, 20);
+                       m_uiNextPortal_Timer = 1*DAY;
                 }
             }
             else
@@ -730,46 +823,66 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public ScriptedAI
             }
             else
                 m_uiBossCheck_Timer -= uiDiff;
+
             return;
         }
+        
+        
     }
 };
 
 #define GOSSIP_ITEM_START_EVENT   "Activate the crystals when we get in trouble, right."
 #define GOSSIP_ITEM_TELE_IN   "I need to go in!"
 
+
 bool GossipHello_npc_sinclari(Player* pPlayer, Creature* pCreature)
 {
-    ScriptedInstance* m_pInstance;
-    m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-
-    if (pCreature->isQuestGiver())
-        pPlayer->PrepareQuestMenu( pCreature->GetGUID() );
-
-    if(m_pInstance->GetData(TYPE_EVENT) == NOT_STARTED)
+    if (ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
     {
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_START_EVENT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-    }else
-    {
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_TELE_IN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+        if (m_pInstance->GetData(TYPE_EVENT) == NOT_STARTED || m_pInstance->GetData(TYPE_EVENT) == FAIL)
+        {
+            pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_INTRO, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+            pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXT_ID_INTRO, pCreature->GetGUID());
+        }
     }
-    pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-
     return true;
 }
 
 bool GossipSelect_npc_sinclari(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
 {
-    switch (uiAction)
+    if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
-        case GOSSIP_ACTION_INFO_DEF+1:
+        if (ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
+        {
+            if (m_pInstance->GetData(TYPE_EVENT) == NOT_STARTED || m_pInstance->GetData(TYPE_EVENT) == FAIL)
+            {
+                pPlayer->PlayerTalkClass->ClearMenus();
+                pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_START, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXT_ID_START, pCreature->GetGUID());
+            }
+        }
+        else
             pPlayer->CLOSE_GOSSIP_MENU();
-            ((npc_sinclariAI*)pCreature->AI())->SetEvent();
-            break;
-        case GOSSIP_ACTION_INFO_DEF+2:
-            pPlayer->CLOSE_GOSSIP_MENU();
-            pPlayer->CastSpell(pPlayer, SPELL_TELEPORT_INSIDE, false);
     }
+
+    if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
+    {
+        if (ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
+        {
+            pPlayer->CLOSE_GOSSIP_MENU();
+
+            if (m_pInstance->GetData(TYPE_EVENT) == NOT_STARTED || m_pInstance->GetData(TYPE_EVENT) == FAIL)
+            {
+
+                if (Creature* pSinclari = (pCreature->GetMap()->GetCreature( m_pInstance->GetData64(DATA_SINCLARI))))
+
+                    ((npc_sinclariAI*)pSinclari->AI())->EventEscort();
+            }
+        }
+        else
+            pPlayer->CLOSE_GOSSIP_MENU();
+    }
+
     return true;
 }
 /*######
@@ -800,10 +913,9 @@ struct MANGOS_DLL_DECL npc_door_sealAI : public ScriptedAI
         if (SpellCorrupt_Timer)
             return;
 
-        if (spell->Id == SPELL_CORRUPT) 
-        {
+        if (spell->Id == SPELL_CORRUPT) {
             SpellCorrupt_Timer = 1000;
-        }
+            }
     }
     void JustDied(Unit* pKiller)
     {
@@ -815,7 +927,7 @@ struct MANGOS_DLL_DECL npc_door_sealAI : public ScriptedAI
         {
             if (SpellCorrupt_Timer <= diff)
             {
-                if (m_creature->HasAura(SPELL_CORRUPT,SpellEffectIndex(0)))
+                if (m_creature->HasAura(SPELL_CORRUPT,EFFECT_INDEX_0))
                     SpellCorrupt_Timer = 1500;
                 else
                     SpellCorrupt_Timer = 0;
@@ -842,7 +954,6 @@ struct MANGOS_DLL_DECL npc_azure_saboteurAI : public ScriptedAI
     uint32 m_uiDisruptionCounter;
     uint32 m_uiDisruptionsCount;
 
-    uint8 m_uiBoss;
     uint8 m_uiBossID;
     uint8 m_bIsRegular;
     uint32 m_uiBossType;
@@ -867,11 +978,7 @@ struct MANGOS_DLL_DECL npc_azure_saboteurAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            m_uiBoss = m_pInstance->GetData(TYPE_LASTBOSS_ID);
-            if (m_uiBoss == 1)
-                m_uiBossID = m_pInstance->GetData(TYPE_BOSS);
-            else
-                m_uiBossID = m_pInstance->GetData(TYPE_BOSS2);
+            m_uiBossID = m_pInstance->GetData(TYPE_LASTBOSS);
             m_uiDisruptionsCount = m_pInstance->GetData(TYPE_DISRUPTIONS);
             switch (m_uiBossID)
             {
@@ -909,11 +1016,9 @@ struct MANGOS_DLL_DECL npc_azure_saboteurAI : public ScriptedAI
                     m_uiBossType = 0;
                     break;
             }
-            
-            if (m_uiBossType != 0)  
-                m_creature->GetMotionMaster()->MovePoint(0, BossLoc[m_uiBossID].x,  BossLoc[m_uiBossID].y,  BossLoc[m_uiBossID].z);
-            else 
-                m_creature->GetMotionMaster()->MovePoint(0, 1827.960f, 804.208f, 44.364f);
+            m_pInstance->SetData(TYPE_LASTBOSS_ID, m_uiBossType);
+            if (m_uiBossType != 0)  m_creature->GetMotionMaster()->MovePoint(0, BossLoc[m_uiBossID].x,  BossLoc[m_uiBossID].y,  BossLoc[m_uiBossID].z);
+            else  m_creature->GetMotionMaster()->MovePoint(0, 1827.960f, 804.208f, 44.364f);
         }
     }
 
@@ -935,27 +1040,23 @@ struct MANGOS_DLL_DECL npc_azure_saboteurAI : public ScriptedAI
         if (m_bIsActiving)
             if (m_uiDisruption_Timer < uiDiff)
             {
-                if (m_uiDisruptionCounter < 3) 
-                {
+                if (m_uiDisruptionCounter < 3) {
                     DoCast(m_creature, SPELL_SHIELD_DISRUPTION);
-                    ++m_uiDisruptionsCount;
-                    m_pInstance->SetData(TYPE_DISRUPTIONS, m_uiDisruptionsCount);
-                }
+                ++m_uiDisruptionsCount;
+                m_pInstance->SetData(TYPE_DISRUPTIONS, m_uiDisruptionsCount);}
                 else if (m_uiDisruptionCounter == 3)
                 {
                     m_pInstance->DoUseDoorOrButton(m_uiDoorGUID);
-                    if (m_uiBossType == TYPE_EREKEM) 
-                    {
+                    if (m_uiBossType == TYPE_EREKEM) {
                         m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_EREKEM_DOOR_L));
                         m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(DATA_EREKEM_DOOR_R));
-                    }
+                        }
                 }
-                else 
-                {
+                else {
                     m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                    m_pInstance->SetData(m_uiBossID, SPECIAL);
+                    if (m_pInstance->GetData(TYPE_LASTBOSS_ID) != 0) m_pInstance->SetData(m_pInstance->GetData(TYPE_LASTBOSS_ID), SPECIAL);
                     m_bIsActiving = false;
-                }
+                    }
 
                 ++m_uiDisruptionCounter;
                 m_uiDisruption_Timer = 1000;
@@ -964,10 +1065,13 @@ struct MANGOS_DLL_DECL npc_azure_saboteurAI : public ScriptedAI
     }
 };
 
+
+
 CreatureAI* GetAI_npc_azure_saboteur(Creature* pCreature)
 {
     return new npc_azure_saboteurAI (pCreature);
 }
+
 CreatureAI* GetAI_mob_vh_dragons(Creature* pCreature)
 {
     return new mob_vh_dragonsAI(pCreature);
@@ -1010,9 +1114,10 @@ void AddSC_violet_hold()
     newscript->Name = "npc_azure_saboteur";
     newscript->GetAI = &GetAI_npc_azure_saboteur;
     newscript->RegisterSelf();
- 
+
     newscript = new Script;
     newscript->Name = "mob_vh_dragons";
     newscript->GetAI = &GetAI_mob_vh_dragons;
     newscript->RegisterSelf();
+
 }
