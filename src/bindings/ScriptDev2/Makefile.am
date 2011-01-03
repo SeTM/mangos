@@ -505,6 +505,7 @@ scripts/northrend/violet_hold/def_violet_hold.h \
 scripts/northrend/violet_hold/instance_violet_hold.cpp \
 scripts/northrend/violet_hold/violet_hold.cpp \
 scripts/northrend/violet_hold/violet_hold.h \
+scripts/northrend/zuldrak.cpp \
 scripts/outland/auchindoun/auchenai_crypts/boss_exarch_maladaar.cpp \
 scripts/outland/auchindoun/auchenai_crypts/boss_shirrak.cpp \
 scripts/outland/auchindoun/mana_tombs/boss_nexusprince_shaffar.cpp \
