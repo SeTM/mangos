@@ -292,84 +292,82 @@ struct MANGOS_DLL_DECL boss_proffesor_putricideAI : public BSWScriptedAI
 
         switch(stage)
         {
-            case 0: 
+            case 0:
+                if (timedQuery(SPELL_UNSTABLE_EXPERIMENT, diff))
+                    CallOoze();
 
-                    if (timedQuery(SPELL_UNSTABLE_EXPERIMENT, diff))
-                        CallOoze();
+                timedCast(SPELL_OOZE_THROW, diff);
 
-                    timedCast(SPELL_OOZE_THROW, diff);
+                if (timedQuery(SPELL_MALLEABLE_GOO, diff))
+                {
+                    doCast(SPELL_MALLEABLE_GOO);
+                }
 
-                    if (timedQuery(SPELL_MALLEABLE_GOO, diff))
-                       {
-                          doCast(SPELL_MALLEABLE_GOO);
-                       }
+                DoMeleeAttackIfReady();
 
-                    DoMeleeAttackIfReady();
+                if (m_creature->GetHealthPercent() < 80.0f ) stage = 1;
 
-                    if (m_creature->GetHealthPercent() < 80.0f ) stage = 1;
-
-                    break;
-            case 1: 
-                    m_creature->InterruptNonMeleeSpells(true);
-                    m_creature->AttackStop();
-                    SetCombatMovement(false);
-                    doCast(SPELL_TEAR_GAS_1);
-                    DoScriptText(-1631245,m_creature);
-                    StartMovement(0);
-                    stage = 2;
-                    break;
+                break;
+            case 1:
+                m_creature->InterruptNonMeleeSpells(true);
+                m_creature->AttackStop();
+                SetCombatMovement(false);
+                doCast(SPELL_TEAR_GAS_1);
+                DoScriptText(-1631245,m_creature);
+                StartMovement(0);
+                stage = 2;
+                break;
             case 2:
-                    if (movementstarted) return;
-                    doCast(SPELL_CREATE_CONCOCTION);
-                    stage = 3;
-                    break;
+                if (movementstarted) return;
+                doCast(SPELL_CREATE_CONCOCTION);
+                stage = 3;
+                break;
             case 3:
-                    if (m_creature->IsNonMeleeSpellCasted(true,false,false) ||
+                if (m_creature->IsNonMeleeSpellCasted(true,false,false) ||
                     !doSelectRandomPlayer(SPELL_TEAR_GAS_1, false)) return;
-                    DoScriptText(-1631246,m_creature);
+                DoScriptText(-1631246,m_creature);
+                m_creature->SetDisplayId(VIEW_2);
+                m_creature->GetMotionMaster()->Clear();
+                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                SetCombatMovement(true);
+                stage = 4;
+                break;
+            case 4:
+                if (timedQuery(SPELL_UNSTABLE_EXPERIMENT, diff))
+                    CallOoze();
+
+                if (timedQuery(SPELL_THROW_BOTTLE_1, diff))
+                    switch(urand(0,2))
+                {
+                    case 0:
+                        doCast(SPELL_THROW_BOTTLE_1);
+                        break;
+                    case 1:
+                        doCast(SPELL_THROW_BOTTLE_2);
+                        break;
+                    case 2:
+                        doCast(SPELL_THROW_BOTTLE_3);
+                        break;
+                    default: break;
+                }
+
+                timedCast(SPELL_OOZE_THROW, diff);
+
+                timedCast(SPELL_MALLEABLE_GOO, diff);
+
+                if (timedQuery(SPELL_MALLEABLE_GOO, diff))
+                {
+                    doCast(SPELL_MALLEABLE_GOO);
+                }
+
+                if (m_creature->GetDisplayId() != VIEW_2)
                     m_creature->SetDisplayId(VIEW_2);
-                    m_creature->GetMotionMaster()->Clear();
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                    SetCombatMovement(true);
-                    stage = 4;
-                    break;
-            case 4: 
 
-                    if (timedQuery(SPELL_UNSTABLE_EXPERIMENT, diff))
-                        CallOoze();
+                DoMeleeAttackIfReady();
 
-                    if (timedQuery(SPELL_THROW_BOTTLE_1, diff))
-                        switch(urand(0,2))
-                          {
-                          case 0:
-                                 doCast(SPELL_THROW_BOTTLE_1);
-                                 break;
-                          case 1:
-                                 doCast(SPELL_THROW_BOTTLE_2);
-                                 break;
-                          case 2:
-                                 doCast(SPELL_THROW_BOTTLE_3);
-                                 break;
-                          default: break;
-                          }
+                if (m_creature->GetHealthPercent() < 35.0f ) stage = 5;
 
-                    timedCast(SPELL_OOZE_THROW, diff);
-
-                    timedCast(SPELL_MALLEABLE_GOO, diff);
-
-                    if (timedQuery(SPELL_MALLEABLE_GOO, diff))
-                       {
-                          doCast(SPELL_MALLEABLE_GOO);
-                       }
-
-                    if (m_creature->GetDisplayId() != VIEW_2)
-                        m_creature->SetDisplayId(VIEW_2);
-
-                    DoMeleeAttackIfReady();
-
-                    if (m_creature->GetHealthPercent() < 35.0f ) stage = 5;
-
-                    break;
+                break;
             case 5:
                     m_creature->InterruptNonMeleeSpells(true);
                     m_creature->AttackStop();
@@ -408,10 +406,11 @@ struct MANGOS_DLL_DECL boss_proffesor_putricideAI : public BSWScriptedAI
                     break;
             }
 
-        if (timedQuery(SPELL_BERSERK, diff)){
-                 doCast(SPELL_BERSERK);
-                 DoScriptText(-1631244,m_creature);
-                 }
+        if (timedQuery(SPELL_BERSERK, diff))
+        {
+            doCast(SPELL_BERSERK);
+            DoScriptText(-1631244,m_creature);
+        }
     }
 };
 

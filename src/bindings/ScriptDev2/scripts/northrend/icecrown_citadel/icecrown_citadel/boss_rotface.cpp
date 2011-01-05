@@ -99,13 +99,14 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-    switch (urand(0,1)) {
+        switch (urand(0,1)) 
+        {
         case 0:
-               DoScriptText(-1631222,m_creature,pVictim);
-               break;
+            DoScriptText(-1631222,m_creature,pVictim);
+            break;
         case 1:
-               DoScriptText(-1631223,m_creature,pVictim);
-               break;
+            DoScriptText(-1631223,m_creature,pVictim);
+            break;
         }
     }
 
@@ -125,42 +126,41 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
+        if(!pInstance) return;
 
-    if(!pInstance) return;
+        if (!pet)
+        {
+            if (Creature* pGuard = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_PRECIOUS)))
+                if (!pGuard->isAlive())
+                {
+                    pet = true;
+                    if (pInstance->GetData(TYPE_PRECIOUS) == NOT_STARTED)
+                    {
+                        DoScriptText(-1631228,m_creature);
+                        pInstance->SetData(TYPE_PRECIOUS,DONE);
+                    }
+                }
+        }
 
-    if (!pet)
-    {
-        if (Creature* pGuard = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_PRECIOUS)))
-            if (!pGuard->isAlive())
-            {
-                 pet = true;
-                 if (pInstance->GetData(TYPE_PRECIOUS) == NOT_STARTED)
-                 {
-                     DoScriptText(-1631228,m_creature);
-                     pInstance->SetData(TYPE_PRECIOUS,DONE);
-                 }
-            }
-    }
-
-    if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         if (nexttick)
-              {
-                  doCast(SPELL_OOZE_FLOOD_1);
-                  DoScriptText(-1631227,m_creature);
-                  nexttick = false;
-              };
+        {
+            doCast(SPELL_OOZE_FLOOD_1);
+            DoScriptText(-1631227,m_creature);
+            nexttick = false;
+        };
 
         if (timedQuery(SPELL_OOZE_FLOOD_1, diff))
-              {
-                   uint8 i = urand(0,3);
-                   if (Unit* pTemp = doSummon(NPC_OOZE_STALKER,SpawnLoc[i].x, SpawnLoc[i].y, SpawnLoc[i].z, TEMPSUMMON_TIMED_DESPAWN, 15000))
-                   {
-                       doCast(SPELL_OOZE_FLOOD, pTemp);
-                       nexttick = true;
-                   }
-              };
+        {
+            uint8 i = urand(0,3);
+            if (Unit* pTemp = doSummon(NPC_OOZE_STALKER,SpawnLoc[i].x, SpawnLoc[i].y, SpawnLoc[i].z, TEMPSUMMON_TIMED_DESPAWN, 15000))
+            {
+                doCast(SPELL_OOZE_FLOOD, pTemp);
+                nexttick = true;
+            }
+        };
 
         if (timedQuery(SPELL_SLIME_SPRAY, diff))
             if (doSummon(NPC_OOZE_SPRAY_STALKER))
@@ -221,12 +221,12 @@ struct MANGOS_DLL_DECL  mob_small_oozeAI : public BSWScriptedAI
         timedCast(SPELL_STICKY_OOZE, uiDiff);
 
         if (Creature* pTemp = doSelectNearestCreature(m_creature->GetEntry(),7.0f))
-           {
+        {
             doCast(SPELL_MERGE_OOZE, pTemp);
             doSummon(NPC_BIG_OOZE);
             pTemp->ForcedDespawn();
             m_creature->ForcedDespawn();
-            };
+        };
     }
 };
 
@@ -268,22 +268,22 @@ struct MANGOS_DLL_DECL  mob_big_oozeAI : public BSWScriptedAI
         timedCast(SPELL_STICKY_OOZE, uiDiff);
 
         if (Creature* pSmall = doSelectNearestCreature(NPC_SMALL_OOZE,5.0f))
-            {
-                pSmall->ForcedDespawn();
-                doCast(SPELL_UNSTABLE_OOZE);
-            };
+        {
+            pSmall->ForcedDespawn();
+            doCast(SPELL_UNSTABLE_OOZE);
+        };
 
         if (Creature* pBig = doSelectNearestCreature(NPC_BIG_OOZE, 8.0f))
-            {
-                pBig->ForcedDespawn();
-                doCast(SPELL_UNSTABLE_OOZE);
-            }
+        {
+            pBig->ForcedDespawn();
+            doCast(SPELL_UNSTABLE_OOZE);
+        }
 
         if ( auraCount(SPELL_UNSTABLE_OOZE_AURA) > 4 && !exploded)
-            {
-                doCast(SPELL_OOZE_EXPLODE);
-                exploded = true;
-            }
+        {
+            doCast(SPELL_OOZE_EXPLODE);
+            exploded = true;
+        }
 
     }
 };

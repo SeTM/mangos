@@ -127,7 +127,8 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-     switch (urand(0,1)) {
+        switch (urand(0,1)) 
+        {
         case 0:
                DoScriptText(-1631204,m_creature,pVictim);
                break;
@@ -349,12 +350,12 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
         if (timedQuery(SPELL_VILE_GAS, diff))
         {
-                       float fPosX, fPosY, fPosZ;
-                       m_creature->GetPosition(fPosX, fPosY, fPosZ);
-                       m_creature->GetRandomPoint(fPosX, fPosY, fPosZ, 30.0f, fPosX, fPosY, fPosZ);
-                       if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,fPosX, fPosY, fPosZ))
-                            doCast(SPELL_VILE_GAS, pTemp);
-                       DoScriptText(-1631213,m_creature);
+            float fPosX, fPosY, fPosZ;
+            m_creature->GetPosition(fPosX, fPosY, fPosZ);
+            m_creature->GetRandomPoint(fPosX, fPosY, fPosZ, 30.0f, fPosX, fPosY, fPosZ);
+            if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,fPosX, fPosY, fPosZ))
+                doCast(SPELL_VILE_GAS, pTemp);
+            DoScriptText(-1631213,m_creature);
         };
 
         if (timedQuery(SPELL_BERSERK, diff))
@@ -388,6 +389,7 @@ struct MANGOS_DLL_DECL  mob_vile_gas_stalkerAI : public ScriptedAI
     {
         m_creature->SetRespawnDelay(7*DAY);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->SetInCombatWithZone();
         SetCombatMovement(false);
         m_creature->SetDisplayId(11686);
@@ -432,6 +434,7 @@ struct MANGOS_DLL_DECL  mob_orange_gas_stalkerAI : public ScriptedAI
     {
         m_creature->SetRespawnDelay(7*DAY);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         SetCombatMovement(false);
         m_creature->SetDisplayId(11686);
     }

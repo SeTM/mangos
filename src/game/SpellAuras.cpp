@@ -9276,6 +9276,24 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     else
                         return;
                     break;
+                case 69290:
+                    {
+                        if (!apply)
+                        {
+                            if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                            {
+                                cast_at_remove = true;
+                                spellId1 = 69291;
+                                // Cast unknown spell - spore explode (override)
+                                float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(GetSpellProto()->EffectRadiusIndex[EFFECT_INDEX_0]));
+                                Map::PlayerList const& pList = m_target->GetMap()->GetPlayers();
+                                for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+                                    if (itr->getSource() && itr->getSource()->IsWithinDistInMap(m_target,radius))
+                                        itr->getSource()->CastSpell(itr->getSource(), spellId1, true);
+                            }
+                        }
+                        break;
+                    }
                 }
                 default:
                     return;
@@ -9306,6 +9324,13 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                 else
                     return;
                 break;
+            }
+            else if (m_spellProto->SpellFamilyFlags & 0x20LL && GetSpellProto()->SpellVisual[0] == 13)
+            {
+                // Glyph of Frostbolt
+                if (Unit * caster = GetCaster())
+                    if (caster->HasAura(56370))
+                        m_target->RemoveAurasByCasterSpell(GetId(), caster->GetGUID());
             }
 
             switch(GetId())
