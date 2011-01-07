@@ -9267,7 +9267,10 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     }
                     else
                 case 69674:                                 // Mutated Infection
-                    if (!apply && m_removeMode == AURA_REMOVE_BY_DISPEL)
+                case 71224:
+                case 73022:
+                case 73023:
+                    if (!apply/* && m_removeMode == AURA_REMOVE_BY_DISPEL*/)
                     {
                         cast_at_remove = true;
                         spellId1 = 69706;                   // Summon (36897)

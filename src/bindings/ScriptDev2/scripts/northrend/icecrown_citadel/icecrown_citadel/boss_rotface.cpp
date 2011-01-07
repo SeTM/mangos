@@ -74,6 +74,7 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
     bool intro;
     bool pet;
     bool nexttick;
+    float health_prc;
 
     void Reset()
     {
@@ -83,6 +84,7 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
         intro = false;
         pet = false;
         nexttick = false;
+        health_prc = m_creature->GetHealthPercent();
         resetTimers();
     }
 
@@ -126,7 +128,8 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if(!pInstance) return;
+        if(!pInstance) 
+            return;
 
         if (!pet)
         {
@@ -144,6 +147,23 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+
+        health_prc = m_creature->GetHealthPercent();
+
+        int32 infection_spell;
+        if (health_prc <= 80.0f && health_prc > 60.0f)
+            infection_spell = 70003;
+        else if (health_prc <= 60.0f && health_prc > 40.0f)
+            infection_spell = 70004;
+        else if (health_prc <= 40.0f && health_prc > 20.0f)
+            infection_spell = 70005;
+        else if (health_prc <= 20.0f)
+            infection_spell = 70006;
+        else
+            infection_spell = 70090;
+
+        if (infection_spell && !m_creature->HasAura(infection_spell))
+            DoCast(m_creature, infection_spell, true);
 
         if (nexttick)
         {
@@ -168,9 +188,9 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public BSWScriptedAI
 
         if (timedQuery(SPELL_MUTATED_INFECTION, diff))
         {
-            for(uint8 i = 0; i < getSpellData(SPELL_MUTATED_INFECTION); ++i)
+            /*for(uint8 i = 0; i < getSpellData(SPELL_MUTATED_INFECTION); ++i)
                 if (Unit* pTarget = doSelectRandomPlayer(SPELL_MUTATED_INFECTION_AURA, false, 60.0f))
-                     doCast(SPELL_MUTATED_INFECTION, pTarget);
+                     doCast(SPELL_MUTATED_INFECTION, pTarget);*/
             DoScriptText(-1631226,m_creature);
         }
 
