@@ -9279,6 +9279,9 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                         return;
                     break;
                 case 69290:
+                case 71222:
+                case 73033:
+                case 73034:
                     {
                         if (!apply)
                         {
