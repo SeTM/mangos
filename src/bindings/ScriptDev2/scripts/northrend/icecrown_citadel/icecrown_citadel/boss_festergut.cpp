@@ -240,6 +240,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                     if (pBlightTarget)
                     {
                         pBlightTarget->RemoveAllAuras();
+                        m_creature->RemoveAurasDueToSpell(SPELL_GASEOUS_BLIGHT_1);
                         DoCast(m_creature,SPELL_GASEOUS_BLIGHT_2,true);
                     }
                     setStage(3);
@@ -263,6 +264,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                     if (pBlightTarget)
                     {
                         pBlightTarget->RemoveAllAuras();
+                        m_creature->RemoveAurasDueToSpell(SPELL_GASEOUS_BLIGHT_2);
                         DoCast(m_creature,SPELL_GASEOUS_BLIGHT_3,true);
                     }
                     setStage(6);
@@ -286,6 +288,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                     if (pBlightTarget)
                     {
                         pBlightTarget->RemoveAllAuras();
+                        m_creature->RemoveAurasDueToSpell(SPELL_GASEOUS_BLIGHT_3);
                     }
                     setStage(9);
                     break;
