@@ -87,6 +87,8 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
         setStage(0);
         intro = false;
         pet = false;
+        if (blightTargetGUID && !m_creature->GetMap()->GetCreature(blightTargetGUID))
+            blightTargetGUID = 0;
 /*        for(uint8 i = 0; i < 3; ++i)
              if (!pPuddleStalkerGUID[i])
              {
@@ -99,14 +101,19 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                  }
              }
 */
-        Creature* pBlightTarget = doSelectNearestCreature(NPC_BLIGHT_STALKER,60.0f);
+        Creature* pBlightTarget; 
+        
+        if (blightTargetGUID)
+            pBlightTarget = m_creature->GetMap()->GetCreature(blightTargetGUID);
+        else
+            pBlightTarget = doSelectNearestCreature(NPC_BLIGHT_STALKER,60.0f);
+
         if (pBlightTarget && !pBlightTarget->isAlive())
             pBlightTarget->Respawn();
         if (pBlightTarget)
         {
-             blightTargetGUID = pBlightTarget->GetGUID();
-             pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-             pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            blightTargetGUID = pBlightTarget->GetGUID();
+            pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
 
     }
@@ -144,26 +151,36 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
             return;
         pInstance->SetData(TYPE_FESTERGUT, FAIL);
         if (Creature* pBlightTarget = m_creature->GetMap()->GetCreature(blightTargetGUID))
+        {
             pBlightTarget->RemoveAllAuras();
+            pBlightTarget->RemoveAllAttackers();
+        }
     }
 
     void Aggro(Unit *pWho)
     {
-        if(!pInstance) return;
+        if(!pInstance) 
+            return;
         if (pWho->GetTypeId() != TYPEID_PLAYER) 
             return;
 
-        Creature* pBlightTarget = m_creature->GetMap()->GetCreature(blightTargetGUID);
+        Creature* pBlightTarget = NULL;
+        if (!blightTargetGUID)
+        {
+            pBlightTarget = doSelectNearestCreature(NPC_BLIGHT_STALKER,60.0f);
+            if (pBlightTarget)
+                blightTargetGUID = pBlightTarget->GetGUID();
+        }
+        else 
+            pBlightTarget = m_creature->GetMap()->GetCreature(blightTargetGUID);
+
+        if (pBlightTarget && !pBlightTarget->isAlive())
+            pBlightTarget->Respawn();
 
         pInstance->SetData(TYPE_FESTERGUT, IN_PROGRESS);
         DoScriptText(-1631203,m_creature,pWho);
-        if (pBlightTarget && !pBlightTarget->isAlive())
-            pBlightTarget->Respawn();
         if (pBlightTarget)
         {
-            pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            pBlightTarget->RemoveAllAuras();
             pBlightTarget->SetInCombatWithZone();
             DoCast(m_creature,SPELL_GASEOUS_BLIGHT_1,true);
         }
@@ -324,11 +341,9 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
         if (timedQuery(SPELL_VILE_GAS, diff))
         {
-            float fPosX, fPosY, fPosZ;
-            m_creature->GetPosition(fPosX, fPosY, fPosZ);
-            m_creature->GetRandomPoint(fPosX, fPosY, fPosZ, 30.0f, fPosX, fPosY, fPosZ);
-            if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,fPosX, fPosY, fPosZ))
-                doCast(SPELL_VILE_GAS, pTemp);
+            if (Player* pTarget = GetPlayerAtMinimumRange(10.0f))
+                if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()))
+                    doCast(SPELL_VILE_GAS, pTemp);
             DoScriptText(-1631213,m_creature);
         };
 
@@ -406,7 +421,7 @@ struct MANGOS_DLL_DECL  mob_orange_gas_stalkerAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->SetRespawnDelay(7*DAY);
+        m_creature->SetRespawnDelay(2*MINUTE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         SetCombatMovement(false);
