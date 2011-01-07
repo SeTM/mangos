@@ -164,7 +164,8 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
             pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             pBlightTarget->RemoveAllAuras();
-            pBlightTarget->CastSpell(pBlightTarget,SPELL_GASEOUS_BLIGHT_1, true);
+            pBlightTarget->SetInCombatWithZone();
+            DoCast(m_creature,SPELL_GASEOUS_BLIGHT_1,true);
         }
 /*        for(uint8 i = 0; i < 3; ++i)
              if (pPuddleStalkerGUID[i])
@@ -239,7 +240,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                     if (pBlightTarget)
                     {
                         pBlightTarget->RemoveAllAuras();
-                        pBlightTarget->CastSpell(pBlightTarget,SPELL_GASEOUS_BLIGHT_2,true);
+                        DoCast(m_creature,SPELL_GASEOUS_BLIGHT_2,true);
                     }
                     setStage(3);
                     break;
@@ -262,7 +263,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                     if (pBlightTarget)
                     {
                         pBlightTarget->RemoveAllAuras();
-                        pBlightTarget->CastSpell(pBlightTarget,SPELL_GASEOUS_BLIGHT_3,true);
+                        DoCast(m_creature,SPELL_GASEOUS_BLIGHT_3,true);
                     }
                     setStage(6);
                     break;
