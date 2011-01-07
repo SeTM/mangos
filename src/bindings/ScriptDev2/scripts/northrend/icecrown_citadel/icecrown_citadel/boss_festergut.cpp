@@ -107,9 +107,6 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
              blightTargetGUID = pBlightTarget->GetGUID();
              pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
              pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-             doCast(SPELL_BLIGHT_VISUAL_1,pBlightTarget);
-             doCast(SPELL_BLIGHT_VISUAL_2,pBlightTarget);
-             doCast(SPELL_BLIGHT_VISUAL_3,pBlightTarget);
         }
 
     }
@@ -127,6 +124,9 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
+        if (pVictim->GetTypeId != TYPEID_PLAYER)
+            return;
+
         switch (urand(0,1)) 
         {
         case 0:
@@ -146,9 +146,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
         doRemoveFromAll(SPELL_BLIGHT_VISUAL_2);
         doRemoveFromAll(SPELL_BLIGHT_VISUAL_3);
         if (Creature* pBlightTarget = m_creature->GetMap()->GetCreature(blightTargetGUID))
-        {
-            doCast(SPELL_BLIGHT_VISUAL_1,pBlightTarget);
-        }
+            pBlightTarget->RemoveAllAuras();
     }
 
     void Aggro(Unit *pWho)
@@ -167,10 +165,8 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
         {
             pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             pBlightTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            doRemove(SPELL_BLIGHT_VISUAL_1,pBlightTarget);
-            doRemove(SPELL_BLIGHT_VISUAL_2,pBlightTarget);
-            doRemove(SPELL_BLIGHT_VISUAL_3,pBlightTarget);
-            doCast(SPELL_BLIGHT_VISUAL_1,pBlightTarget);
+            pBlightTarget->RemoveAllAuras();
+            pBlightTarget->CastSpell(pBlightTarget, SPELL_BLIGHT_VISUAL_1, true);
         }
         doCast(SPELL_GASEOUS_BLIGHT_1);
         doRemoveFromAll(SPELL_BLIGHT_VISUAL_3);
@@ -216,12 +212,12 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
             if (Creature* pGuard = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_STINKY)))
                 if (!pGuard->isAlive())
                 {
-                     pet = true;
-                     if (pInstance->GetData(TYPE_STINKY) == NOT_STARTED)
-                     {
-                         DoScriptText(-1631209,m_creature);
-                         pInstance->SetData(TYPE_STINKY,DONE);
-                     }
+                    pet = true;
+                    if (pInstance->GetData(TYPE_STINKY) == NOT_STARTED)
+                    {
+                        DoScriptText(-1631209,m_creature);
+                        pInstance->SetData(TYPE_STINKY,DONE);
+                    }
                 }
         }
 
