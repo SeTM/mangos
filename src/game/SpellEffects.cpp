@@ -7408,6 +7408,20 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 69201, true);
                     return;
                 }
+                case 69195:
+                {
+                    if (!unitTarget)
+                        return;
+
+                    if (!unitTarget->GetMap()->IsDungeon())
+                        return;
+
+                    Map::PlayerList const& pList = unitTarget->GetMap()->GetPlayers();
+                    for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+                        if (itr->getSource())
+                            itr->getSource()->RemoveAurasDueToSpell(69166);
+                    return;
+                }
             }
             break;
         }

@@ -657,6 +657,7 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
         case 56266:                                         // Vortex
         case 64002:                                         // Crunch Armor
         case 63355:                                         // Crunch Armor
+        case 69291:
             return false;
         case 36032:                                         // Arcane Blast
 		case 47314:

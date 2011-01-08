@@ -9278,7 +9278,10 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     else
                         return;
                     break;
-                case 69279:
+                case 73034:
+                case 73033:
+                case 71222:
+                case 69290:
                     {
                         if (!apply)
                         {
@@ -9287,7 +9290,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                                 cast_at_remove = true;
                                 spellId1 = 69291;
                                 // Cast unknown spell - spore explode (override)
-                                float radius = 5.0f/*GetSpellRadius(sSpellRadiusStore.LookupEntry(GetSpellProto()->EffectRadiusIndex[EFFECT_INDEX_0]))*/;
+                                float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(GetSpellProto()->EffectRadiusIndex[EFFECT_INDEX_0]));
                                 Map::PlayerList const& pList = m_target->GetMap()->GetPlayers();
                                 for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
                                     if (itr->getSource() && itr->getSource()->IsWithinDistInMap(m_target,radius))
