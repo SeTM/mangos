@@ -10611,8 +10611,8 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
             }
 
             anyAuraProc = true;
-            triggeredByAura->SetInUse(false);
         }
+
         // Remove charge (aura can be removed by triggers)
         if(useCharges && procSuccess && anyAuraProc && !triggeredByHolder->IsDeleted())
         {
@@ -10631,7 +10631,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         removedSpells.unique();
         // Remove auras from removedAuras
         for(RemoveSpellList::const_iterator i = removedSpells.begin(); i != removedSpells.end();++i)
-            RemoveAuraHolderFromStack(*i);
+            RemoveAurasDueToSpell(*i);
     }
 }
 
