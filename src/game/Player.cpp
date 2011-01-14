@@ -22795,12 +22795,14 @@ void Player::ActivateSpec(uint8 specNum)
         
     if (GetBattleGround() && GetBattleGround()->GetStatus() == STATUS_IN_PROGRESS)
         return;
-         
-         
-    UnsummonPetTemporaryIfAny();
-    UnsummonAllTotems();
-    RemoveAllEnchantments(TEMP_ENCHANTMENT_SLOT);
     
+    if (getClass() == CLASS_HUNTER || getClass() == CLASS_WARLOCK)
+        UnsummonPetTemporaryIfAny();
+    else if (Pet* pet = GetPet())
+        pet->Unsummon(PET_SAVE_NOT_IN_SLOT, this);
+
+    UnsummonAllTotems();
+    RemoveAllEnchantments(TEMP_ENCHANTMENT_SLOT);    
 
     // prevent deletion of action buttons by client at spell unlearn or by player while spec change in progress
     SendLockActionButtons();
