@@ -8380,6 +8380,7 @@ void Aura::PeriodicDummyTick()
                     if (rune == RUNE_DEATH)
                         plr->ConvertRune(i, plr->GetBaseRune(i));
                 }
+            }
 //            if (spell->SpellIconID == 30412)
 //                return;
             // Hysteria
