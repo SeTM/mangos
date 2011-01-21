@@ -67,11 +67,6 @@ SqlConnection * DatabasePostgre::CreateConnection()
     return new PostgreSQLConnection();
 }
 
-PostgreSQLConnection::~PostgreSQLConnection()
-{
-    PQfinish(mPGconn);
-}
-
 bool PostgreSQLConnection::Initialize(const char *infoString)
 {
     Tokens tokens = StrSplit(infoString, ";");
