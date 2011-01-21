@@ -23,16 +23,18 @@
 #include "Platform/Define.h"
 #include "Threading.h"
 #include "DatabaseEnv.h"
+#include "Database/PGSQLDelayThread.h"
 #include "Database/SqlOperations.h"
 #include "Timer.h"
 
 size_t DatabasePostgre::db_count = 0;
 
-DatabasePostgre::DatabasePostgre()
+DatabasePostgre::DatabasePostgre() : Database(), mPGconn(NULL)
 {
     // before first connection
     if( db_count++ == 0 )
     {
+
         if (!PQisthreadsafe())
         {
             sLog.outError("FATAL ERROR: PostgreSQL libpq isn't thread-safe.");
@@ -43,32 +45,26 @@ DatabasePostgre::DatabasePostgre()
 
 DatabasePostgre::~DatabasePostgre()
 {
+
     if (m_delayThread)
         HaltDelayThread();
 
-    //destroy SqlConnection objects
-    if(m_pQueryConnections.size())
+    if( mPGconn )
     {
-        for (int i  = 0; i < m_pQueryConnections.size(); ++i)
-            delete m_pQueryConnections[i];
-
-        m_pQueryConnections.clear();
-    }
-
-    if(m_pAsyncConn)
-    {
-        delete m_pAsyncConn;
-        m_pAsyncConn = NULL;
+        PQfinish(mPGconn);
+        mPGconn = NULL;
     }
 }
 
-SqlConnection * DatabasePostgre::CreateConnection()
+bool DatabasePostgre::Initialize(const char *infoString)
 {
-    return new PostgreSQLConnection();
-}
+    if(!Database::Initialize(infoString))
+        return false;
 
-bool PostgreSQLConnection::Initialize(const char *infoString)
-{
+    tranThread = NULL;
+
+    InitDelayThread();
+
     Tokens tokens = StrSplit(infoString, ";");
 
     Tokens::iterator iter;
@@ -102,18 +98,26 @@ bool PostgreSQLConnection::Initialize(const char *infoString)
         mPGconn = NULL;
         return false;
     }
+    else
+    {
+        sLog.outDetail( "Connected to Postgre database at %s",
+            host.c_str());
+        sLog.outString( "PostgreSQL server ver: %d",PQserverVersion(mPGconn));
+        return true;
+    }
 
-    sLog.outDetail( "Connected to Postgre database at %s", host.c_str());
-    sLog.outString( "PostgreSQL server ver: %d", PQserverVersion(mPGconn));
-    return true;
 }
 
-bool PostgreSQLConnection::_Query(const char *sql, PGresult** pResult, uint64* pRowCount, uint32* pFieldCount)
+bool DatabasePostgre::_Query(const char *sql, PGresult** pResult, uint64* pRowCount, uint32* pFieldCount)
 {
     if (!mPGconn)
-        return false;
+        return 0;
 
-    uint32 _s = WorldTimer::getMSTime();
+    // guarded block for thread-safe request
+    ACE_Guard<ACE_Thread_Mutex> query_connection_guard(mMutex);
+    #ifdef MANGOS_DEBUG
+    uint32 _s = getMSTime();
+    #endif
     // Send the query
     *pResult = PQexec(mPGconn, sql);
     if(!*pResult )
@@ -128,7 +132,9 @@ bool PostgreSQLConnection::_Query(const char *sql, PGresult** pResult, uint64* p
     }
     else
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_SQL_TEXT, "[%u ms] SQL: %s", WorldTimer::getMSTimeDiff(_s,WorldTimer::getMSTime()), sql );
+        #ifdef MANGOS_DEBUG
+        sLog.outDebug("[%u ms] SQL: %s", getMSTime() - _s, sql );
+        #endif
     }
 
     *pRowCount = PQntuples(*pResult);
@@ -140,14 +146,13 @@ bool PostgreSQLConnection::_Query(const char *sql, PGresult** pResult, uint64* p
         PQclear(*pResult);
         return false;
     }
-
     return true;
 }
 
-QueryResult* PostgreSQLConnection::Query(const char *sql)
+QueryResult* DatabasePostgre::Query(const char *sql)
 {
     if (!mPGconn)
-        return NULL;
+        return 0;
 
     PGresult* result = NULL;
     uint64 rowCount = 0;
@@ -157,15 +162,15 @@ QueryResult* PostgreSQLConnection::Query(const char *sql)
         return NULL;
 
     QueryResultPostgre * queryResult = new QueryResultPostgre(result, rowCount, fieldCount);
-
     queryResult->NextRow();
+
     return queryResult;
 }
 
-QueryNamedResult* PostgreSQLConnection::QueryNamed(const char *sql)
+QueryNamedResult* DatabasePostgre::QueryNamed(const char *sql)
 {
     if (!mPGconn)
-        return NULL;
+        return 0;
 
     PGresult* result = NULL;
     uint64 rowCount = 0;
@@ -179,35 +184,67 @@ QueryNamedResult* PostgreSQLConnection::QueryNamed(const char *sql)
         names[i] = PQfname(result, i);
 
     QueryResultPostgre * queryResult = new QueryResultPostgre(result, rowCount, fieldCount);
-
     queryResult->NextRow();
+
     return new QueryNamedResult(queryResult,names);
 }
 
-bool PostgreSQLConnection::Execute(const char *sql)
+bool DatabasePostgre::Execute(const char *sql)
 {
+
     if (!mPGconn)
         return false;
 
-    uint32 _s = WorldTimer::getMSTime();
+    // don't use queued execution if it has not been initialized
+    if (!m_threadBody)
+        return DirectExecute(sql);
 
-    PGresult *res = PQexec(mPGconn, sql);
-    if (PQresultStatus(res) != PGRES_COMMAND_OK)
-    {
-        sLog.outErrorDb( "SQL: %s", sql );
-        sLog.outErrorDb( "SQL %s", PQerrorMessage(mPGconn) );
-        return false;
+    tranThread = ACE_Based::Thread::current();              // owner of this transaction
+    TransactionQueues::iterator i = m_tranQueues.find(tranThread);
+    if (i != m_tranQueues.end() && i->second != NULL)
+    {                                                       // Statement for transaction
+        i->second->DelayExecute(sql);
     }
     else
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_SQL_TEXT, "[%u ms] SQL: %s", WorldTimer::getMSTimeDiff(_s,WorldTimer::getMSTime()), sql );
+        // Simple sql statement
+        m_threadBody->Delay(new SqlStatement(sql));
     }
 
-    PQclear(res);
     return true;
 }
 
-bool PostgreSQLConnection::_TransactionCmd(const char *sql)
+bool DatabasePostgre::DirectExecute(const char* sql)
+{
+    if (!mPGconn)
+        return false;
+    {
+        // guarded block for thread-safe  request
+        ACE_Guard<ACE_Thread_Mutex> query_connection_guard(mMutex);
+        #ifdef MANGOS_DEBUG
+        uint32 _s = getMSTime();
+        #endif
+        PGresult *res = PQexec(mPGconn, sql);
+        if (PQresultStatus(res) != PGRES_COMMAND_OK)
+        {
+            sLog.outErrorDb( "SQL: %s", sql );
+            sLog.outErrorDb( "SQL %s", PQerrorMessage(mPGconn) );
+            return false;
+        }
+        else
+        {
+            #ifdef MANGOS_DEBUG
+            sLog.outDebug("[%u ms] SQL: %s", getMSTime() - _s, sql );
+            #endif
+        }
+        PQclear(res);
+
+        // end guarded block
+    }
+    return true;
+}
+
+bool DatabasePostgre::_TransactionCmd(const char *sql)
 {
     if (!mPGconn)
         return false;
@@ -226,22 +263,88 @@ bool PostgreSQLConnection::_TransactionCmd(const char *sql)
     return true;
 }
 
-bool PostgreSQLConnection::BeginTransaction()
+bool DatabasePostgre::BeginTransaction()
 {
-    return _TransactionCmd("START TRANSACTION");
+    if (!mPGconn)
+        return false;
+    // don't use queued execution if it has not been initialized
+    if (!m_threadBody)
+    {
+        if (tranThread == ACE_Based::Thread::current())
+            return false;                                   // huh? this thread already started transaction
+        mMutex.acquire();
+        if (!_TransactionCmd("START TRANSACTION"))
+        {
+            mMutex.release();                               // can't start transaction
+            return false;
+        }
+        return true;
+    }
+    // transaction started
+    tranThread = ACE_Based::Thread::current();              // owner of this transaction
+    TransactionQueues::iterator i = m_tranQueues.find(tranThread);
+    if (i != m_tranQueues.end() && i->second != NULL)
+        // If for thread exists queue and also contains transaction
+        // delete that transaction (not allow trans in trans)
+        delete i->second;
+
+    m_tranQueues[tranThread] = new SqlTransaction();
+
+    return true;
 }
 
-bool PostgreSQLConnection::CommitTransaction()
+bool DatabasePostgre::CommitTransaction()
 {
-    return _TransactionCmd("COMMIT");
+    if (!mPGconn)
+        return false;
+
+    // don't use queued execution if it has not been initialized
+    if (!m_threadBody)
+    {
+        if (tranThread != ACE_Based::Thread::current())
+            return false;
+        bool _res = _TransactionCmd("COMMIT");
+        tranThread = NULL;
+        mMutex.release();
+        return _res;
+    }
+    tranThread = ACE_Based::Thread::current();
+    TransactionQueues::iterator i = m_tranQueues.find(tranThread);
+    if (i != m_tranQueues.end() && i->second != NULL)
+    {
+        m_threadBody->Delay(i->second);
+        i->second = NULL;
+        return true;
+    }
+    else
+        return false;
 }
 
-bool PostgreSQLConnection::RollbackTransaction()
-{  
-    return _TransactionCmd("ROLLBACK");
+bool DatabasePostgre::RollbackTransaction()
+{
+    if (!mPGconn)
+        return false;
+    // don't use queued execution if it has not been initialized
+    if (!m_threadBody)
+    {
+        if (tranThread != ACE_Based::Thread::current())
+            return false;
+        bool _res = _TransactionCmd("ROLLBACK");
+        tranThread = NULL;
+        mMutex.release();
+        return _res;
+    }
+    tranThread = ACE_Based::Thread::current();
+    TransactionQueues::iterator i = m_tranQueues.find(tranThread);
+    if (i != m_tranQueues.end() && i->second != NULL)
+    {
+        delete i->second;
+        i->second = NULL;
+    }
+    return true;
 }
 
-unsigned long PostgreSQLConnection::escape_string(char *to, const char *from, unsigned long length)
+unsigned long DatabasePostgre::escape_string(char *to, const char *from, unsigned long length)
 {
     if (!mPGconn || !to || !from || !length)
         return 0;
@@ -249,4 +352,23 @@ unsigned long PostgreSQLConnection::escape_string(char *to, const char *from, un
     return PQescapeString(to, from, length);
 }
 
+void DatabasePostgre::InitDelayThread()
+{
+    assert(!m_delayThread);
+
+    //New delay thread for delay execute
+    m_threadBody = new PGSQLDelayThread(this);             // Will be deleted on m_delayThread delete
+    m_delayThread = new ACE_Based::Thread(m_threadBody);
+}
+
+void DatabasePostgre::HaltDelayThread()
+{
+    if (!m_threadBody || !m_delayThread) return;
+
+    m_threadBody->Stop();                                   //Stop event
+    m_delayThread->wait();                                  //Wait for flush to DB
+    delete m_delayThread;                                   //This also deletes m_threadBody
+    m_delayThread = NULL;
+    m_threadBody = NULL;
+}
 #endif
