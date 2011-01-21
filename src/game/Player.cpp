@@ -14244,9 +14244,6 @@ void Player::RewardQuest(Quest const *pQuest, uint32 reward, Object* questGiver,
     // Not give XP in case already completed once repeatable quest
     uint32 XP = q_status.m_rewarded ? 0 : uint32(pQuest->XPValue(this)*sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
 
-    if (GetGroup() && IsFriendTo())
-        XP *= 3;
-
     if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         GiveXP(XP , NULL);
     else
@@ -23229,29 +23226,4 @@ void Player::_LoadRandomBGStatus(QueryResult *result)
         m_IsBGRandomWinner = true;
         delete result;
     }
-}
-
-bool Player::IsFriendTo()
-{
-    if (getLevel() >= 68)
-        return false;
-
-    uint32 gray_level = MaNGOS::XP::GetGrayLevel(getLevel());
-    RecruitFriendMapBounds bounds = sWorld.GetRecruitFriendMapBounds(GetSession()->GetAccountId());
-    for (GroupReference *itr = this->GetGroup()->GetFirstMember(); itr != NULL; itr = itr->next())
-    {
-        Player *plr = itr->getSource();
-        if (!plr || !plr->GetSession())
-            continue;
-        if (!plr->IsAtGroupRewardDistance(this) || plr->getLevel() < gray_level)
-            continue;
-
-        for(RecruitFriendMap::const_iterator itr = bounds.first; itr != bounds.second; ++itr)
-        {
-            if (itr->second == plr->GetSession()->GetAccountId())
-                return true;
-        }
-    }
-
-    return false;
 }

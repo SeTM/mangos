@@ -1312,8 +1312,7 @@ void World::SetInitialWorldSettings()
                                                             //Update "uptime" table based on configuration entry in minutes.
     m_timers[WUPDATE_CORPSES].SetInterval(20*MINUTE*IN_MILLISECONDS);
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
-    m_timers[WUPDATE_ROF].SetInterval(5*MINUTE*IN_MILLISECONDS);
-    
+
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
     //one second is 1000 -(tested on win system)
@@ -1344,10 +1343,6 @@ void World::SetInitialWorldSettings()
 
     // delete old characters from the db
     Player::DeleteOldCharacters();
-
-    // Load accounts "Recruit a friend" system
-    sLog.outString("Load accounts Recruit a friend system..." );
-    LoadRecruitFriendData();
 
     sLog.outString("Calculate next daily quest reset time..." );
     InitDailyQuestResetTime();
@@ -1527,13 +1522,6 @@ void World::Update(uint32 diff)
     {
         m_timers[WUPDATE_DELETECHARS].Reset();
         Player::DeleteOldCharacters();
-    }
-
-    ///- Reload RoF data from site
-    if (m_timers[WUPDATE_ROF].Passed())
-    {
-        m_timers[WUPDATE_ROF].Reset();
-        sWorld.LoadRecruitFriendData();
     }
 
     // execute callbacks from sql queries that were queued recently
@@ -2209,36 +2197,6 @@ void World::ResetRandomBG()
 
     m_NextRandomBGReset = time_t(m_NextRandomBGReset + DAY);
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextRandomBGResetTime = '"UI64FMTD"'", uint64(m_NextRandomBGReset));
-}
-
-void World::LoadRecruitFriendData()
-{
-    QueryResult *result = LoginDatabase.PQuery("SELECT id, friend_id, date FROM accounts_friends");
-
-    if(!result)
-        return;
-
-    m_recruitFriend.clear();
-    do
-    {
-        Field *fields = result->Fetch();
-
-        uint32 id = fields[0].GetUInt32();
-        uint32 friend_id = fields[1].GetUInt32();
-        time_t invite_date = time_t(fields[2].GetUInt64());
-
-        // check expired friendship
-        if (time(NULL) >= (invite_date + MONTH))
-        {
-            LoginDatabase.PExecute("DELETE FROM `accounts_friends` WHERE `id`= '%u' and `friend_id` = '%u'", id, friend_id);
-            continue;
-        }
-
-        m_recruitFriend.insert(RecruitFriendMap::value_type(id, friend_id));
-    }
-    while (result->NextRow());
-
-    delete result;
 }
 
 void World::SetPlayerLimit( int32 limit, bool needUpdate )

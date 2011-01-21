@@ -67,18 +67,18 @@ bool ChatHandler::HandleAccountCommand(char* args)
 bool ChatHandler::HandleMoodSetCommand(char* args)
 {
     Player *chr = m_session->GetPlayer();
-    if (!chr)
+    if (!chr) {
         return false;
-
+    }
     std::string argstr = (char*)args;
     CharacterDatabase.escape_string(argstr);
 
     QueryResult *result = CharacterDatabase.PQuery("SELECT count(*) FROM `character_mood` WHERE `character_id` = '%u'", chr->GetGUID());
-    if ((*result)[0].GetBool())
+    if ((*result)[0].GetBool()) {
         CharacterDatabase.PExecute("UPDATE `character_mood` SET `mood`='%s', `date_modify`=NOW() WHERE `character_id`='%u'", argstr.c_str(), chr->GetGUID());
-    else
+    } else {
         CharacterDatabase.PExecute("INSERT INTO `character_mood` (`character_id`, `mood`, `date_modify`) VALUES ('%u', '%s', NOW())", chr->GetGUID(), argstr.c_str());
-
+    }
 	PSendSysMessage("You mood: %s", argstr.c_str());
     return true;
 }
@@ -86,13 +86,13 @@ bool ChatHandler::HandleMoodSetCommand(char* args)
 bool ChatHandler::HandleMoodClearCommand(char* args)
 {
 	Player *chr = m_session->GetPlayer();
-    if (!chr)
+    if (!chr) {
         return false;
-
+    }
     QueryResult *result = CharacterDatabase.PQuery("SELECT count(*) FROM `character_mood` WHERE `character_id` = '%u'", chr->GetGUID());
-    if ((*result)[0].GetBool())
+    if ((*result)[0].GetBool()) {
         CharacterDatabase.PExecute("DELETE FROM `character_mood` WHERE `character_id`='%u'", chr->GetGUID());
-
+    }
 	SendSysMessage("You mood cleared");
     return true;
 }
@@ -100,15 +100,15 @@ bool ChatHandler::HandleMoodClearCommand(char* args)
 bool ChatHandler::HandleMoodCommand(char* args)
 {
     Player *chr = m_session->GetPlayer();
-    if (!chr)
+    if (!chr) {
         return false;
-
+    }
 	QueryResult *result = CharacterDatabase.PQuery("SELECT `mood` FROM `character_mood` WHERE `character_id` = '%u'", chr->GetGUID());
-	if (result)
-        PSendSysMessage("You mood: %s", (*result)[0].GetString());
-    else
-        SendSysMessage("Mood not set");
-
+	if (result) {
+		PSendSysMessage("You mood: %s", (*result)[0].GetString());
+	} else {
+		SendSysMessage("Mood not set");
+	}
 	return true;
 }
 

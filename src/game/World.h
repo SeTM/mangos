@@ -44,9 +44,6 @@ class SqlResultQueue;
 class QueryResult;
 class WorldSocket;
 
-typedef std::multimap<uint32, uint32> RecruitFriendMap;
-typedef std::pair<RecruitFriendMap::const_iterator, RecruitFriendMap::const_iterator> RecruitFriendMapBounds;
-
 // ServerMessages.dbc
 enum ServerMessageType
 {
@@ -85,9 +82,8 @@ enum WorldTimers
     WUPDATE_CORPSES     = 5,
     WUPDATE_EVENTS      = 6,
     WUPDATE_DELETECHARS = 7,
-    WUPDATE_ROF         = 8,
     WUPDATE_BROADCAST   = 9,
-    WUPDATE_COUNT       = 10
+    WUPDATE_COUNT       = 9
 };
 
 /// Configuration elements
@@ -572,12 +568,6 @@ class World
         BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, std::string author);
         bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
 
-        void LoadRecruitFriendData();
-        RecruitFriendMapBounds GetRecruitFriendMapBounds(uint32 id) const
-        {
-            return m_recruitFriend.equal_range(id);
-        }
-
         uint32 IncreaseScheduledScriptsCount() { return (uint32)++m_scheduledScripts; }
         uint32 DecreaseScheduledScriptCount() { return (uint32)--m_scheduledScripts; }
         uint32 DecreaseScheduledScriptCount(size_t count) { return (uint32)(m_scheduledScripts -= count); }
@@ -693,8 +683,6 @@ class World
         time_t m_NextRandomBGReset;
         time_t m_NextWeeklyQuestReset;
         time_t m_NextMonthlyQuestReset;
-
-        RecruitFriendMap m_recruitFriend;
 
         //Player Queue
         Queue m_QueuedSessions;
