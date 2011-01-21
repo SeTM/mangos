@@ -1884,6 +1884,16 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     (spellInfo_2->Id == 57055 && spellInfo_1->Id == 56648))
                     return true;
 
+                // Male Shadowy Disguise
+                if ((spellInfo_1->Id == 32756 && spellInfo_2->Id == 38080) ||
+                    (spellInfo_2->Id == 32756 && spellInfo_1->Id == 38080))
+                    return false;
+
+                // Female Shadowy Disguise
+                if ((spellInfo_1->Id == 32756 && spellInfo_2->Id == 38081) ||
+                    (spellInfo_2->Id == 32756 && spellInfo_1->Id == 38081))
+                    return false;
+
                 // Thunderfury
                 if ((spellInfo_1->Id == 21992 && spellInfo_2->Id == 27648) ||
                     (spellInfo_2->Id == 21992 && spellInfo_1->Id == 27648))

@@ -1011,7 +1011,7 @@ void AuthSocket::LoadRealmlist(ByteBuffer &pkt, uint32 acctid, std::string alt_a
         case 5875:                                          // 1.12.1
         case 6005:                                          // 1.12.2
         {
-            pkt << uint32(0);
+            pkt << uint32(0);                               // unused value
             pkt << uint8(sRealmList.size());
 
             for(RealmList::RealmMap::const_iterator  i = sRealmList.begin(); i != sRealmList.end(); ++i)
@@ -1063,8 +1063,7 @@ void AuthSocket::LoadRealmlist(ByteBuffer &pkt, uint32 acctid, std::string alt_a
                 pkt << uint8(0x00);                         // unk, may be realm number/id?
             }
 
-            pkt << uint8(0x00);
-            pkt << uint8(0x02);
+            pkt << uint16(0x0002);                          // unused value (why 2?)
             break;
         }
 
@@ -1076,7 +1075,7 @@ void AuthSocket::LoadRealmlist(ByteBuffer &pkt, uint32 acctid, std::string alt_a
         case 12340:                                         // 3.3.5a
         default:                                            // and later
         {
-            pkt << uint32(0);
+            pkt << uint32(0);                               // unused value
             pkt << uint16(sRealmList.size());
 
             for(RealmList::RealmMap::const_iterator  i = sRealmList.begin(); i != sRealmList.end(); ++i)
@@ -1133,7 +1132,7 @@ void AuthSocket::LoadRealmlist(ByteBuffer &pkt, uint32 acctid, std::string alt_a
                 }
             }
 
-            pkt << uint16(0x0010);
+            pkt << uint16(0x0010);                          // unused value (why 10?)
             break;
         }
     }
