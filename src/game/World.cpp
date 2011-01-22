@@ -2196,13 +2196,15 @@ void World::ResetMonthlyQuests()
 void World::ResetRandomBG()
 {
     sLog.outDetail("Random BG status reset for all characters.");
-    CharacterDatabase.Execute("DELETE FROM character_battleground_random");
+    CharacterDatabase.Execute("TRUNCATE character_battleground_random");
     for(SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (itr->second->GetPlayer())
             itr->second->GetPlayer()->SetRandomWinner(false);
 
     m_NextRandomBGReset = time_t(m_NextRandomBGReset + DAY);
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextRandomBGResetTime = '"UI64FMTD"'", uint64(m_NextRandomBGReset));
+    // Cleanup RoF =)
+    LoginDatabase.PExecute("DELETE FROM `accounts_friends` WHERE UNIX_TIMESTAMP() > `date` + 2592000");
 }
 
 void World::SetPlayerLimit( int32 limit, bool needUpdate )

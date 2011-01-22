@@ -251,9 +251,9 @@ std::vector<uint32> AccountMgr::GetRAFAccounts(uint32 accid, bool referred)
     QueryResult* result;
 
     if (referred)
-        result = LoginDatabase.PQuery("SELECT `friend_id` FROM `account_friends` WHERE `id` = %u AND `expire_date` > NOW() LIMIT %u", accid, sWorld.getConfig(CONFIG_UINT32_RAF_MAXREFERERS));
+        result = LoginDatabase.PQuery("SELECT `friend_id` FROM `accounts_friends` WHERE `id` = %u AND UNIX_TIMESTAMP() < `date` + 2592000 LIMIT %u", accid, sWorld.getConfig(CONFIG_UINT32_RAF_MAXREFERERS));
     else
-        result = LoginDatabase.PQuery("SELECT `id` FROM `account_friends` WHERE `friend_id` = %u AND `expire_date` > NOW() LIMIT %u", accid, sWorld.getConfig(CONFIG_UINT32_RAF_MAXREFERALS));
+        result = LoginDatabase.PQuery("SELECT `id` FROM `accounts_friends` WHERE `friend_id` = %u AND UNIX_TIMESTAMP() < `date` + 2592000 LIMIT %u", accid, sWorld.getConfig(CONFIG_UINT32_RAF_MAXREFERALS));
 
     std::vector<uint32> acclist;
 
@@ -274,7 +274,7 @@ std::vector<uint32> AccountMgr::GetRAFAccounts(uint32 accid, bool referred)
 
 AccountOpResult AccountMgr::AddRAFLink(uint32 accid, uint32 friendid)
 {
-    if (!LoginDatabase.PExecute("INSERT INTO `account_friends`  (`id`, `friend_id`, `expire_date`) VALUES (%u,%u,NOW() + INTERVAL 3 MONTH)", accid, friendid))
+    if (!LoginDatabase.PExecute("INSERT INTO `accounts_friends` (`id`, `friend_id`, `date`) VALUES (%u,%u,UNIX_TIMESTAMP())", accid, friendid))
         return AOR_DB_INTERNAL_ERROR;
 
     return AOR_OK;
@@ -282,7 +282,7 @@ AccountOpResult AccountMgr::AddRAFLink(uint32 accid, uint32 friendid)
 
 AccountOpResult AccountMgr::DeleteRAFLink(uint32 accid, uint32 friendid)
 {
-    if (!LoginDatabase.PExecute("DELETE FROM `account_friends` WHERE `id` = %u AND `friend_id` = %u", accid, friendid))
+    if (!LoginDatabase.PExecute("DELETE FROM `accounts_friends` WHERE `id` = %u AND `friend_id` = %u", accid, friendid))
         return AOR_DB_INTERNAL_ERROR;
 
     return AOR_OK;
