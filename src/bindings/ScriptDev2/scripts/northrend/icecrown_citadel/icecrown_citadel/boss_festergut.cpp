@@ -324,6 +324,10 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
                         // everything is made just above
                     }
                     m_creature->RemoveAurasDueToSpell(SPELL_INHALED_BLIGHT);
+                    doRemoveFromAll(69291);
+                    doRemoveFromAll(72101);
+                    doRemoveFromAll(72102);
+                    doRemoveFromAll(72103);
                     setStage(0);
                     break;
         }
@@ -341,7 +345,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
         if (timedQuery(SPELL_VILE_GAS, diff))
         {
-            if (Player* pTarget = GetPlayerAtMinimumRange(8.0f))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1)/*GetPlayerAtMinimumRange(8.0f)*/)
                 if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()))
                     doCast(SPELL_VILE_GAS, pTemp);
             DoScriptText(-1631213,m_creature);

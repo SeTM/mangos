@@ -269,7 +269,7 @@ struct MANGOS_DLL_DECL  mob_big_oozeAI : public BSWScriptedAI
     void Reset()
     {
         resetTimers();
-        m_creature->SetRespawnDelay(7*DAY);
+        m_creature->SetRespawnDelay(7*MINUTE);
         doCast(SPELL_UNSTABLE_OOZE);
         m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
         m_creature->SetSpeedRate(MOVE_RUN, 0.5);

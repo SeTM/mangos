@@ -5342,6 +5342,11 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                 }
 
                 return;
+            case 71441:                                     // Unstable Ooze Explosion Suicide Trigger
+                if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                    target->CastSpell(target, 67375, true, NULL, this);
+
+                return;
             default:
                 break;
         }

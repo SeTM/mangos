@@ -7595,17 +7595,15 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 69195:
+                case 71219:
+                case 73031:
+                case 73032:
                 {
                     if (!unitTarget)
                         return;
 
-                    if (!unitTarget->GetMap()->IsDungeon())
-                        return;
-
-                    Map::PlayerList const& pList = unitTarget->GetMap()->GetPlayers();
-                    for (Map::PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
-                        if (itr->getSource())
-                            itr->getSource()->RemoveAurasDueToSpell(69166);
+                    unitTarget->RemoveAurasDueToSpell(69166);
+                    unitTarget->RemoveAurasDueToSpell(71912);
                     return;
                 }
             }
