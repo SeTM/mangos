@@ -1607,3 +1607,23 @@ void WorldSession::HandleAcceptGrantLevel(WorldPacket& recv_data)
 
     _player->GiveLevel(_player->getLevel() + 1);
 }
+
+void WorldSession::HandleInstanceLockResponse(WorldPacket& recvPacket)
+{
+    printf("\n ! got HandleInstanceLockResponse ! \n ");
+    uint8 accept;
+    recvPacket >> accept;
+
+    if (!_player->HasPendingBind())
+    {
+        sLog.outDetail("InstanceLockResponse: Player %s (guid %u) tried to bind himself/teleport to graveyard without a pending bind!", _player->GetName(), _player->GetGUIDLow());
+        return;
+    }
+
+    if (accept)
+        _player->BindToInstance();
+    else
+        _player->RepopAtGraveyard();
+
+    _player->SetPendingBind(NULL, 0);
+}
