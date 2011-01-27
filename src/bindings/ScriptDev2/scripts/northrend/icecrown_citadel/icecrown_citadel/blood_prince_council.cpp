@@ -222,9 +222,10 @@ struct MANGOS_DLL_DECL boss_taldaram_iccAI : public BSWScriptedAI
 
     void JustReachedHome()
     {
-        if (!m_pInstance) return;
-            m_pInstance->SetData(TYPE_BLOOD_COUNCIL, FAIL);
-            m_pInstance->SetData(DATA_BLOOD_COUNCIL_HEALTH, m_creature->GetMaxHealth()*3);
+        if (!m_pInstance)
+            return;
+        m_pInstance->SetData(TYPE_BLOOD_COUNCIL, FAIL);
+        m_pInstance->SetData(DATA_BLOOD_COUNCIL_HEALTH, m_creature->GetMaxHealth()*3);
     }
 
     void JustDied(Unit* pKiller)
@@ -786,11 +787,11 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
         else
         {
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_TALDARAM)))
-                doCast(SPELL_FAKE_DEATH,pPrince);
+                pPrince->CastSpell(m_creature,SPELL_FAKE_DEATH, true);
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_KELESETH)))
-                doCast(SPELL_FAKE_DEATH,pPrince);
+                pPrince->CastSpell(m_creature,SPELL_FAKE_DEATH, true);
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_VALANAR)))
-                doCast(SPELL_FAKE_DEATH,pPrince);
+                pPrince->CastSpell(m_creature,SPELL_FAKE_DEATH, true);
             pInstance->SetData(TYPE_BLOOD_COUNCIL, NOT_STARTED);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             m_creature->SetVisibility(VISIBILITY_ON);
@@ -812,7 +813,6 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
         if (pWho && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 50.0f))
         {
             pInstance->SetData(TYPE_EVENT, 800);
-            pInstance->SetData(TYPE_BLOOD_COUNCIL,IN_PROGRESS);
         }
     }
 
