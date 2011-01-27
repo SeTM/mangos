@@ -771,7 +771,9 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
 
     void Reset()
     {
-        if(!pInstance) 
+        m_creature->SetVisibility(VISIBILITY_OFF);
+
+        if(!pInstance)
             return;
 
         if (pInstance->GetData(TYPE_BLOOD_COUNCIL) == IN_PROGRESS)
@@ -787,14 +789,13 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
         else
         {
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_TALDARAM)))
-                pPrince->CastSpell(m_creature,SPELL_FAKE_DEATH, true);
+                doCast(SPELL_FAKE_DEATH,pPrince);
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_KELESETH)))
-                pPrince->CastSpell(m_creature,SPELL_FAKE_DEATH, true);
+                doCast(SPELL_FAKE_DEATH,pPrince);
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_VALANAR)))
-                pPrince->CastSpell(m_creature,SPELL_FAKE_DEATH, true);
+                doCast(SPELL_FAKE_DEATH,pPrince);
             pInstance->SetData(TYPE_BLOOD_COUNCIL, NOT_STARTED);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            m_creature->SetVisibility(VISIBILITY_ON);
         }
     }
 
@@ -810,9 +811,10 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
         if (pInstance->GetData(TYPE_BLOOD_COUNCIL) != NOT_STARTED)
             return;
 
-        if (pWho && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 50.0f))
+        if (pWho && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 50.0f) && pWho->isAlive())
         {
             pInstance->SetData(TYPE_EVENT, 800);
+            pInstance->SetData(TYPE_BLOOD_COUNCIL,IN_PROGRESS);
         }
     }
 
@@ -834,38 +836,41 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
                 switch (pInstance->GetData(TYPE_EVENT))
                 {
                 case 800:
-                          DoScriptText(-1631301, m_creature);
-                          UpdateTimer = 15000;
-                          pInstance->SetData(TYPE_EVENT,810);
-                          break;
+                    m_creature->SetVisibility(VISIBILITY_ON);
+                    DoScriptText(-1631301, m_creature);
+                    UpdateTimer = 15000;
+                    pInstance->SetData(TYPE_EVENT,810);
+                    break;
                 case 810:
-                          DoScriptText(-1631311, m_creature);
-                          if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_TALDARAM)))
-                          {
-                              doRemove(SPELL_FAKE_DEATH,pPrince);
-                          }
-                          if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_KELESETH)))
-                          {
-                              doRemove(SPELL_FAKE_DEATH,pPrince);
-                          }
-                          if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_VALANAR)))
-                          {
-                              doRemove(SPELL_FAKE_DEATH,pPrince);
-                          }
-                          UpdateTimer = 5000;
-                          pInstance->SetData(TYPE_EVENT,820);
-                          break;
+                    DoScriptText(-1631311, m_creature);
+                    if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_TALDARAM)))
+                    {
+                        doRemove(SPELL_FAKE_DEATH,pPrince);
+                    }
+                    if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_KELESETH)))
+                    {
+                        doRemove(SPELL_FAKE_DEATH,pPrince);
+                    }
+                    if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_VALANAR)))
+                    {
+                        doRemove(SPELL_FAKE_DEATH,pPrince);
+                    }
+                    UpdateTimer = 5000;
+                    pInstance->SetData(TYPE_EVENT,820);
+                    break;
                 case 820:
-                          m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                          m_creature->SetVisibility(VISIBILITY_OFF);
-                          UpdateTimer = 2000;
-                          pInstance->SetData(TYPE_EVENT,830);
-                          break;
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    m_creature->SetVisibility(VISIBILITY_OFF);
+                    UpdateTimer = 2000;
+                    pInstance->SetData(TYPE_EVENT,830);
+                    break;
                 default:
-                          break;
+                    break;
                 }
-             } else UpdateTimer -= diff;
-             pInstance->SetData(TYPE_EVENT_TIMER, UpdateTimer);
+            }
+            else
+                UpdateTimer -= diff;
+            pInstance->SetData(TYPE_EVENT_TIMER, UpdateTimer);
         }
 
     }
