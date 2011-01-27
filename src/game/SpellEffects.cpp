@@ -7624,6 +7624,118 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveAurasDueToSpell(71912);
                     return;
                 }
+                //Glyph of Scourge Strike
+                case 69961:
+                    {
+                        Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
+                        for(Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr!=auras.end(); ++itr)
+                        {
+                            if (itr->second->GetSpellProto()->Dispel == DISPEL_DISEASE &&
+                                itr->second->GetCasterGuid() == m_caster->GetGUID())
+                                if (Aura* aura =itr->second->GetAuraByEffectIndex(EFFECT_INDEX_0))
+                                {
+                                    uint32 countMin = aura->GetAuraMaxDuration();
+                                    uint32 countMax = GetSpellMaxDuration(aura->GetSpellProto());
+                                    countMax += 9000;
+                                    countMax += m_caster->HasAura(49036) ? 3000 : 0; //Epidemic (Rank 1)
+                                    countMax += m_caster->HasAura(49562) ? 6000 : 0; //Epidemic (Rank 2)
+
+                                    if (countMin < countMax)
+                                    {
+                                        aura->SetAuraDuration(aura->GetAuraDuration() + 3000);
+                                        aura->SetAuraMaxDuration(countMin + 3000);
+                                        aura->GetHolder()->SendAuraUpdate(false);
+                                    }
+                                }
+                        }
+                        return;
+                    }
+                case 70117:                                 // Ice grip (Sindragosa pull effect)
+                    {
+                        if (!unitTarget)
+                            return;
+                        float fPosX, fPosY, fPosZ;
+                        m_caster->GetPosition(fPosX, fPosY, fPosZ);
+                        m_caster->GetRandomPoint(fPosX, fPosY, fPosZ, m_caster->GetObjectBoundingRadius(), fPosX, fPosY, fPosZ);
+                        unitTarget->NearTeleportTo(fPosX, fPosY, fPosZ+1.0f, -unitTarget->GetOrientation(), false);
+                        return;
+                    }
+                case 71446:                                 // Twilight Bloodbolt 10N
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        unitTarget->CastSpell(unitTarget, 71447, true);
+                        return;
+                    }
+                case 71478:                                 // Twilight Bloodbolt 25N
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        unitTarget->CastSpell(unitTarget, 71481, true);
+                        return;
+                    }
+                case 71479:                                 // Twilight Bloodbolt 10H
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        unitTarget->CastSpell(unitTarget, 71482, true);
+                        return;
+                    }
+                case 71480:                                 // Twilight Bloodbolt 25H
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        unitTarget->CastSpell(unitTarget, 71483, true);
+                        return;
+                    }
+                case 71899:                                 // Bloodbolt Whirl 10N
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        m_caster->CastSpell(unitTarget, 71446, true);
+                        return;
+                    }
+                case 71900:                                 // Bloodbolt Whirl 25N
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        m_caster->CastSpell(unitTarget, 71478, true);
+                        return;
+                    }
+                case 71901:                                 // Bloodbolt Whirl 10H
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        m_caster->CastSpell(unitTarget, 71479, true);
+                        return;
+                    }
+                case 71902:                                 // Bloodbolt Whirl 25H
+                    {
+                        if (!unitTarget)
+                            return;
+
+                        m_caster->CastSpell(unitTarget, 71480, true);
+                        return;
+                    }
+                case 72195:                                 // Blood link
+                    {
+                        if (!unitTarget)
+                            return;
+                        if (unitTarget->HasAura(72371))
+                        {
+                            unitTarget->RemoveAurasDueToSpell(72371);
+                            int32 power = unitTarget->GetPower(unitTarget->getPowerType());
+                            unitTarget->CastCustomSpell(unitTarget, 72371, &power, &power, NULL, true);
+                        }
+                        return;
+                    }
             }
             break;
         }
