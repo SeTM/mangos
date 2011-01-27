@@ -933,11 +933,6 @@ void AddScripts()
     AddSC_boss_svala();
     AddSC_boss_ymiron();
     AddSC_instance_pinnacle();
-    AddSC_boss_archavon();                                  // vault_of_archavon
-    AddSC_boss_emalon();
-    AddSC_boss_koralon();
-    AddSC_boss_toravon();
-    AddSC_instance_vault_of_archavon();
     AddSC_boss_erekem();                                    // violet_hold
     AddSC_boss_ichoron();
     AddSC_instance_violet_hold();
