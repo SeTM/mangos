@@ -1555,19 +1555,24 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 71224:
                 case 73022:
                 case 73023:
+                case 71340:                                 // Pact of darkfallen (hack for script work)
                     unMaxTargets = 1;
                     break;
                 case 28542:                                 // Life Drain
                 case 66013:                                 // Penetrating Cold (10 man)
                 case 68509:                                 // Penetrating Cold (10 man heroic)
                 case 69055:                                 // Bone Slice
-                case 70814:
+                case 70814:                                 // Bone Slice
+                case 69278:                                 // Gas spore (Icecrown Citadel 10: Festergut)
                     unMaxTargets = 2;
                     break;
                 case 28796:                                 // Poison Bolt Volley
                 case 29213:                                 // Curse of the Plaguebringer
                 case 31298:                                 // Sleep
                     unMaxTargets = 3;
+                    break;
+                case 71221:                                 // Gas spore (Icecrown Citadel 25: Festergut)    
+                    unMaxTargets = 4;
                     break;
                 case 30843:                                 // Enfeeble TODO: exclude top threat target from target selection
                 case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
@@ -1587,6 +1592,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 70836:                                 
                     radius = DEFAULT_VISIBILITY_INSTANCE;
                     break;
+                case 69845:                                 // Sindragosa Frost bomb (hack!)
+                case 71053:
+                case 71054:
+                case 71055:
+                    radius = 50;
+                    break;
                 case 25991:                                 // Poison Bolt Volley (Pincess Huhuran)
                     unMaxTargets = 15;
                     break;
@@ -1594,11 +1605,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 72351:                                 
                     radius = 300;
                     break;
-				case 69278:                                 // Gas spore (Icecrown Citadel 10: Festergut)
-                    unMaxTargets = 2;
-                    break;
-                case 71221:                                 // Gas spore (Icecrown Citadel 25: Festergut)    
-                    unMaxTargets = 4;
+                case 72754:                                 // Defile. Radius depended from scale.
+                case 73708:                                 // Defile 25
+                case 73709:                                 // Defile 10H
+                case 73710:                                 // Defile 25H
+                    if (Unit* realCaster = GetAffectiveCaster())
+                        radius = realCaster->GetFloatValue(OBJECT_FIELD_SCALE_X) * 6;
                     break;
             }
             break;
@@ -6853,6 +6865,18 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
     // Check Sated & Exhaustion debuffs
     if (((m_spellInfo->Id == 2825) && (target->HasAura(57724))) ||
         ((m_spellInfo->Id == 32182) && (target->HasAura(57723))))
+        return false;
+
+    // Check vampiric bite
+    if (m_spellInfo->Id == 70946 && target->HasAura(70867))
+        return false;
+
+    // Sindragosa frost bomb hack
+    if ((m_spellInfo->Id == 69845
+        || m_spellInfo->Id == 71053
+        || m_spellInfo->Id == 71054
+        || m_spellInfo->Id == 71055)
+        && target->HasAura(70867))
         return false;
 
     // Check targets for LOS visibility (except spells without range limitations )

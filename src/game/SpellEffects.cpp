@@ -2446,21 +2446,21 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     break;
                 }
                 case 62653: // Tidal Wave
-                    {
-                        if (!unitTarget)
-                            return;
-                        m_caster->SetOrientation(unitTarget->GetOrientation());
-                        m_caster->CastSpell(unitTarget, 62654, true, 0, 0, m_caster->GetGUID());
-                        break;
-                    }
+                {
+                    if (!unitTarget)
+                        return;
+                    m_caster->SetOrientation(unitTarget->GetOrientation());
+                    m_caster->CastSpell(unitTarget, 62654, true, 0, 0, m_caster->GetGUID());
+                    break;
+                }
                 case 62935: // Tidal Wave
-                    {
-                        if (!unitTarget)
-                            return;
-                        m_caster->SetOrientation(unitTarget->GetOrientation());
-                        m_caster->CastSpell(unitTarget, 62936, true, 0, 0, m_caster->GetGUID());
-                        break;
-                    }
+                {
+                    if (!unitTarget)
+                        return;
+                    m_caster->SetOrientation(unitTarget->GetOrientation());
+                    m_caster->CastSpell(unitTarget, 62936, true, 0, 0, m_caster->GetGUID());
+                    break;
+                }
                 case 54171: // Divine Storm
                 {
                     if (!unitTarget || !unitTarget->isAlive() || !m_originalCaster)
@@ -2469,21 +2469,42 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     break;
                 }
                 case 69922: // Temper Quel'Delar
-                    {
-                        if (m_caster->GetTypeId() != TYPEID_PLAYER)
-                            return;
+                {
+                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
 
-                        m_caster->CastSpell(m_caster,69956,true,NULL);
-                        break;
-                    }
+                    m_caster->CastSpell(m_caster,69956,true,NULL);
+                    break;
+                }
                 case 70896: // Dark Empowerment
-                    {
-                        if (!unitTarget || !unitTarget->isAlive())
-                            return;
-                        
-                        unitTarget->CastSpell(unitTarget,70901,true,NULL);
-                        break;
-                    }
+                {
+                    if (!unitTarget || !unitTarget->isAlive())
+                        return;
+                    
+                    unitTarget->CastSpell(unitTarget,70901,true,NULL);
+                    break;
+                }
+                case 70769:                                 // Divine Storm!
+                {
+                    ((Player*)m_caster)->RemoveSpellCooldown(53385, true);
+                    return;
+                }
+                case 71390:                                 // Pact of darkfallen
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 71341, true);
+                    break;
+                }
+                case 72202:                                 // Blade power
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 72195, true);
+                    break;
+                }
             }
             break;
         }
