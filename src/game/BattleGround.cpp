@@ -459,9 +459,17 @@ void BattleGround::Update(uint32 diff)
             {
                 //TODO : add arena sound PlaySoundToAll(SOUND_ARENA_START);
 
+                // remove auras with duration lower than 30s and arena preparation
                 for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
                     if (Player *plr = sObjectMgr.GetPlayer(itr->first))
                     {
+                        // BG Status packet
+                        WorldPacket status;
+                        BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(m_TypeID, GetArenaType());
+                        uint32 queueSlot = plr->GetBattleGroundQueueIndex(bgQueueTypeId);
+                        sBattleGroundMgr.BuildBattleGroundStatusPacket(&status, this, queueSlot, GetStatus(), 0, GetStartTime(), GetArenaType());
+                        plr->GetSession()->SendPacket(&status);
+
                         plr->RemoveAurasDueToSpell(SPELL_ARENA_PREPARATION);
                         // All buffs with fewer than 25 seconds remaining are removed and rage/runic power is reset to 0.
                         plr->RemoveAurasByDurationRemaining(25000);
