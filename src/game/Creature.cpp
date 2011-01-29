@@ -450,19 +450,22 @@ void Creature::Update(uint32 update_diff, uint32 diff)
             if( m_respawnTime <= time(NULL) )
             {
                 if (GetMap()->IsRaid())
+                {
                     if (uint32 lGuid = sObjectMgr.GetLinkedCreature(m_DBTableGuid))
                     {
                         Creature *lCreature = NULL;
-                        MaNGOS::CreatureWithDbGUIDCheck creature_check(this,lGuid);
-                        MaNGOS::CreatureSearcher<MaNGOS::CreatureWithDbGUIDCheck> checker(lCreature, creature_check);
-                        Cell::VisitWorldObjects(this, checker, 700);
+                        MaNGOS::CreatureWithDbGUIDCheck npc_check(*this, lGuid);
+                        MaNGOS::CreatureSearcher<MaNGOS::CreatureWithDbGUIDCheck> checker(lCreature, npc_check);
+                        Cell::VisitAllObjects(this, checker, 333.0f);
                         
                         if (lCreature && !lCreature->isAlive())
                         {
                             m_respawnTime = lCreature->GetRespawnTimeEx() + 1;
+                            SaveRespawnTime();
                             break;
                         }
                     }
+                }
 
                 DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Respawning...");
                 m_respawnTime = 0;

@@ -894,20 +894,6 @@ namespace MaNGOS
             float i_range;
     };
 
-    class CreatureWithDbGUIDCheck
-    {
-    public:
-        CreatureWithDbGUIDCheck(WorldObject const* obj,uint32 db_guid) : i_obj(obj), i_db_guid(db_guid) {}
-        WorldObject const& GetFocusObject() const { return *i_obj; }
-        bool operator()(Creature const* u) const
-        {
-            return u->GetDBTableGUIDLow() == i_db_guid;
-        }
-    private:
-        WorldObject const* i_obj;
-        uint32 i_db_guid;
-    };
-
     // Success at unit in range, range update for next check (this can be use with UnitLastSearcher to find nearest unit)
     class NearestAttackableUnitInObjectRangeCheck
     {
@@ -1161,6 +1147,20 @@ namespace MaNGOS
 
             // prevent clone this object
             NearestCreatureEntryWithLiveStateInObjectRangeCheck(NearestCreatureEntryWithLiveStateInObjectRangeCheck const&);
+    };
+
+    class CreatureWithDbGUIDCheck
+    {
+        public:
+            CreatureWithDbGUIDCheck(WorldObject const& obj,uint32 db_guid) : i_obj(obj), i_db_guid(db_guid) {}
+            WorldObject const& GetFocusObject() const { return i_obj; }
+            bool operator()(Creature const* u) const
+            {
+                return u->GetDBTableGUIDLow() == i_db_guid;
+            }
+        private:
+            WorldObject const& i_obj;
+            uint32 i_db_guid;
     };
 
     class AnyPlayerInObjectRangeCheck
