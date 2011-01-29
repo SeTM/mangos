@@ -9403,6 +9403,14 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                             caster->RemoveAurasDueToSpell(34027);
                     return;
                 }
+                case 70867:                                 // Soul of Blood Qween
+                case 71473:
+                case 71532:
+                case 71533:
+                {
+                    spellId1 = 70871;
+                    break;
+                }
                 case 71905:                                 // Soul Fragment
                 {
                     if (!apply)
