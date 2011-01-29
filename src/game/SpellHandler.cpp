@@ -608,7 +608,7 @@ void WorldSession::HandleSpellClick( WorldPacket & recv_data )
     }
 }
 
-void WorldSession::HandleMirrrorImageDataRequest( WorldPacket & recv_data )
+void WorldSession::HandleMirrorImageDataRequest( WorldPacket & recv_data )
 {
 	sLog.outDebug("WORLD: CMSG_GET_MIRRORIMAGE_DATA");
 	uint64 guid;
@@ -686,4 +686,35 @@ void WorldSession::HandleMirrrorImageDataRequest( WorldPacket & recv_data )
 		data << (uint32)0;
 	}
 	SendPacket( &data );
+}
+
+void WorldSession::HandleUpdateProjectilePosition(WorldPacket& recvPacket)
+{
+    uint64 casterGuid;  // Spell Caster
+    uint32 spellId;     // Spell Id
+    uint8  cast_Id;     // Some counter increased every cast ? the fuck
+    float m_targetX, m_targetY, m_targetZ; // Position of missile hit
+
+    recvPacket >> casterGuid;
+    recvPacket >> spellId;
+    recvPacket >> cast_Id;
+
+    recvPacket >> m_targetX >> m_targetY >> m_targetZ;
+
+    Unit * pCaster = ObjectAccessor::GetUnit(*_player, casterGuid);
+    if (!pCaster)
+        return;
+
+    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
+
+    if(!spellInfo)
+    {
+        sLog.outError("CMSG_UPDATE_PROJECTILE_POSITION: unknown spell id %u", spellId);
+        recvPacket.rpos(recvPacket.wpos());                 // prevent spam at ignore packet
+        return;
+    }
+
+    for(int i = 0; i < 3; ++i)
+        if(spellInfo->EffectTriggerSpell[i])
+            pCaster->CastSpell(m_targetX, m_targetY, m_targetZ, spellInfo->EffectTriggerSpell[i], true);
 }

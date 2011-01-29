@@ -334,6 +334,48 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
             {
                 switch(m_spellInfo->Id)                     // better way to check unknown
                 {
+                    case 56578:
+                        damage = unitTarget->GetMaxHealth() * m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0) / 100; // Deal 26% HP
+                    break;
+                    // Positive/Negative Charge
+                    case 28062:
+                    case 28085:
+                    case 39090:
+                    case 39093:
+                        if (!m_triggeredByAuraSpell)
+                            break;
+                        if (unitTarget == m_caster)
+                        {
+                            uint8 count = 0;
+                            for(std::list<TargetInfo>::iterator ihit= m_UniqueTargetInfo.begin();ihit != m_UniqueTargetInfo.end();++ihit)
+                                if(ihit->targetGUID != m_caster->GetGUID())
+                                    if(Player *target = ObjectAccessor::FindPlayer(ihit->targetGUID))
+                                        if(target->HasAura(m_triggeredByAuraSpell->Id))
+                                            ++count;
+                            if (count)
+                            {
+                                uint32 spellId;
+                                switch (m_spellInfo->Id)
+                                {
+                                    case 28062: spellId = 29659; break;
+                                    case 28085: spellId = 29660; break;
+                                    case 39090: spellId = 39089; break;
+                                    case 39093: spellId = 39092; break;
+                                }
+                                Aura *aur = m_caster->GetAura(spellId, EFFECT_INDEX_0);
+                                if (!aur)
+                                {
+                                    m_caster->CastSpell(m_caster, spellId, true);
+                                    aur = m_caster->GetAura(spellId, EFFECT_INDEX_0);
+                                }
+                                if (aur)
+                                    aur->GetHolder()->SetStackAmount(count);
+                            }
+                        }
+
+                        if (unitTarget->HasAura(m_triggeredByAuraSpell->Id) || unitTarget->GetTypeId() != TYPEID_PLAYER )
+                            damage = 0;
+                        break;
                     // Meteor like spells (divided damage to targets)
                     case 24340: case 26558: case 28884:     // Meteor
                     case 36837: case 38903: case 41276:     // Meteor
@@ -403,35 +445,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     case 38441:
                     {
                         damage = unitTarget->GetMaxHealth() / 2;
-                        break;
-                    }
-                    case 28062:
-                    {
-                        if (unitTarget->HasAura(28059))
-                        {
-                            
-                            unitTarget->CastSpell(unitTarget,29659,true,0,0,m_caster->GetGUID());
-                            if (Aura *positive = unitTarget->GetAura(29659, SpellEffectIndex(0)))
-                            {
-                                if (positive->GetStackAmount() > 10)
-                                    positive->GetHolder()->SetStackAmount(positive->GetStackAmount() - 1);
-                            }
-                            return;
-                        }
-                        break;
-                    }
-                    case 28085:
-                    {
-                        if (unitTarget->HasAura(28084))
-                        {
-                            unitTarget->CastSpell(unitTarget,29660,true,0,0,m_caster->GetGUID());
-                            if (Aura *negative = unitTarget->GetAura(29660, SpellEffectIndex(0)))
-                            {
-                                if (negative->GetStackAmount() > 10)
-                                    negative->GetHolder()->SetStackAmount(negative->GetStackAmount() - 1);
-                            }
-                            return;
-                        }
                         break;
                     }
                     case 28836:
