@@ -1089,22 +1089,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         {
             switch(m_spellInfo->Id)
             {
-                case 7769:                                  // Strafe Jotunheim Building
-                {
-                    if(Unit * pCaster = GetCaster())
-                    {
-                        if(Creature * pBuilding = pCaster->GetClosestCreatureWithEntry(pCaster, 30599, 50))
-                        {
-                            if(!pBuilding->HasAura(7448)) // Do not give credit for already burning buildings
-                            {
-                                if(pCaster->GetCharmerOrOwnerPlayerOrPlayerItself())
-                                    pCaster->GetCharmerOrOwnerPlayerOrPlayerItself()->KilledMonsterCredit(30576);
-                                pBuilding->CastSpell(pBuilding, 7448, true);
-                            }
-                        }
-                    }
-                    return;
-                }
                 case 7671:                                  // Transformation (human<->worgen)
                 {
                     if (!unitTarget)
@@ -5598,6 +5582,8 @@ void Spell::EffectEnchantItemPerm(SpellEffectIndex eff_idx)
     // update trade window for show enchantment for caster in trade window
     if (m_targets.m_targetMask & TARGET_FLAG_TRADE_ITEM)
         p_caster->GetSession()->SendUpdateTrade();
+
+    itemTarget->SetSoulboundTradeable(NULL, item_owner, false);
 }
 
 void Spell::EffectEnchantItemPrismatic(SpellEffectIndex eff_idx)
@@ -5660,6 +5646,8 @@ void Spell::EffectEnchantItemPrismatic(SpellEffectIndex eff_idx)
     // update trade window for show enchantment for caster in trade window
     if (m_targets.m_targetMask & TARGET_FLAG_TRADE_ITEM)
         p_caster->GetSession()->SendUpdateTrade();
+
+    itemTarget->SetSoulboundTradeable(NULL, item_owner, false);
 }
 
 void Spell::EffectEnchantItemTmp(SpellEffectIndex eff_idx)
