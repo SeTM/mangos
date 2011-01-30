@@ -789,11 +789,11 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
         else
         {
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_TALDARAM)))
-                doCast(SPELL_FAKE_DEATH,pPrince);
+                pPrince->CastSpell(pPrince,SPELL_FAKE_DEATH,true);
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_KELESETH)))
-                doCast(SPELL_FAKE_DEATH,pPrince);
+                pPrince->CastSpell(pPrince,SPELL_FAKE_DEATH,true);
             if (Creature* pPrince = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_VALANAR)))
-                doCast(SPELL_FAKE_DEATH,pPrince);
+                pPrince->CastSpell(pPrince,SPELL_FAKE_DEATH,true);
             pInstance->SetData(TYPE_BLOOD_COUNCIL, NOT_STARTED);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
@@ -811,7 +811,7 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathel_introAI : public BSWScriptedAI
         if (pInstance->GetData(TYPE_BLOOD_COUNCIL) != NOT_STARTED)
             return;
 
-        if (pWho && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 50.0f) && pWho->isAlive())
+        if (pWho && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 30.0f) && pWho->isAlive() && !((Player*)pWho)->isGameMaster())
         {
             pInstance->SetData(TYPE_EVENT, 800);
             pInstance->SetData(TYPE_BLOOD_COUNCIL,IN_PROGRESS);
