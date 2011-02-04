@@ -345,9 +345,17 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
         if (timedQuery(SPELL_VILE_GAS, diff))
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1)/*GetPlayerAtMinimumRange(8.0f)*/)
+            if (Player* pTarget = GetPlayerAtMinimumRange(10.0f))
+            {
                 if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()))
                     doCast(SPELL_VILE_GAS, pTemp);
+            }
+            else if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+            {
+                if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()))
+                    doCast(SPELL_VILE_GAS, pTemp);
+            }
+
             DoScriptText(-1631213,m_creature);
         };
 

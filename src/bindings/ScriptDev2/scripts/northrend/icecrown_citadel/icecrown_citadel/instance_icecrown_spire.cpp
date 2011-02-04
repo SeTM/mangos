@@ -53,31 +53,36 @@ static Locations SpawnLoc[]=
 
     void instance_icecrown_spire::OpenAllDoors()
     {
-        if (m_auiEncounter[1] == DONE) {
-                                        OpenDoor(m_uiIcewall1GUID);
-                                        OpenDoor(m_uiIcewall2GUID);
-                                        OpenDoor( m_uiOratoryDoorGUID);
-                                        };
-        if (m_auiEncounter[2] == DONE) {
-                        if (GameObject* pGO = instance->GetGameObject(m_uiDeathWhisperElevatorGUID))
-                            {
-                              pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                              pGO->SetGoState(GO_STATE_READY);
-                            }
-                                       };
-        if (m_auiEncounter[4] == DONE) {
-                                        OpenDoor(m_uiSaurfangDoorGUID);
-                                        OpenDoor(m_uiBloodwingDoorGUID);
-                                        OpenDoor(m_uiFrostwingDoorGUID);
-                                        };
-        if (m_auiEncounter[5] == DONE) OpenDoor(m_uiSDoorOrangeGUID);
-        if (m_auiEncounter[6] == DONE) OpenDoor(m_uiSDoorGreenGUID);
-        if (m_auiEncounter[6] == DONE && m_auiEncounter[5] == DONE) OpenDoor(m_uiSDoorCollisionGUID);
-        if (m_auiEncounter[8] == DONE) {
-                                        OpenDoor(m_uiCounsilDoor1GUID);
-                                        OpenDoor(m_uiCounsilDoor2GUID);
-                                        };
-        if (m_auiEncounter[10] == DONE) 
+        if (m_auiEncounter[TYPE_MARROWGAR] == DONE)
+        {
+            OpenDoor(m_uiIcewall1GUID);
+            OpenDoor(m_uiIcewall2GUID);
+            OpenDoor(m_uiOratoryDoorGUID);
+        };
+
+        if (m_auiEncounter[TYPE_DEATHWHISPER] == DONE) 
+        {
+            if (GameObject* pGO = instance->GetGameObject(m_uiDeathWhisperElevatorGUID))
+            {
+                pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                pGO->SetGoState(GO_STATE_READY);
+            }
+        };
+        if (m_auiEncounter[TYPE_SAURFANG] == DONE) 
+        {
+            OpenDoor(m_uiSaurfangDoorGUID);
+            OpenDoor(m_uiBloodwingDoorGUID);
+            OpenDoor(m_uiFrostwingDoorGUID);
+        };
+        if (m_auiEncounter[TYPE_FESTERGUT] == DONE) OpenDoor(m_uiSDoorOrangeGUID);
+        if (m_auiEncounter[TYPE_ROTFACE] == DONE) OpenDoor(m_uiSDoorGreenGUID);
+        if (m_auiEncounter[TYPE_ROTFACE] == DONE && m_auiEncounter[TYPE_FESTERGUT] == DONE) OpenDoor(m_uiSDoorCollisionGUID);
+        if (m_auiEncounter[TYPE_BLOOD_COUNCIL] == DONE) 
+        {
+            OpenDoor(m_uiCounsilDoor1GUID);
+            OpenDoor(m_uiCounsilDoor2GUID);
+        };
+        if (m_auiEncounter[TYPE_VALITHRIA] == DONE) 
         {
             OpenDoor(m_uiValithriaDoor2GUID);
             OpenDoor(m_uiSindragosaDoor2GUID);
@@ -112,28 +117,29 @@ static Locations SpawnLoc[]=
         m_uiStinkystate = NOT_STARTED;
         m_uiPreciousstate = NOT_STARTED;
 
-        switch (Difficulty) {
-                             case RAID_DIFFICULTY_10MAN_NORMAL:
-                                       m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_10;
-                                       m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_10;
-                                       break;
-                             case RAID_DIFFICULTY_10MAN_HEROIC:
-                                       m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_10H;
-                                       m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_10H;
-                                       break;
-                             case RAID_DIFFICULTY_25MAN_NORMAL:
-                                       m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_25;
-                                       m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_25;
-                                       break;
-                             case RAID_DIFFICULTY_25MAN_HEROIC:
-                                       m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_25H;
-                                       m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_25H;
-                                       break;
-                             default:
-                                       m_uiGunshipArmoryH_ID = 0;
-                                       m_uiGunshipArmoryA_ID = 0;
-                                       break;
-                             };
+        switch (Difficulty) 
+        {
+        case RAID_DIFFICULTY_10MAN_NORMAL:
+            m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_10;
+            m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_10;
+            break;
+        case RAID_DIFFICULTY_10MAN_HEROIC:
+            m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_10H;
+            m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_10H;
+            break;
+        case RAID_DIFFICULTY_25MAN_NORMAL:
+            m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_25;
+            m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_25;
+            break;
+        case RAID_DIFFICULTY_25MAN_HEROIC:
+            m_uiGunshipArmoryH_ID = GO_GUNSHIP_ARMORY_H_25H;
+            m_uiGunshipArmoryA_ID = GO_GUNSHIP_ARMORY_A_25H;
+            break;
+        default:
+            m_uiGunshipArmoryH_ID = 0;
+            m_uiGunshipArmoryA_ID = 0;
+            break;
+        };
     }
 
     bool instance_icecrown_spire::IsEncounterInProgress() const
@@ -326,102 +332,102 @@ static Locations SpawnLoc[]=
                          m_uiSindragosaDoor2GUID = pGo->GetGUID();
                          break;
             case GO_SAURFANG_CACHE_10:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
-                                  m_uiSaurfangCacheGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
+                    m_uiSaurfangCacheGUID = pGo->GetGUID(); 
+                break;
             case GO_SAURFANG_CACHE_25:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
-                                  m_uiSaurfangCacheGUID = pGo->GetGUID();
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
+                    m_uiSaurfangCacheGUID = pGo->GetGUID();
+                break;
             case GO_SAURFANG_CACHE_10_H:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
-                                  m_uiSaurfangCacheGUID = pGo->GetGUID();
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
+                    m_uiSaurfangCacheGUID = pGo->GetGUID();
+                break;
             case GO_SAURFANG_CACHE_25_H:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-                                  m_uiSaurfangCacheGUID = pGo->GetGUID();
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+                    m_uiSaurfangCacheGUID = pGo->GetGUID();
+                break;
             case GO_GUNSHIP_ARMORY_A_10:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
-                                  m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
+                    m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_A_25:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
-                                  m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
+                    m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_A_10H:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
-                                  m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
+                    m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_A_25H:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-                                  m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+                    m_uiGunshipArmoryAGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_H_10:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
-                                  m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
+                    m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_H_25:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
-                                  m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
+                    m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_H_10H:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
-                                  m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
+                    m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
+                break;
             case GO_GUNSHIP_ARMORY_H_25H:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-                                  m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+                    m_uiGunshipArmoryHGUID = pGo->GetGUID(); 
+                break;
             case GO_DREAMWALKER_CACHE_10:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
-                                  m_uiValitriaCacheGUID = pGo->GetGUID(); 
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_NORMAL)
+                    m_uiValitriaCacheGUID = pGo->GetGUID(); 
+                break;
             case GO_DREAMWALKER_CACHE_25:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
-                                  m_uiValitriaCacheGUID = pGo->GetGUID();
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_NORMAL)
+                    m_uiValitriaCacheGUID = pGo->GetGUID();
+                break;
             case GO_DREAMWALKER_CACHE_10_H:
-                                  if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
-                                  m_uiValitriaCacheGUID = pGo->GetGUID();
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
+                    m_uiValitriaCacheGUID = pGo->GetGUID();
+                break;
             case GO_DREAMWALKER_CACHE_25_H:
-                                  if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-                                  m_uiValitriaCacheGUID = pGo->GetGUID();
-                                  break;
+                if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+                    m_uiValitriaCacheGUID = pGo->GetGUID();
+                break;
             case GO_ICESHARD_1: 
-                                  m_uiIceShard1GUID = pGo->GetGUID();
-                                  break;
+                m_uiIceShard1GUID = pGo->GetGUID();
+                break;
             case GO_ICESHARD_2: 
-                                  m_uiIceShard2GUID = pGo->GetGUID();
-                                  break;
+                m_uiIceShard2GUID = pGo->GetGUID();
+                break;
             case GO_ICESHARD_3: 
-                                  m_uiIceShard3GUID = pGo->GetGUID();
-                                  break;
+                m_uiIceShard3GUID = pGo->GetGUID();
+                break;
             case GO_ICESHARD_4: 
-                                  m_uiIceShard4GUID = pGo->GetGUID();
-                                  break;
+                m_uiIceShard4GUID = pGo->GetGUID();
+                break;
             case GO_FROSTY_WIND: 
-                                  m_uiFrostyWindGUID = pGo->GetGUID();
-                                  break;
+                m_uiFrostyWindGUID = pGo->GetGUID();
+                break;
             case GO_FROSTY_EDGE: 
-                                  m_uiFrostyEdgeGUID = pGo->GetGUID();
-                                  break;
+                m_uiFrostyEdgeGUID = pGo->GetGUID();
+                break;
             case GO_SNOW_EDGE: 
-                                  m_uiSnowEdgeGUID = pGo->GetGUID();
-                                  break;
+                m_uiSnowEdgeGUID = pGo->GetGUID();
+                break;
             case GO_ARTHAS_PLATFORM: 
-                                  m_uiArthasPlatformGUID = pGo->GetGUID();
-                                  break;
+                m_uiArthasPlatformGUID = pGo->GetGUID();
+                break;
             case GO_ARTHAS_PRECIPICE: 
-                                  m_uiArthasPrecipiceGUID = pGo->GetGUID();
-                                  break;
+                m_uiArthasPrecipiceGUID = pGo->GetGUID();
+                break;
             case GO_GAS_RELEASE_VALVE: 
-                                  m_uiGasReleaseValveGUID = pGo->GetGUID();
-                                  break;
+                m_uiGasReleaseValveGUID = pGo->GetGUID();
+                break;
             case NPC_BLOOD_ORB_CONTROL:
-                                  m_uiBloodOrbCtrlGUID = pGo->GetGUID();
-                                  break;
+                m_uiBloodOrbCtrlGUID = pGo->GetGUID();
+                break;
         }
         OpenAllDoors();
     }
@@ -495,15 +501,16 @@ static Locations SpawnLoc[]=
              case TYPE_FESTERGUT:
                 m_auiEncounter[TYPE_FESTERGUT] = uiData;
                 if (uiData == IN_PROGRESS) CloseDoor(m_uiOrangePlagueGUID);
-                                      else OpenDoor(m_uiOrangePlagueGUID);
-                if (uiData == DONE)  {
-                                     OpenDoor(m_uiSDoorOrangeGUID);
-                                     if (m_auiEncounter[TYPE_ROTFACE] == DONE) 
-                                         {
-                                             OpenDoor(m_uiSDoorCollisionGUID);
-                                             OpenDoor(m_uiGreenPlagueGUID);
-                                         }
-                                     }
+                else OpenDoor(m_uiOrangePlagueGUID);
+                if (uiData == DONE)  
+                {
+                    OpenDoor(m_uiSDoorOrangeGUID);
+                    if (m_auiEncounter[TYPE_ROTFACE] == DONE) 
+                    {
+                        OpenDoor(m_uiSDoorCollisionGUID);
+                        OpenDoor(m_uiGreenPlagueGUID);
+                    }
+                }
                 break;
              case TYPE_ROTFACE:
                 m_auiEncounter[TYPE_ROTFACE] = uiData;
@@ -597,14 +604,14 @@ static Locations SpawnLoc[]=
                 uiData = NOT_STARTED;
                 break;
              case DATA_BLOOD_COUNCIL_HEALTH:     m_uiDataCouncilHealth = uiData; 
-                                                 uiData = NOT_STARTED; 
-                                                 break;
+                 uiData = NOT_STARTED; 
+                 break;
              case DATA_BLOOD_INVOCATION:         m_uiCouncilInvocation = uiData;
-                                                 uiData = NOT_STARTED;
-                                                 break;
+                 uiData = NOT_STARTED;
+                 break;
              case DATA_DIRECTION:                m_uiDirection = uiData;
-                                                 uiData = NOT_STARTED;
-                                                 break;
+                 uiData = NOT_STARTED;
+                 break;
              case TYPE_EVENT:            m_auiEvent = uiData; uiData = NOT_STARTED; break;
              case TYPE_EVENT_TIMER:      m_auiEventTimer = uiData; uiData = NOT_STARTED; break;
              case TYPE_STINKY:           m_uiStinkystate = uiData; uiData = NOT_STARTED; break;

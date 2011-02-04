@@ -1569,6 +1569,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 28796:                                 // Poison Bolt Volley
                 case 29213:                                 // Curse of the Plaguebringer
                 case 31298:                                 // Sleep
+                case 71899:                                 // Bloodbolt Whirl (10 man)
+                case 71901:                                 // Bloodbolt Whirl (10 man heroic)
                     unMaxTargets = 3;
                     break;
                 case 71221:                                 // Gas spore (Icecrown Citadel 25: Festergut)    
@@ -1584,6 +1586,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     break;
                 case 54098:                                 // Poison Bolt Volley (h)
                 case 54835:                                 // Curse of the Plaguebringer (h)
+                case 71900:                                 // Bloodbolt Whirl (25 man)
+                case 71902:                                 // Bloodbolt Whirl (25 man heroic)
                     unMaxTargets = 10;
                     break;
                 case 69075:                                 // Bone Storm

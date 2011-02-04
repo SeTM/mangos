@@ -79,6 +79,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public BSWScriptedAI
         beasts = 0;
         resetTimers();
         m_creature->SetMaxPower(POWER_RUNE, 100);
+        m_creature->SetPower(POWER_RUNE, 0);
     }
 
     void MoveInLineOfSight(Unit* pWho)

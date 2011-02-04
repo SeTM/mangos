@@ -357,6 +357,7 @@ struct MANGOS_DLL_DECL boss_valithria_dreamwalkerAI : public BSWScriptedAI
                     pInstance->SetData(TYPE_VALITHRIA, DONE);
                     setStage(10);
                     m_creature->ForcedDespawn();
+                    DoCast(m_creature,72706,true);
                     break;
             default:
                     break;
