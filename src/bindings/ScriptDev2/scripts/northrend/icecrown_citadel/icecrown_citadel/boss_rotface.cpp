@@ -247,6 +247,8 @@ struct MANGOS_DLL_DECL  mob_small_oozeAI : public BSWScriptedAI
             pTemp->ForcedDespawn();
             m_creature->ForcedDespawn();
         };
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -304,6 +306,8 @@ struct MANGOS_DLL_DECL  mob_big_oozeAI : public BSWScriptedAI
             doCast(SPELL_OOZE_EXPLODE);
             exploded = true;
         }
+
+        DoMeleeAttackIfReady();
 
     }
 };
