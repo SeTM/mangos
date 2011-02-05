@@ -1232,6 +1232,7 @@ bool ChatHandler::HandleModifyScaleCommand(char* args)
     }
 
     target->SetObjectScale(Scale);
+    target->UpdateModelData();
 
     return true;
 }
