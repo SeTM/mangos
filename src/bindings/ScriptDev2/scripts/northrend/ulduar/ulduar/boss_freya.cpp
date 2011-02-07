@@ -333,7 +333,6 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
         }
     }
 
-
     void JustReachedHome()
     {
         if (m_pInstance)

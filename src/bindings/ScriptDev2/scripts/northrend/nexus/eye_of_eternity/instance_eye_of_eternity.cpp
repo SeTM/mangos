@@ -15,10 +15,11 @@
  */
 
 /* ScriptData
-SDName: instance_eye_of_eternity
-SD%Complete: 25%
+SDName: Instance_Eye_of_Eternity
+SD%Complete: 90%
 SDComment:
-SDCategory: Utgarde eye_of_eternity
+SDAuthor: Tassadar
+SDCategory: Nexus, Eye of Eternity
 EndScriptData */
 
 #include "precompiled.h"
@@ -26,19 +27,64 @@ EndScriptData */
 
 struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
 {
-    instance_eye_of_eternity(Map* pMap) : ScriptedInstance(pMap) {Initialize();};
+    instance_eye_of_eternity(Map* pMap) : ScriptedInstance(pMap) {Initialize();}
 
-    uint32 m_auiEncounter[MAX_ENCOUNTER];
     std::string strInstData;
+    uint32 m_auiEncounter[MAX_ENCOUNTER];
 
-    uint64 m_uiPortalGuid;
-    uint64 m_uiIrisGuid;
+    uint64 m_uiMalygosGUID;
+    uint64 m_uiPlatformGUID;
+    uint64 m_uiExitPortalGUID;
+    uint64 m_uiFocusingIrisGUID;
+    uint64 m_uiGiftGUID;
+    uint64 m_uiHeartGUID;
 
     void Initialize()
     {
         memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
-        m_uiPortalGuid = 0;
-        m_uiIrisGuid = 0;
+
+        m_uiMalygosGUID = 0;
+        m_uiPlatformGUID = 0;
+        m_uiExitPortalGUID = 0;
+        m_uiFocusingIrisGUID = 0;
+        m_uiGiftGUID = 0;
+        m_uiHeartGUID = 0;
+    }
+
+    void OnCreatureCreate(Creature* pCreature)
+    {
+        switch(pCreature->GetEntry())
+        {
+            case NPC_MALYGOS:
+                m_uiMalygosGUID = pCreature->GetGUID();
+                pCreature->SetActiveObjectState(true);
+                break;
+        }
+    }
+    
+    void OnObjectCreate(GameObject* pGo)
+    {
+        switch(pGo->GetEntry())
+        {
+            case GO_PLATFORM:
+                m_uiPlatformGUID = pGo->GetGUID();
+                break;
+            case GO_EXIT_PORTAL:
+                m_uiExitPortalGUID = pGo->GetGUID();
+                break;
+            case GO_FOCUSING_IRIS:
+            case GO_FOCUSING_IRIS_H:
+                m_uiFocusingIrisGUID = pGo->GetGUID();
+                break;
+            case GO_ALEXSTRASZAS_GIFT:
+            case GO_ALEXSTRASZAS_GIFT_H:
+                m_uiGiftGUID = pGo->GetGUID();
+                break;
+            case GO_HEART_OF_MAGIC:
+            case GO_HEART_OF_MAGIC_H:
+                m_uiHeartGUID = pGo->GetGUID();
+                break;
+        }
     }
 
     bool IsEncounterInProgress() const
@@ -50,64 +96,49 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         return false;
     }
 
-    void OnObjectCreate(GameObject* pGo)
-    {
-        switch(pGo->GetEntry())
-        {
-            case 193958:
-            case 193960:
-                m_uiIrisGuid = pGo->GetGUID();
-                break;
-            case 193908:
-                m_uiPortalGuid = pGo->GetGUID();
-                break;
-        }
-    }
-
     void SetData(uint32 uiType, uint32 uiData)
     {
-        switch (uiType)
+        switch(uiType)
         {
-        case TYPE_MALYGOS:
-            m_auiEncounter[0] = uiData;
-            break;
+            case TYPE_MALYGOS:
+            {
+                if (uiData == NOT_STARTED)
+                {
+                    if (GameObject* pFocusingIris = instance->GetGameObject(m_uiFocusingIrisGUID))
+                    {
+                        pFocusingIris->SetGoState(GO_STATE_READY);
+                        pFocusingIris->SetPhaseMask(1, true);
+                    }
+                    if (GameObject* pExitPortal = instance->GetGameObject(m_uiExitPortalGUID))
+                        pExitPortal->SetPhaseMask(1, true);
+                    if (GameObject* pPlatform = instance->GetGameObject(m_uiPlatformGUID))
+                        pPlatform->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
+                }
+                if (uiData == IN_PROGRESS)
+                {
+                    if (GameObject* pFocusingIris = instance->GetGameObject(m_uiFocusingIrisGUID))
+                        pFocusingIris->SetPhaseMask(2, true);
+                    if (GameObject* pExitPortal = instance->GetGameObject(m_uiExitPortalGUID))
+                        pExitPortal->SetPhaseMask(2, true);
+                }
+                if (uiData == DONE)
+                {
+                    if (GameObject* pExitPortal = instance->GetGameObject(m_uiExitPortalGUID))
+                        pExitPortal->SetPhaseMask(1, true);
+                    DoRespawnGameObject(m_uiGiftGUID, HOUR*IN_MILLISECONDS);
+                    DoRespawnGameObject(m_uiHeartGUID, HOUR*IN_MILLISECONDS);
+                }
+                m_auiEncounter[0] = uiData;
+                break;
+            }
         }
-        if (uiData == DONE)
-        {
-            OUT_SAVE_INST_DATA;
+        OUT_SAVE_INST_DATA;
+        std::ostringstream saveStream;
+        saveStream << m_auiEncounter[0];
 
-            std::ostringstream saveStream;
-            saveStream << m_auiEncounter[0];
-
-            strInstData = saveStream.str();
-
-            SaveToDB();
-            OUT_SAVE_INST_DATA_COMPLETE;
-        }
-    }
-
-    uint32 GetData(uint32 uiType)
-    {
-        switch (uiType)
-        {
-        case TYPE_MALYGOS:
-            return m_auiEncounter[0];
-        }
-        return 0;
-    }
-
-    uint64 GetData64(uint32 uiData)
-    {
-        switch (uiData)
-        {
-        case DATA_GO_FOCUSING_IRIS:
-        case DATA_GO_FOCUSING_IRIS_H:
-            return m_uiIrisGuid;
-        case DATA_GO_EXIT_PORTAL:
-            return m_uiPortalGuid;
-        }
-
-        return 0;
+        strInstData = saveStream.str();
+        SaveToDB();
+        OUT_SAVE_INST_DATA_COMPLETE;
     }
 
     const char* Save()
@@ -115,26 +146,48 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         return strInstData.c_str();
     }
 
-    void Load(const char* in)
+    void Load(const char* chrIn)
     {
-        if (!in)
+        if (!chrIn)
         {
             OUT_LOAD_INST_DATA_FAIL;
             return;
         }
 
-        OUT_LOAD_INST_DATA(in);
+        OUT_LOAD_INST_DATA(chrIn);
 
-        std::istringstream loadStream(in);
+        std::istringstream loadStream(chrIn);
         loadStream >> m_auiEncounter[0];
 
-        for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+        for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
         {
             if (m_auiEncounter[i] == IN_PROGRESS)
                 m_auiEncounter[i] = NOT_STARTED;
         }
 
         OUT_LOAD_INST_DATA_COMPLETE;
+    }
+
+    uint32 GetData(uint32 uiType)
+    {
+        switch(uiType)
+        {
+            case TYPE_MALYGOS:
+                return m_auiEncounter[0];
+        }
+        return 0;
+    }
+
+    uint64 GetData64(uint32 uiData)
+    {
+        switch(uiData)
+        {
+            case NPC_MALYGOS:
+                return m_uiMalygosGUID;
+            case GO_PLATFORM:
+                return m_uiPlatformGUID;
+        }
+        return 0;
     }
 };
 
@@ -145,10 +198,9 @@ InstanceData* GetInstanceData_instance_eye_of_eternity(Map* pMap)
 
 void AddSC_instance_eye_of_eternity()
 {
-    Script* newscript;
-
-    newscript = new Script;
-    newscript->Name = "instance_eye_of_eternity";
-    newscript->GetInstanceData = &GetInstanceData_instance_eye_of_eternity;
-    newscript->RegisterSelf();
+    Script* pNewScript;
+    pNewScript = new Script;
+    pNewScript->Name = "instance_eye_of_eternity";
+    pNewScript->GetInstanceData = &GetInstanceData_instance_eye_of_eternity;
+    pNewScript->RegisterSelf();
 }

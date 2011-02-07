@@ -248,4 +248,3 @@ void AddSC_boss_bronjahm()
     newscript->RegisterSelf();
 
 }
-

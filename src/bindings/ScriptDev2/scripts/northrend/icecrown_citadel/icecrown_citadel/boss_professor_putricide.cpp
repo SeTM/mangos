@@ -292,7 +292,8 @@ struct MANGOS_DLL_DECL boss_proffesor_putricideAI : public BSWScriptedAI
 
         switch(stage)
         {
-            case 0:
+            case 0: 
+
                 if (timedQuery(SPELL_UNSTABLE_EXPERIMENT, diff))
                     CallOoze();
 
@@ -308,7 +309,7 @@ struct MANGOS_DLL_DECL boss_proffesor_putricideAI : public BSWScriptedAI
                 if (m_creature->GetHealthPercent() < 80.0f ) stage = 1;
 
                 break;
-            case 1:
+            case 1: 
                 m_creature->InterruptNonMeleeSpells(true);
                 m_creature->AttackStop();
                 SetCombatMovement(false);

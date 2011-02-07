@@ -1,18 +1,18 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 /* ScriptData
 SDName: Boss_Four_Horsemen
@@ -22,7 +22,7 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
 
 //all horsemen
 #define SPELL_SHIELDWALL            29061
@@ -327,7 +327,7 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_FOURHORSEMAN, NOT_STARTED);
+            m_pInstance->SetData(TYPE_FOUR_HORSEMEN, NOT_STARTED);
     }
 
     void Aggro(Unit *who)
@@ -393,7 +393,7 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
 
             if (HorsemenDead)
             {
-                m_pInstance->SetData(ENCOUNT_FOURHORSEMAN, DONE);
+                m_pInstance->SetData(TYPE_RIVENDARE, DONE);
                 GameObject* pGo = GetClosestGameObjectWithEntry(m_creature,!m_bIsRegularMode?193426:181366,200.0f);
                 
                 if (pGo)
@@ -666,6 +666,7 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public Scripted_NoMovementAI
     uint32 Condemnation_Timer;
     Player* target;
     Player* m_chain_target;
+
     bool ShieldWall1;
     bool ShieldWall2;
 

@@ -138,7 +138,8 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
 
     void JustReachedHome()
     {
-        if (pInstance) pInstance->SetData(TYPE_DEATHWHISPER, FAIL);
+        if (pInstance)
+            pInstance->SetData(TYPE_DEATHWHISPER, FAIL);
     }
 
     void MovementInform(uint32 type, uint32 id)
@@ -147,7 +148,7 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
         if(type != POINT_MOTION_TYPE) return;
         if(MovementStarted && id != 1)
         {
-             m_creature->GetMotionMaster()->MovePoint(1, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
+            m_creature->GetMotionMaster()->MovePoint(1, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
         }
         else
         {
@@ -159,7 +160,9 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
 
     void Aggro(Unit *who) 
     {
-        if(pInstance) pInstance->SetData(TYPE_DEATHWHISPER, IN_PROGRESS);
+        if (!pInstance)
+            return;
+        pInstance->SetData(TYPE_DEATHWHISPER, IN_PROGRESS);
         doCast(SPELL_MANA_BARRIER );
         MovementStarted = true;
         SetCombatMovement(false);
@@ -169,27 +172,30 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
 
     void JustDied(Unit *killer)
     {
-        if(pInstance) 
+        if(pInstance)
             pInstance->SetData(TYPE_DEATHWHISPER, DONE);
         DoScriptText(-1631032,m_creature,killer);
+        doRemoveFromAll(SPELL_INSIGNIFICANCE);
     }
 
     void JustSummoned(Creature* summoned)
     {
         if(!pInstance || !summoned) return;
 
-        if (Unit* pTarget= m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0)) 
+        if (Unit* pTarget= m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) ) 
+        {
             summoned->AddThreat(pTarget, 100.0f);
+        }
     }
 
     void CallGuard(uint8 place)
     {
-    if (place < 2) 
-       {
-          doSummon(urand(0,1) ? NPC_FANATIC : NPC_ADHERENT, SpawnLoc[3*place+1].x, SpawnLoc[3*place+1].y, SpawnLoc[3*place+1].z);
-          doSummon(urand(0,1) ? NPC_FANATIC : NPC_ADHERENT, SpawnLoc[3*place+3].x, SpawnLoc[3*place+3].y, SpawnLoc[3*place+3].z);
-       }
-       doSummon(urand(0,1) ? NPC_FANATIC : NPC_ADHERENT, SpawnLoc[3*place+2].x, SpawnLoc[3*place+2].y, SpawnLoc[3*place+2].z);
+        if (place < 2)
+        {
+            doSummon(urand(0,1) ? NPC_FANATIC : NPC_ADHERENT, SpawnLoc[3*place+1].x, SpawnLoc[3*place+1].y, SpawnLoc[3*place+1].z);
+            doSummon(urand(0,1) ? NPC_FANATIC : NPC_ADHERENT, SpawnLoc[3*place+3].x, SpawnLoc[3*place+3].y, SpawnLoc[3*place+3].z);
+        }
+        doSummon(urand(0,1) ? NPC_FANATIC : NPC_ADHERENT, SpawnLoc[3*place+2].x, SpawnLoc[3*place+2].y, SpawnLoc[3*place+2].z);
     }
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
@@ -204,52 +210,57 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
                 m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-uiDamage);
                 uiDamage = 0;
             }
-            else 
+            else
             {
                 m_creature->SetPower(POWER_MANA,0);
                 doRemove(SPELL_MANA_BARRIER);
             };
-        } else return;
+        }
+        else
+            return;
     }
 
     void UpdateAI(const uint32 diff)
     {
         if (intro && timedQuery(SPELL_SHADOW_BOLT,diff))
-            switch (stage)
         {
-            case 0:
-                DoScriptText(-1631020,m_creature);
-                stage = 1;
-                break;
-            case 1:
-                DoScriptText(-1631021,m_creature);
-                stage = 2;
-                break;
-            case 2:
-                DoScriptText(-1631022,m_creature);
-                stage = 3;
-                break;
-            default:
-                break;
+            switch (stage)
+            {
+                case 0:
+                       DoScriptText(-1631020,m_creature);
+                       stage = 1;
+                       break;
+                case 1:
+                       DoScriptText(-1631021,m_creature);
+                       stage = 2;
+                       break;
+                case 2:
+                       DoScriptText(-1631022,m_creature);
+                       stage = 3;
+                       break;
+                default:
+                       break;
+            }
         }
 
         if (hasAura(SPELL_MANA_BARRIER, m_creature)) 
         {
-             if(m_creature->GetHealth() <= m_creature->GetMaxHealth()) 
-             {
-                 if (m_creature->GetPower(POWER_MANA) > (m_creature->GetMaxHealth() - m_creature->GetHealth()))
-                 {
-                     m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-(m_creature->GetMaxHealth() - m_creature->GetHealth()));
-                     m_creature->SetHealth(m_creature->GetMaxHealth());
-                 }
-                 else m_creature->SetPower(POWER_MANA,0);
-             }
+            if(m_creature->GetHealth() <= m_creature->GetMaxHealth()) 
+            {
+                if (m_creature->GetPower(POWER_MANA) > (m_creature->GetMaxHealth() - m_creature->GetHealth()))
+                {
+                    m_creature->SetPower(POWER_MANA,m_creature->GetPower(POWER_MANA)-(m_creature->GetMaxHealth() - m_creature->GetHealth()));
+                    m_creature->SetHealth(m_creature->GetMaxHealth());
+                }
+                else
+                    m_creature->SetPower(POWER_MANA,0);
+            }
         }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (MovementStarted) 
+        if (MovementStarted)
             return;
 
         switch(stage)
@@ -266,6 +277,7 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
                         DoScriptText(-1631028,m_creature);
                         switch (currentDifficulty) 
                         {
+
                         case RAID_DIFFICULTY_10MAN_NORMAL:
                             CallGuard(urand(0,1));
                             break;
@@ -289,20 +301,20 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
                     }
 
                     if (timedQuery(SPELL_DARK_EMPOWERMENT ,diff))
-                    {
+                    { 
                         switch (urand(0,1)) 
                         {
                         case 0:
                             if(Creature *pGuard = GetClosestCreatureWithEntry(m_creature, NPC_FANATIC, 100.0f))
                             {
-                                doCast(70896, pGuard);
+                                doCast(SPELL_DARK_EMPOWERMENT, pGuard);
                                 DoScriptText(-1631026,m_creature);
                             };
                             break;
                         case 1:
                             if(Creature *pGuard = GetClosestCreatureWithEntry(m_creature, NPC_ADHERENT, 100.0f))
                             {
-                                doCast(70896, pGuard);
+                                doCast(SPELL_DARK_EMPOWERMENT, pGuard);
                                 DoScriptText(-1631027,m_creature);
                             };
                             break;
@@ -310,18 +322,19 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
                     }
                     break;
                 }
-            case 4: 
+            case 4:
                 {
                     timedCast(SPELL_FROSTBOLT, diff);
+
                     timedCast(SPELL_INSIGNIFICANCE, diff);
+
                     timedCast(NPC_VENGEFUL_SHADE, diff);
 
-                    if (is25()) 
-                        timedCast(SPELL_DOMINATE_MIND, diff);
+                    if (is25()) timedCast(SPELL_DOMINATE_MIND, diff);
 
                     if (timedQuery(NPC_FANATIC, diff))
                     {
-                        switch (currentDifficulty)
+                        switch (currentDifficulty) 
                         {
                         case RAID_DIFFICULTY_10MAN_HEROIC:
                             CallGuard(urand(0,1));
@@ -340,8 +353,9 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public BSWScriptedAI
                     break;
                 }
         }
-        
+
         timedCast(SPELL_DEATH_AND_DECAY, diff);
+
 
         if (!hasAura(SPELL_MANA_BARRIER, m_creature) && stage == 3) 
         {

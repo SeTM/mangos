@@ -22,7 +22,7 @@ SDCategory: Sunwell Plateau
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_sunwell_plateau.h"
+#include "sunwell_plateau.h"
 
 enum KalecgosEncounter
 {
@@ -39,7 +39,7 @@ enum KalecgosEncounter
     SAY_GOOD_NEAR_DEATH             = -1580007,
     SAY_GOOD_NEAR_DEATH2            = -1580008,
     SAY_GOOD_PLRWIN                 = -1580009,
-    
+
     SAY_SATH_AGGRO                  = -1580010,
     SAY_SATH_DEATH                  = -1580011,
     SAY_SATH_SPELL1                 = -1580012,
@@ -165,11 +165,7 @@ struct MANGOS_DLL_DECL boss_kalecgosAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-        switch(rand()%2)
-        {
-            case 0: DoScriptText(SAY_EVIL_SLAY1, m_creature); break;
-            case 1: DoScriptText(SAY_EVIL_SLAY2, m_creature); break;
-        }
+        DoScriptText(urand(0, 1) ? SAY_EVIL_SLAY1 : SAY_EVIL_SLAY2, m_creature);
     }
 
     void SendToInnerVeil(Unit* pTarget)
@@ -417,11 +413,7 @@ struct MANGOS_DLL_DECL boss_sathrovarrAI : public ScriptedAI
 
     void KilledUnit(Unit* victim)
     {
-        switch(rand()%2)
-        {
-            case 0: DoScriptText(SAY_SATH_SLAY1, m_creature); break;
-            case 1: DoScriptText(SAY_SATH_SLAY2, m_creature); break;
-        }
+        DoScriptText(urand(0, 1) ? SAY_SATH_SLAY1 : SAY_SATH_SLAY2, m_creature);
     }
 
     void UpdateAI(const uint32 diff)
@@ -443,7 +435,7 @@ struct MANGOS_DLL_DECL boss_sathrovarrAI : public ScriptedAI
 
         if (CorruptingStrikeTimer < diff)
         {
-            if (!(rand()%2))
+            if (!urand(0, 1))
                 DoScriptText(SAY_SATH_SPELL2, m_creature);
 
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_CORRUPTING_STRIKE);
@@ -460,7 +452,7 @@ struct MANGOS_DLL_DECL boss_sathrovarrAI : public ScriptedAI
 
         if (ShadowBoltVolleyTimer < diff)
         {
-            if (!(rand()%2))
+            if (!urand(0, 1))
                 DoScriptText(SAY_SATH_SPELL1, m_creature);
 
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT_VOLLEY);
@@ -545,7 +537,7 @@ struct MANGOS_DLL_DECL boss_kalecgos_humanoidAI : public ScriptedAI
     }
 };
 
-bool GOHello_go_spectral_rift(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_spectral_rift(Player* pPlayer, GameObject* pGo)
 {
     if (pGo->GetGoType() != GAMEOBJECT_TYPE_GOOBER)
         return true;
@@ -624,7 +616,7 @@ void AddSC_boss_kalecgos()
     newscript->RegisterSelf();
 
     newscript = new Script;
-    newscript->pGOUse = &GOHello_go_spectral_rift;
+    newscript->pGOUse = &GOUse_go_spectral_rift;
     newscript->Name = "go_spectral_rift";
     newscript->RegisterSelf();
 }

@@ -308,7 +308,6 @@ struct MANGOS_DLL_DECL  mob_big_oozeAI : public BSWScriptedAI
         }
 
         DoMeleeAttackIfReady();
-
     }
 };
 

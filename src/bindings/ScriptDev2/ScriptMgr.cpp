@@ -11,6 +11,7 @@
 #include "ProgressBar.h"
 #include "../system/ScriptLoader.h"
 #include "../system/system.h"
+#include "../../../game/ScriptMgr.h"
 
 int num_sc_scripts;
 Script *m_scripts[MAX_SCRIPTS];
@@ -51,9 +52,6 @@ void LoadDatabase()
         error_log("SD2: Unable to connect to Database. Load database aborted.");
         return;
     }
-
-    SD2Database.HaltDelayThread();
-
 }
 
 struct TSpellSummary {
@@ -72,6 +70,7 @@ void FreeScriptLibrary()
         delete m_scripts[i];
 
     num_sc_scripts = 0;
+    SD2Database.HaltDelayThread();
 }
 
 MANGOS_DLL_EXPORT
@@ -276,6 +275,9 @@ bool GossipSelect(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 
         return false;
 
     pPlayer->PlayerTalkClass->ClearMenus();
+//    pPlayer->PlayerTalkClass->ClearMenus();
+//    this expression is wrong, where 'return false' from script's GossipSelect
+//    not return menu ID (cleared in this string) and not allow to work with database-based menus
 
     return tmpscript->pGossipSelect(pPlayer, pCreature, uiSender, uiAction);
 }

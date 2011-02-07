@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,7 +22,8 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
+
 enum
 {
     SAY_AGGRO1                          = -1533075,
@@ -44,8 +45,8 @@ enum
     SPELL_SUMMON_GUARDIAN_AND_CONSTRUCT = 29269,
 
     NPC_PLAGUED_WARRIOR                 = 16984,
-    NPC_PLAGUED_CHAMPION                = 16983,
-    NPC_PLAGUED_GUARDIANS               = 16981,
+    NPC_PLAGUED_CHAMPIONS               = 16983,
+    NPC_PLAGUED_GUARDIANS               = 16981
 };
 
 uint32 m_auiSpellSummonPlaguedWarrior[]=
@@ -79,6 +80,7 @@ float SpawnLocations[4][4]=
 
 // IMPORTANT: BALCONY TELEPORT NOT ADDED YET! WILL BE ADDED SOON!
 // Dev note 26.12.2008: When is soon? :)
+// Dev note 12.10.2009: http://www.wowwiki.com/Soon
 
 struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
 {
@@ -129,7 +131,6 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(ENCOUNT_NOTH, NOT_STARTED);
     }
-
 
     void Aggro(Unit *who)
     {
@@ -245,7 +246,7 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
                     for(uint8 i = 0; i < max; i++)
                     {
                         if (m_Stage < 4)
-                            Creature_Summon = NPC_PLAGUED_CHAMPION;
+                            Creature_Summon = NPC_PLAGUED_CHAMPIONS;
                         if (m_bIsRegularMode)
                         {
                             if (m_Stage > 2 && i == 1)

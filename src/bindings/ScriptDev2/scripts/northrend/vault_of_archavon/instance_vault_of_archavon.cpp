@@ -22,7 +22,7 @@ SDCategory: Vault of Archavon
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_vault_of_archavon.h"
+#include "vault_of_archavon.h"
 
 struct MANGOS_DLL_DECL instance_vault_of_archavon : public ScriptedInstance
 {

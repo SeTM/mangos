@@ -763,7 +763,6 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
                 pInstance->SetData(TYPE_STAGE,1);
                 pInstance->SetData(TYPE_BEASTS,IN_PROGRESS);
                 break;
-
             case 200:
                 DoScriptText(-1713503, m_creature);
                 UpdateTimer = 10000;

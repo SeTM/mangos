@@ -80,25 +80,20 @@ bool GossipHello_npc_toc5_announcer(Player* pPlayer, Creature* pCreature)
 {
  
     ScriptedInstance* m_pInstance;
-    m_pInstance = 
-        (ScriptedInstance*)pCreature->GetInstanceData();
 
-    if (!m_pInstance) 
-        return false;
+    m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
 
-    if(!pPlayer->getAttackers().empty()) 
-        return true;
+    if (!m_pInstance) return false;
 
-    for(uint8 i = 0; i < MAX_ENCOUNTER+1; i++) 
-    {
-        if (!_GossipMessage[i].state && (m_pInstance->GetData(_GossipMessage[i].encounter) == NOT_STARTED || m_pInstance->GetData(_GossipMessage[i].encounter) == IN_PROGRESS))
-        {
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, _GossipMessage[i].name, GOSSIP_SENDER_MAIN,_GossipMessage[i].id);
-            break;
+    if(!pPlayer->getAttackers().empty()) return true;
+
+    for(uint8 i = 0; i < MAX_ENCOUNTER+1; i++) {
+    if (!_GossipMessage[i].state && (m_pInstance->GetData(_GossipMessage[i].encounter) == NOT_STARTED || m_pInstance->GetData(_GossipMessage[i].encounter) == IN_PROGRESS))
+        {pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, _GossipMessage[i].name, GOSSIP_SENDER_MAIN,_GossipMessage[i].id);
+        break;
         }
-
-        if (_GossipMessage[i].state && m_pInstance->GetData(_GossipMessage[i].encounter) == DONE)
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, _GossipMessage[i].name, GOSSIP_SENDER_MAIN,_GossipMessage[i].id);
+    if (_GossipMessage[i].state && m_pInstance->GetData(_GossipMessage[i].encounter) == DONE)
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, _GossipMessage[i].name, GOSSIP_SENDER_MAIN,_GossipMessage[i].id);
     };
     pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
 
@@ -111,10 +106,10 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
     m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
 
     pPlayer->CLOSE_GOSSIP_MENU();
-    
-    switch(uiAction)
+
+    switch(uiAction) 
     {
-    case GOSSIP_ACTION_INFO_DEF+1:
+    case GOSSIP_ACTION_INFO_DEF+1: 
         {
             if (m_pInstance->GetData(DATA_TOC5_ANNOUNCER) == 0) 
             {
@@ -131,7 +126,8 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
                     case 3: m_pInstance->SetData(DATA_CHAMPIONID_1, 35570); break;
                     case 4: m_pInstance->SetData(DATA_CHAMPIONID_1, 35617); break;
                     };
-                    do{
+                    do
+                    {
                         switch(urand(0, 4))
                         {
                         case 0: m_pInstance->SetData(DATA_CHAMPIONID_2, 35572); break;
@@ -141,8 +137,8 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
                         case 4: m_pInstance->SetData(DATA_CHAMPIONID_2, 35617); break;
                         }
                     } while(m_pInstance->GetData(DATA_CHAMPIONID_1) == m_pInstance->GetData(DATA_CHAMPIONID_2));
-                    
-                    do{
+                    do
+                    {
                         switch(urand(0, 4))
                         {
                         case 0: m_pInstance->SetData(DATA_CHAMPIONID_3, 35572); break;
@@ -166,7 +162,6 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
                     case 3: m_pInstance->SetData(DATA_CHAMPIONID_1, 34657); break;
                     case 4: m_pInstance->SetData(DATA_CHAMPIONID_1, 34703); break;
                     }
-                    
                     do{
                         switch(urand(0, 4))
                         {
@@ -240,6 +235,7 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
 
     case GOSSIP_ACTION_INFO_DEF+4: 
         {
+
             if (m_pInstance->GetData(TYPE_BLACK_KNIGHT) == DONE) 
             {
                 pCreature->DealDamage(pCreature, pCreature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);

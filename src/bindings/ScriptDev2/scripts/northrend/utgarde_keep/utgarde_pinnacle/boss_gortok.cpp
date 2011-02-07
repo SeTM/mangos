@@ -101,6 +101,7 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
             return;
 
         StartAttack(pWho);
+        DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void KilledUnit(Unit* pVictim)

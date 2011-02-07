@@ -31,7 +31,7 @@ enum
         NPC_BONE_SPIKE                          = 38711,
         NPC_COLD_FLAME                          = 36672,
         //Abilities
-        SPELL_SABER_LASH                        = 69055,
+        SPELL_SABER_LASH                        = 71021,
         SPELL_CALL_COLD_FLAME                   = 69138,
         SPELL_CALL_COLD_FLAME_1                 = 71580,
         SPELL_COLD_FLAME                        = 69146,
@@ -54,7 +54,6 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
 
     ScriptedInstance *pInstance;
     bool intro;
-    uint32 BoneSliceTimer;
 
     void Reset()
     {
@@ -63,7 +62,6 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
         resetTimers();
         m_creature->SetSpeedRate(MOVE_RUN, 1);
         m_creature->SetSpeedRate(MOVE_WALK, 1);
-        BoneSliceTimer = urand(10000,25000);
 //        m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
     }
 
@@ -116,7 +114,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
         if (!pTarget || !pTarget->isAlive()) return;
         float fPosX, fPosY, fPosZ;
         pTarget->GetPosition(fPosX, fPosY, fPosZ);
-        if (Unit* pSpike = m_creature->SummonCreature(NPC_BONE_SPIKE, fPosX, fPosY, fPosZ + 0.5f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 0))
+        if (Unit* pSpike = doSummon(NPC_BONE_SPIKE, fPosX, fPosY, fPosZ + 0.5f))
         {
             pSpike->SetOwnerGuid(m_creature->GetObjectGuid());
             pSpike->SetInCombatWith(pTarget);
@@ -132,47 +130,40 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public BSWScriptedAI
         switch(getStage())
         {
             case 0: 
-                if (timedQuery(SPELL_BONE_STRIKE, diff))
-                    if (Unit* pTarget = doSelectRandomPlayer(SPELL_BONE_STRIKE_IMPALE, false, 60.0f))
-                        if (doCast(SPELL_BONE_STRIKE, pTarget) == CAST_OK)
-                        {
-                            doSummonSpike(pTarget);
-                            switch (urand(0,1)) 
+                    if (timedQuery(SPELL_BONE_STRIKE, diff))
+                        if (Unit* pTarget = doSelectRandomPlayer(SPELL_BONE_STRIKE_IMPALE, false, 60.0f))
+                            if (doCast(SPELL_BONE_STRIKE, pTarget) == CAST_OK)
                             {
-                            case 0:
-                                DoScriptText(-1631003,m_creature,pTarget);
-                                break;
-                            case 1:
-                                DoScriptText(-1631004,m_creature,pTarget);
-                                break;
-                            case 2:
-                                DoScriptText(-1631005,m_creature,pTarget);
-                                break;
+                                doSummonSpike(pTarget);
+                                switch (urand(0,1)) {
+                                                   case 0:
+                                                   DoScriptText(-1631003,m_creature,pTarget);
+                                                   break;
+                                                   case 1:
+                                                   DoScriptText(-1631004,m_creature,pTarget);
+                                                   break;
+                                                   case 2:
+                                                   DoScriptText(-1631005,m_creature,pTarget);
+                                                   break;
+                                                   };
+
                             };
-                        };
 
                     if (timedQuery(SPELL_BONE_STORM, diff)) setStage(1);
+
                     if (timedQuery(SPELL_CALL_COLD_FLAME, diff))
                     {
-                        if (urand(0,1)) 
-                            doCast(SPELL_CALL_COLD_FLAME);
-                        else
-                            doCast(SPELL_CALL_COLD_FLAME_1);
+                        if (urand(0,1)) doCast(SPELL_CALL_COLD_FLAME);
+                            else  doCast(SPELL_CALL_COLD_FLAME_1);
 
                         if (m_creature->GetHealthPercent() <= 30.0f)
                         {
-                            if (urand(0,1)) 
-                                doCast(SPELL_CALL_COLD_FLAME);
-                            else
-                                doCast(SPELL_CALL_COLD_FLAME_1);
+                            if (urand(0,1)) doCast(SPELL_CALL_COLD_FLAME);
+                                else  doCast(SPELL_CALL_COLD_FLAME_1);
                         }
                     }
 
-                    if (BoneSliceTimer <= diff)
-                    {
-                        DoCast(m_creature->getVictim(), SPELL_SABER_LASH);
-                        BoneSliceTimer = urand(10000,25000);
-                    } else BoneSliceTimer -= diff;
+                    timedCast(SPELL_SABER_LASH, diff);
 
                     DoMeleeAttackIfReady();
                     break;
@@ -251,7 +242,7 @@ struct MANGOS_DLL_DECL mob_coldflameAI : public BSWScriptedAI
     void Reset()
     {
         if(!m_pInstance) return;
-        //m_creature->SetDisplayId(10045);
+//        m_creature->SetDisplayId(10045);
         m_creature->SetRespawnDelay(7*DAY);
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -339,30 +330,31 @@ struct MANGOS_DLL_DECL mob_bone_spikeAI : public BSWScriptedAI
     }
 
     ScriptedInstance* m_pInstance;
-    uint64 victimGUID;
+    ObjectGuid victimGuid;
 
     void Reset()
     {
+        SetCombatMovement(false);
         m_creature->SetRespawnDelay(7*DAY);
-        victimGUID = 0;
+        victimGuid = ObjectGuid();
         m_creature->SetInCombatWithZone();
     }
 
     void Aggro(Unit* pWho)
     {
-        if (!victimGUID && pWho && pWho->GetTypeId() == TYPEID_PLAYER)
+        if (victimGuid.IsEmpty() && pWho && pWho->GetTypeId() == TYPEID_PLAYER)
         {
-            victimGUID = pWho->GetGUID();
+            victimGuid = pWho->GetObjectGuid();
             m_creature->SetInCombatWith(pWho);
-            m_creature->SetSpeedRate(MOVE_RUN, 5.0f);
-            m_creature->GetMotionMaster()->MoveChase(pWho);
+            doCast(SPELL_BONE_STRIKE_IMPALE,pWho);
+            doCast(SPELL_VEHICLE_HARDCODED,pWho);
         }
     }
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
         if (uiDamage > m_creature->GetHealth())
-            if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGUID))
+            if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGuid))
                 doRemove(SPELL_BONE_STRIKE_IMPALE,pVictim);
     }
 
@@ -372,14 +364,14 @@ struct MANGOS_DLL_DECL mob_bone_spikeAI : public BSWScriptedAI
 
     void KilledUnit(Unit* _Victim)
     {
-        if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGUID))
-            if (pVictim->GetGUID() == victimGUID)
+        if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGuid))
+            if (pVictim->GetObjectGuid() == victimGuid)
                 doRemove(SPELL_BONE_STRIKE_IMPALE,pVictim);
     }
 
     void JustDied(Unit* Killer)
     {
-        if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGUID))
+        if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGuid))
             doRemove(SPELL_BONE_STRIKE_IMPALE,pVictim);
     }
 
@@ -387,34 +379,21 @@ struct MANGOS_DLL_DECL mob_bone_spikeAI : public BSWScriptedAI
     {
         if(m_pInstance && m_pInstance->GetData(TYPE_MARROWGAR) != IN_PROGRESS)
         {
-            if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGUID))
+            if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGuid))
                 doRemove(SPELL_BONE_STRIKE_IMPALE,pVictim);
             m_creature->ForcedDespawn();
         }
 
-        if (!victimGUID)
+        if (victimGuid.IsEmpty())
             return;
 
-        if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGUID))
+        if (Player* pVictim = m_creature->GetMap()->GetPlayer(victimGuid))
         {
             if(!pVictim->isAlive())
-            {
-                pVictim->RemoveAurasDueToSpell(SPELL_BONE_STRIKE_IMPALE);
                 m_creature->ForcedDespawn();
-            }
-
-            if ( pVictim
-                && !hasAura(SPELL_BONE_STRIKE_IMPALE, pVictim)
-                && pVictim->IsInMap(m_creature)
-                && m_creature->IsWithinDistInMap(pVictim, 1.0f)
-                && pVictim->isAlive())
-                {
-                    m_creature->GetMotionMaster()->Clear();
-                    SetCombatMovement(false);
-                    doCast(SPELL_BONE_STRIKE_IMPALE,pVictim);
-                    doCast(SPELL_VEHICLE_HARDCODED,pVictim);
-                }
         }
+        else
+            m_creature->ForcedDespawn();
     }
 };
 

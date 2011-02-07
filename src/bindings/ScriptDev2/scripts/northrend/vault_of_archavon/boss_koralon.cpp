@@ -1,5 +1,5 @@
 #include "precompiled.h"
-#include "def_vault_of_archavon.h"
+#include "vault_of_archavon.h"
 
 #define SP_BURNING_FURY_AURA    66895
 #define SP_BURNING_FURY_AURA2   68168

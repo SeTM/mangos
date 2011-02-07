@@ -272,6 +272,7 @@ bool EffectDummyCreature_npc_woodlands_walker(Unit* pCaster, uint32 uiSpellId, S
     }
     return false;
 }
+
 void AddSC_dragonblight()
 {
     Script *newscript;

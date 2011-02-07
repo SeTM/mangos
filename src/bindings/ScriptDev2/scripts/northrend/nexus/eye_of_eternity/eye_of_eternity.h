@@ -1,20 +1,21 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
- * This program is free software licensed under GPL version 2
- * Please see the included DOCS/LICENSE.TXT for more information */
-
-
 #ifndef DEF_EYE_OF_ETERNITY_H
 #define DEF_EYE_OF_ETERNITY_H
 
 enum
 {
-    MAX_ENCOUNTER                   = 1,
+    MAX_ENCOUNTER               = 1,
 
-    TYPE_MALYGOS                    = 0,
+    TYPE_MALYGOS                = 1,
 
-    DATA_GO_FOCUSING_IRIS           = 1,
-    DATA_GO_FOCUSING_IRIS_H         = 2,
-    DATA_GO_EXIT_PORTAL             = 3
+    NPC_MALYGOS                 = 28859,
+
+    GO_PLATFORM                 = 193070,
+    GO_EXIT_PORTAL              = 193908,
+    GO_FOCUSING_IRIS            = 193958,
+    GO_FOCUSING_IRIS_H          = 193960,
+    GO_ALEXSTRASZAS_GIFT        = 193905,
+    GO_ALEXSTRASZAS_GIFT_H      = 193967,
+    GO_HEART_OF_MAGIC           = 194158,
+    GO_HEART_OF_MAGIC_H         = 194159,
 };
-
 #endif

@@ -22,7 +22,7 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
 
 #define SAY_AGGRO1          -1533109
 #define SAY_AGGRO2          -1533110
@@ -219,7 +219,6 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
     {
         DoScriptText(SAY_SLAY, m_creature);
     }
-
     
     void UpdateAI(const uint32 diff)
     {
@@ -565,7 +564,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                 AttackStart(m_creature->getVictim());
                 phaseTimer = 90000;
                 safeSpot = 1;
-            }else phaseTimer-=diff;   
+            }else phaseTimer-=diff;
             if(fastTimer < diff)
             {
                 DoErupt(safeSpot);
@@ -582,10 +581,12 @@ CreatureAI* GetAI_boss_heiganAI(Creature* pCreature)
 {
     return new boss_heiganAI(pCreature);
 }
+
 CreatureAI* GetAI_npc_heigan_eruptionAI(Creature* pCreature)
 {
     return new npc_heigan_eruptionAI(pCreature);
 }
+
 void AddSC_boss_heigan()
 {
     Script *newscript;
@@ -593,11 +594,7 @@ void AddSC_boss_heigan()
     newscript->Name = "boss_heigan";
     newscript->GetAI = &GetAI_boss_heiganAI;
     newscript->RegisterSelf();
-}
 
-void AddSC_npc_heigan_eruption()
-{
-    Script *newscript;
     newscript = new Script;
     newscript->Name = "npc_heigan_eruption";
     newscript->GetAI = &GetAI_npc_heigan_eruptionAI;

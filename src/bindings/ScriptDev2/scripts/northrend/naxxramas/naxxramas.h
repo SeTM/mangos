@@ -37,6 +37,25 @@ enum
     TYPE_SAPPHIRON              = 16,
     TYPE_KELTHUZAD              = 17,
 
+    TYPE_BLAUMEUX               = 18,
+    TYPE_RIVENDARE              = 19,
+    TYPE_ZELIEK                 = 20,
+    TYPE_KORTHAZZ               = 21,
+
+    DATA_ANUB_REKHAN            = 30,
+    DATA_FAERLINA               = 31,
+    DATA_GOTHIK_GATE            = 32,
+
+    DATA_THADDIUS               = 33,
+    DATA_STALAGG                = 34,
+    DATA_FEUGEN                 = 35,
+
+    DATA_KORTHAZZ               = 36,
+    DATA_RIVENDARE              = 37,
+    DATA_BLAUMEUX               = 38,
+    DATA_ZELIEK                 = 39,
+    DATA_HEIGAN_ERUPT           = 40,
+
     NPC_ANUB_REKHAN             = 15956,
     NPC_FAERLINA                = 15953,
 
@@ -122,6 +141,72 @@ enum
     AREATRIGGER_FROSTWYRM       = 4120,                    //not needed here, but AT to be scripted
     AREATRIGGER_KELTHUZAD       = 4112,
     AREATRIGGER_GOTHIK          = 4116
+};
+
+enum
+{
+    //Spiderwing
+    ENCOUNT_ANUBREKHAN   = 0,
+    ENCOUNT_FAERLINA     = 1,
+    ENCOUNT_MAEXXNA      = 2,
+
+    //Abomination Wing
+    ENCOUNT_PATCHWERK    = 3,
+    ENCOUNT_GROBBULUS    = 4,
+    ENCOUNT_GLUTH        = 5,
+    ENCOUNT_THADDIUS     = 6,
+
+    //Deathknight Wing
+    ENCOUNT_RAZUVIOUS    = 7,
+    ENCOUNT_GOTHIK       = 8,
+    ENCOUNT_FOURHORSEMAN = 9,
+
+    //Plague Wing
+    ENCOUNT_NOTH         = 10,
+    ENCOUNT_HEIGAN       = 11,
+    ENCOUNT_LOATHEB      = 12,
+
+    //Frostwyrm Lair
+    ENCOUNT_SAPPHIRON    = 13,
+    ENCOUNT_KELTHUZAD    = 14
+};
+
+//Bosses
+enum
+{
+    //Spiderwing
+    GUID_ANUBREKHAN   = 100,
+    GUID_FAERLINA     = 101,
+    GUID_MAEXXNA      = 102,
+    GUID_WORSHIPPER1  = 20,
+    GUID_WORSHIPPER2  = 21,
+    GUID_WORSHIPPER3  = 22,
+    GUID_WORSHIPPER4  = 23,
+
+    //Abomination Wing
+    GUID_PATCHWERK    = 103,
+    GUID_GROBBULUS    = 104,
+    GUID_GLUTH        = 105,
+    GUID_THADDIUS     = 600,
+    GUID_FEUGEN       = 601,
+    GUID_STALAGG      = 602,
+
+    //Deathknight Wing
+    GUID_RAZUVIOUS    = 107,
+    GUID_GOTHIK       = 108,
+    GUID_KORTHAZZ     = 901,
+    GUID_BLAUMEUX     = 902,
+    GUID_RIVENDARE    = 903,
+    GUID_ZELIEK       = 904,
+
+    //Plague Wing
+    GUID_NOTH          = 110,
+    GUID_HEIGAN       = 111,
+    GUID_LOATHEB      = 112,
+
+    //Frostwyrm Lair
+    GUID_SAPPHIRON    = 113,
+    GUID_KELTHUZAD    = 114
 };
 
 struct GothTrigger

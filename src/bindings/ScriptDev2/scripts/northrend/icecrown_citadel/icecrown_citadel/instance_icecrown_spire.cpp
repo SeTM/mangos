@@ -82,7 +82,7 @@ static Locations SpawnLoc[]=
             OpenDoor(m_uiCounsilDoor1GUID);
             OpenDoor(m_uiCounsilDoor2GUID);
         };
-        if (m_auiEncounter[TYPE_VALITHRIA] == DONE) 
+        if (m_auiEncounter[TYPE_VALITHRIA] == DONE)
         {
             OpenDoor(m_uiValithriaDoor2GUID);
             OpenDoor(m_uiSindragosaDoor2GUID);
@@ -148,6 +148,20 @@ static Locations SpawnLoc[]=
             if (m_auiEncounter[i] == IN_PROGRESS) return true;
 
         return false;
+    }
+
+    uint32 instance_icecrown_spire::GetCompletedEncounters(bool /*type*/)
+    {
+        uint32 count = 0;
+        uint32 mask = 1;
+        for(uint8 i = 1; i < MAX_ENCOUNTERS-2 ; ++i)
+        {
+            if (m_auiEncounter[i] == DONE)
+                count += mask;
+            mask = mask << 1;
+        }
+
+        return count;
     }
 
     void instance_icecrown_spire::OnPlayerEnter(Player *pPlayer)
@@ -603,15 +617,12 @@ static Locations SpawnLoc[]=
                 m_auiEncounter[TYPE_COUNT] = uiData;
                 uiData = NOT_STARTED;
                 break;
-             case DATA_BLOOD_COUNCIL_HEALTH:     m_uiDataCouncilHealth = uiData; 
-                 uiData = NOT_STARTED; 
-                 break;
              case DATA_BLOOD_INVOCATION:         m_uiCouncilInvocation = uiData;
-                 uiData = NOT_STARTED;
-                 break;
+                                                 uiData = NOT_STARTED;
+                                                 break;
              case DATA_DIRECTION:                m_uiDirection = uiData;
-                 uiData = NOT_STARTED;
-                 break;
+                                                 uiData = NOT_STARTED;
+                                                 break;
              case TYPE_EVENT:            m_auiEvent = uiData; uiData = NOT_STARTED; break;
              case TYPE_EVENT_TIMER:      m_auiEventTimer = uiData; uiData = NOT_STARTED; break;
              case TYPE_STINKY:           m_uiStinkystate = uiData; uiData = NOT_STARTED; break;
@@ -657,7 +668,6 @@ static Locations SpawnLoc[]=
                           return m_auiEncounter[uiType];
 
              case DATA_DIRECTION:     return m_uiDirection;
-             case DATA_BLOOD_COUNCIL_HEALTH:     return m_uiDataCouncilHealth; 
              case DATA_BLOOD_INVOCATION:         return m_uiCouncilInvocation; 
              case TYPE_STINKY:        return m_uiStinkystate;
              case TYPE_PRECIOUS:      return m_uiPreciousstate;

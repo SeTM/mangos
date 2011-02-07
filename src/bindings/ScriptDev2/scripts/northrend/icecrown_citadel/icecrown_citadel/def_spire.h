@@ -146,8 +146,7 @@ enum
     TYPE_EVENT_NPC              = 101,
     MAP_NUM                     = 631,
     DATA_DIRECTION              = 1001,
-    DATA_BLOOD_COUNCIL_HEALTH   = 1002,
-    DATA_BLOOD_INVOCATION       = 1003,
+    DATA_BLOOD_INVOCATION       = 1002,
     DESPAWN_TIME                = 300000,
 
 };
@@ -168,6 +167,7 @@ public:
     void OpenAllDoors();
     void OnPlayerEnter(Player* pPlayer);
     bool IsEncounterInProgress() const;
+    uint32 GetCompletedEncounters(bool /*type*/);
 
     void SetData(uint32 uiType, uint32 uiData);
     uint32 GetData(uint32 uiType);
@@ -261,7 +261,6 @@ private:
     uint64 m_uiGunshipArmoryH_ID;
     uint64 m_uiGunshipArmoryA_ID;
 
-    uint32 m_uiDataCouncilHealth;
     uint32 m_uiCouncilInvocation;
 
     uint32 m_auiEvent;

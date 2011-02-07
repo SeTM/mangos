@@ -10,7 +10,7 @@ SDCategory: Sunwell_Plateau
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_sunwell_plateau.h"
+#include "sunwell_plateau.h"
 
 /* Sunwell Plateau:
 0 - Kalecgos and Sathrovarr
@@ -88,10 +88,6 @@ struct MANGOS_DLL_DECL instance_sunwell_plateau : public ScriptedInstance
         m_uiDoorRaid_Gate_08GUID        = 0;
         m_uiDoorTheThirdGateGUID        = 0;
 
-        // Encounters
-        for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-            m_auiEncounter[i] = NOT_STARTED;
-
         // Misc
         m_uiSpectralRealmTimer = 5000;
     }
@@ -101,6 +97,7 @@ struct MANGOS_DLL_DECL instance_sunwell_plateau : public ScriptedInstance
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
             if (m_auiEncounter[i] == IN_PROGRESS)
                 return true;
+
         return false;
     }
 
@@ -227,12 +224,12 @@ struct MANGOS_DLL_DECL instance_sunwell_plateau : public ScriptedInstance
                 m_auiEncounter[1] = uiData;
                 break;
             case TYPE_FELMYST:
-                m_auiEncounter[2] = uiData; 
+                m_auiEncounter[2] = uiData;
                 if (uiData == DONE)
                     DoUseDoorOrButton(m_uiDoorFireBarrierGUID);
                 break;
-            case TYPE_EREDAR_TWINS:  
-                m_auiEncounter[3] = uiData; 
+            case TYPE_EREDAR_TWINS:
+                m_auiEncounter[3] = uiData;
                 if (uiData == DONE)
                 {
                     DoUseDoorOrButton(m_uiDoorTheSecondGateGUID);
@@ -378,4 +375,3 @@ void AddSC_instance_sunwell_plateau()
     newscript->GetInstanceData = &GetInstanceData_instance_sunwell_plateau;
     newscript->RegisterSelf();
 }
-

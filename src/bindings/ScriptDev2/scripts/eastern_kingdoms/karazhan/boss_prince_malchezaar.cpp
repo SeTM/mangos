@@ -96,7 +96,7 @@ static InfernalPoint InfernalPoints[] =
 struct MANGOS_DLL_DECL netherspite_infernalAI : public ScriptedAI
 {
     netherspite_infernalAI(Creature* pCreature) : ScriptedAI(pCreature) ,
-        malchezaar(), HellfireTimer(0), CleanupTimer(0), point(NULL) {Reset();}
+        malchezaar(0), HellfireTimer(0), CleanupTimer(0), point(NULL) {Reset();}
 
     uint32 HellfireTimer;
     uint32 CleanupTimer;
@@ -146,7 +146,7 @@ struct MANGOS_DLL_DECL netherspite_infernalAI : public ScriptedAI
 
     void DamageTaken(Unit *done_by, uint32 &damage)
     {
-        if (done_by->GetObjectGuid() != malchezaar)
+        if (done_by->GetGUID() != malchezaar)
             damage = 0;
     }
 
@@ -574,16 +574,16 @@ struct MANGOS_DLL_DECL boss_malchezaarAI : public ScriptedAI
 
     void DoMeleeAttacksIfReady()
     {
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE) && !m_creature->IsNonMeleeSpellCasted(false))
+        if (!m_creature->IsNonMeleeSpellCasted(false) && m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
         {
             //Check for base attack
-            if (m_creature->isAttackReady() && m_creature->getVictim())
+            if (m_creature->isAttackReady())
             {
                 m_creature->AttackerStateUpdate(m_creature->getVictim());
                 m_creature->resetAttackTimer();
             }
             //Check for offhand attack
-            if (m_creature->isAttackReady(OFF_ATTACK) && m_creature->getVictim())
+            if (m_creature->isAttackReady(OFF_ATTACK))
             {
                 m_creature->AttackerStateUpdate(m_creature->getVictim(), OFF_ATTACK);
                 m_creature->resetAttackTimer(OFF_ATTACK);

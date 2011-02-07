@@ -1,22 +1,22 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
 * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 
 /* ScriptData
 SDName: boss_xt002
-SD%Complete: 95%
+SD%Complete:
 SDComment: need core support for light and gravity bomb. correct number of adds in 25man missing
 SDCategory: Ulduar
 EndScriptData */
@@ -85,19 +85,19 @@ struct MANGOS_DLL_DECL mob_pummelerAI : public ScriptedAI
         {
             switch(urand(0, 2))
             {
-                case 0:
-                    DoCast(m_creature->getVictim(), SPELL_CLEAVE);
+            case 0:
+                DoCast(m_creature->getVictim(), SPELL_CLEAVE);
                 break;
-                case 1:
-                    DoCast(m_creature->getVictim(), SPELL_TRAMPLE);
+            case 1:
+                DoCast(m_creature->getVictim(), SPELL_TRAMPLE);
                 break;
-                case 2:
-                    DoCast(m_creature->getVictim(), SPELL_UPPERCUT);
+            case 2:
+                DoCast(m_creature->getVictim(), SPELL_UPPERCUT);
                 break;
             }
-            Spell_Timer = urand(15000, 25000);
+            Spell_Timer = urand(5000, 10000);
         }else Spell_Timer -= diff;        
-        
+
         DoMeleeAttackIfReady();
     }
 };
@@ -118,7 +118,8 @@ struct MANGOS_DLL_DECL mob_boombotAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
     {
-        if (uiDamage > m_creature->GetHealth()){
+        if (uiDamage > m_creature->GetHealth())
+        {
             uiDamage = 0;
             DoCast(m_creature, SPELL_BOOM);
         }
@@ -128,9 +129,7 @@ struct MANGOS_DLL_DECL mob_boombotAI : public ScriptedAI
     {
         //If we are within range melee the target
         if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
-        {
             DoCast(m_creature, SPELL_BOOM);
-        }
     }
 
     void UpdateAI(const uint32 diff)
@@ -152,8 +151,8 @@ struct MANGOS_DLL_DECL mob_xtheartAI : public ScriptedAI
 {
     mob_xtheartAI(Creature* pCreature) : ScriptedAI(pCreature) 
     {
-        SetCombatMovement(false);
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetCombatMovement(false);
         Reset();
     }
 
@@ -197,7 +196,6 @@ struct MANGOS_DLL_DECL mob_xtheartAI : public ScriptedAI
         }else Exposed_Timer -= diff;
             
     }
-
 };
 
 CreatureAI* GetAI_mob_xtheart(Creature* pCreature)
@@ -588,7 +586,7 @@ void AddSC_boss_xt002()
 
     NewScript = new Script;
     NewScript->Name = "boss_xt002";
-    NewScript->GetAI = &GetAI_boss_xt002;
+    NewScript->GetAI = GetAI_boss_xt002;
     NewScript->RegisterSelf();
 
     NewScript = new Script;

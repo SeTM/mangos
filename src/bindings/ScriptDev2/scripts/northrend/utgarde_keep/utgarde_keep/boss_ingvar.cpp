@@ -33,6 +33,7 @@ enum
     SAY_KILL_FIRST              = -1574009,
     SAY_KILL_SECOND             = -1574010,
     EMOTE_ROAR                  = -1574022,
+    SAY_ANNHYLDE_REZ            = -1574023,
 
     NPC_ANNHYLDE                = 24068,
     NPC_THROW_TARGET            = 23996,                    //the target, casting spell and target of moving dummy
@@ -149,7 +150,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
         {
             if (m_uiCleaveTimer < uiDiff)
             {
-                DoCast(m_creature->getVictim(), SPELL_CLEAVE);
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE);
                 m_uiCleaveTimer = urand(2500, 7000);
             }
             else
@@ -157,7 +158,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
             if (m_uiSmashTimer < uiDiff)
             {
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_SMASH : SPELL_SMASH_H);
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_SMASH : SPELL_SMASH_H);
                 m_uiSmashTimer = urand(8000, 15000);
             }
             else
@@ -166,7 +167,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             if (m_uiStaggeringRoarTimer < uiDiff)
             {
                 DoScriptText(EMOTE_ROAR, m_creature);
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_STAGGERING_ROAR : SPELL_STAGGERING_ROAR_H);
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STAGGERING_ROAR : SPELL_STAGGERING_ROAR_H);
                 m_uiStaggeringRoarTimer = urand(15000, 30000);
             }
             else
@@ -174,7 +175,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
             if (m_uiEnrageTimer < uiDiff)
             {
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_ENRAGE : SPELL_ENRAGE_H);
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ENRAGE : SPELL_ENRAGE_H);
                 m_uiEnrageTimer = urand(10000, 20000);
             }
             else
@@ -234,4 +235,3 @@ void AddSC_boss_ingvar()
     newscript->GetAI = &GetAI_npc_annhylde;
     newscript->RegisterSelf();
 }
-

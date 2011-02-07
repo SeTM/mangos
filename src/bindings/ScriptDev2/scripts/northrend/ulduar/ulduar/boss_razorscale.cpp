@@ -142,34 +142,33 @@ struct MANGOS_DLL_DECL mob_devouring_flame_targetAI : public ScriptedAI
 {
     mob_devouring_flame_targetAI(Creature* pCreature) : ScriptedAI(pCreature) 
     {
-        Reset();
-        SetCombatMovement(false);
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetCombatMovement(false);
+        Reset();
     }
 
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 Death_Timer;
+    uint32 m_uiDeath_Timer;
 
     void Reset()
     {
-        Death_Timer = 25500;
+        m_uiDeath_Timer = 25500;
         m_creature->SetDisplayId(11686);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         DoCast(m_creature,  m_bIsRegularMode ? AURA_DEVOURING_FLAME : AURA_DEVOURING_FLAME_H);
     }
 
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (Death_Timer < diff)
-        {
+        if (m_uiDeath_Timer < uiDiff)
             m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        }else Death_Timer -= diff;
+        else m_uiDeath_Timer -= uiDiff;
     }
 };
 
@@ -182,42 +181,43 @@ CreatureAI* GetAI_mob_devouring_flame_target(Creature* pCreature)
 struct MANGOS_DLL_DECL mob_dark_rune_watcherAI : public ScriptedAI
 {
     mob_dark_rune_watcherAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
+	{
+		m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-    }
+	}
 
-    ScriptedInstance* m_pInstance;
+	ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 Spell_Timer;
+	uint32 m_uiSpell_Timer;
 
     void Reset()
     {
-        Spell_Timer = 10000;
+		m_uiSpell_Timer = urand(5000, 10000);
     }
 
-    void UpdateAI(const uint32 diff)
+	void UpdateAI(const uint32 diff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (Spell_Timer < diff)
+		if (m_uiSpell_Timer < diff)
         {
-            switch(urand(0, 1))
+			switch(urand(0, 1))
             {
                 case 0:
-                    DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_LIGHTNING_BOLT : SPELL_LIGHTNING_BOLT_H);
-                break;
-                case 1:
-                    DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
-                break;
-            }
-            Spell_Timer = urand(7000, 11000);
-        }else Spell_Timer -= diff;        
-        
-        DoMeleeAttackIfReady();
-    }
+					DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_LIGHTNING_BOLT : SPELL_LIGHTNING_BOLT_H);
+				break;
+				case 1:
+					DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
+				break;
+			}
+            m_uiSpell_Timer = urand(5000, 10000);
+        }else m_uiSpell_Timer -= diff;        
+		
+		DoMeleeAttackIfReady();
+	}
 };
 
 CreatureAI* GetAI_mob_dark_rune_watcher(Creature* pCreature)
@@ -229,42 +229,43 @@ CreatureAI* GetAI_mob_dark_rune_watcher(Creature* pCreature)
 struct MANGOS_DLL_DECL mob_dark_rune_sentinelAI : public ScriptedAI
 {
     mob_dark_rune_sentinelAI(Creature* pCreature) : ScriptedAI(pCreature) 
-    {
+	{
+		m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-    }
+	}
 
-    ScriptedInstance* m_pInstance;
+	ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 Whirl_Timer;
-    uint32 Shout_Timer;
+	uint32 m_uiWhirl_Timer;
+	uint32 m_uiShout_Timer;
 
     void Reset()
     {
-        Whirl_Timer = 10000;
-        Shout_Timer = 2000;
+		m_uiWhirl_Timer = 10000;
+		m_uiShout_Timer = 2000;
     }
 
-    void UpdateAI(const uint32 diff)
+	void UpdateAI(const uint32 diff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (Whirl_Timer < diff)
+		if (m_uiWhirl_Timer < diff)
         {
-            DoCast(m_creature, SPELL_WHIRLWIND);
-            Whirl_Timer = urand(10000, 15000);
-        }else Whirl_Timer -= diff;
+			DoCast(m_creature, SPELL_WHIRLWIND);
+            m_uiWhirl_Timer = urand(10000, 15000);
+        }else m_uiWhirl_Timer -= diff;
 
-        if (Shout_Timer < diff)
+		if (m_uiShout_Timer < diff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_BATTLE_SHOUT : SPELL_BATTLE_SHOUT_H);
-            Shout_Timer = 30000;
-        }else Shout_Timer -= diff;
-        
-        DoMeleeAttackIfReady();
-    }
+			DoCast(m_creature, m_bIsRegularMode ? SPELL_BATTLE_SHOUT : SPELL_BATTLE_SHOUT_H);
+            m_uiShout_Timer = 30000;
+        }else m_uiShout_Timer -= diff;
+		
+		DoMeleeAttackIfReady();
+	}
 
 };
 
@@ -277,35 +278,34 @@ CreatureAI* GetAI_mob_dark_rune_sentinel(Creature* pCreature)
 struct MANGOS_DLL_DECL mob_dark_rune_guardianAI : public ScriptedAI
 {
     mob_dark_rune_guardianAI(Creature* pCreature) : ScriptedAI(pCreature) 
-    {
+	{
+		m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-    }
+	}
 
-    ScriptedInstance* m_pInstance;
+	ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 Stormstrike_Timer;
+	uint32 m_uiStormstrike_Timer;
 
     void Reset()
     {
-        Stormstrike_Timer = 10000;
+		m_uiStormstrike_Timer = 10000;
     }
 
-    void UpdateAI(const uint32 diff)
+	void UpdateAI(const uint32 diff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (Stormstrike_Timer < diff)
+		if (m_uiStormstrike_Timer < diff)
         {
-            DoCast(m_creature->getVictim(), SPELL_STORMSTRIKE);
-            Stormstrike_Timer = urand(7000, 13000);
-        }else Stormstrike_Timer -= diff;
-        
-        DoMeleeAttackIfReady();
-    }
-
+			DoCast(m_creature->getVictim(), SPELL_STORMSTRIKE);
+            m_uiStormstrike_Timer = urand(7000, 13000);
+        }else m_uiStormstrike_Timer -= diff;
+		
+		DoMeleeAttackIfReady();
+	}
 };
 
 CreatureAI* GetAI_mob_dark_rune_guardian(Creature* pCreature)
@@ -592,7 +592,7 @@ void AddSC_boss_razorscale()
 
     NewScript = new Script;
     NewScript->Name = "boss_razorscale";
-    NewScript->GetAI = &GetAI_boss_razorscale;
+    NewScript->GetAI = GetAI_boss_razorscale;
     NewScript->RegisterSelf();
 
     NewScript = new Script;

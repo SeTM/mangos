@@ -85,6 +85,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public BSWScriptedAI
     {
         if(!m_pInstance) 
             return;
+
         m_pInstance->SetData(TYPE_JARAXXUS, NOT_STARTED);
 //        SetEquipmentSlots(false, EQUIP_MAIN, EQUIP_OFFHAND, EQUIP_RANGED);
         m_portalsCount = 1;
@@ -526,4 +527,3 @@ void AddSC_boss_jaraxxus()
     newscript->GetAI = &GetAI_mob_mistress_of_pain;
     newscript->RegisterSelf();
 }
-

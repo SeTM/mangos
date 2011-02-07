@@ -1,5 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>* This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
 * (at your option) any later version.
@@ -83,6 +82,7 @@ struct MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance
             case TYPE_INTRO:    m_auiEncounter[0] = uiData; break;
             case TYPE_BRONJAHM: m_auiEncounter[1] = uiData; break;
             case TYPE_DEVOURER: m_auiEncounter[2] = uiData; break;
+            default: break;
         }
 
         if (uiData == DONE)
@@ -174,4 +174,3 @@ void AddSC_instance_forge_of_souls()
     pNewScript->GetInstanceData = &GetInstanceData_instance_forge_of_souls;
     pNewScript->RegisterSelf();
 }
-

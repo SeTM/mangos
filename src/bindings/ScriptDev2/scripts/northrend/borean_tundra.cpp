@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Borean_Tundra
 SD%Complete: 100
-SDComment: Quest support: 11708, 11692, 11961. Taxi vendors. 11570
+SDComment: Quest support: 11570, 11590, 11692, 11676, 11708, 11919, 11940, 11961. Taxi vendors. 
 SDCategory: Borean Tundra
 EndScriptData */
 
@@ -25,13 +25,20 @@ EndScriptData */
 npc_fizzcrank_fullthrottle
 npc_iruk
 npc_kara_thricestar
+npc_nesingwary_trapper
+go_caribou_trap
 npc_surristrasz
 npc_tiare
 npc_lurgglbr
+npc_nexus_drake
+go_scourge_cage
+npc_beryl_sorcerer
 EndContentData */
 
 #include "precompiled.h"
 #include "escort_ai.h"
+#include "ObjectMgr.h"
+#include "follower_ai.h"
 
 /*######
 ## npc_fizzcrank_fullthrottle
@@ -179,6 +186,135 @@ bool GossipSelect_npc_kara_thricestar(Player* pPlayer, Creature* pCreature, uint
             pPlayer->CLOSE_GOSSIP_MENU();
             pPlayer->CastSpell(pPlayer, SPELL_FIZZCRANK_AIRSTRIP, false);
             break;
+    }
+
+    return true;
+}
+
+/*######
+## npc_nesingwary_trapper
+######*/
+
+enum
+{
+    NPC_NESINGWARY_TRAPPER  = 25835,
+    GO_QUALITY_FUR          = 187983,
+
+    SAY_PHRASE_1            = -1000599,
+    SAY_PHRASE_2            = -1000600,
+    SAY_PHRASE_3            = -1000601,
+    SAY_PHRASE_4            = -1000602
+};
+
+struct MANGOS_DLL_DECL npc_nesingwary_trapperAI : public ScriptedAI
+{
+    npc_nesingwary_trapperAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    uint8 m_uiPhase;
+    uint32 m_uiPhaseTimer;
+    uint64 m_uiPlayerGUID;
+    uint64 m_uiGobjectTrapGUID;
+
+    void Reset()
+    {
+        m_uiPhase = 0;
+        m_uiPhaseTimer = 0;
+        m_uiPlayerGUID = 0;
+        m_uiGobjectTrapGUID = 0;
+    }
+
+    void StartAction(uint64 uiPlayerGUID, uint64 uiGoTrapGUID)
+    {
+        m_uiPhase = 1;
+        m_uiPhaseTimer = 3000;
+        m_uiPlayerGUID = uiPlayerGUID;
+        m_uiGobjectTrapGUID = uiGoTrapGUID;
+
+        switch (urand(0, 3))
+        {
+            case 0: DoScriptText(SAY_PHRASE_1, m_creature); break;
+            case 1: DoScriptText(SAY_PHRASE_2, m_creature); break;
+            case 2: DoScriptText(SAY_PHRASE_3, m_creature); break;
+            case 3: DoScriptText(SAY_PHRASE_4, m_creature); break;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->getVictim() && m_uiPhase)
+        {
+            if (m_uiPhaseTimer <= uiDiff)
+            {
+                switch(m_uiPhase)
+                {
+                    case 1:
+                        if (GameObject* pTrap = m_creature->GetMap()->GetGameObject(m_uiGobjectTrapGUID))
+                        {
+                            if (pTrap->isSpawned())
+                                m_creature->GetMotionMaster()->MovePoint(0, pTrap->GetPositionX(), pTrap->GetPositionY(), pTrap->GetPositionZ());
+                        }
+                        break;
+                    case 2:
+                        if (GameObject* pTrap = m_creature->GetMap()->GetGameObject(m_uiGobjectTrapGUID))
+                        {
+                            if (pTrap->isSpawned())
+                            {
+                                pTrap->Use(m_creature);
+
+                                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID))
+                                {
+                                    if (pPlayer->isAlive())
+                                        pPlayer->KilledMonsterCredit(m_creature->GetEntry());
+                                }
+                            }
+                        }
+                        break;
+                }
+
+                m_uiPhase = 0;
+            }
+            else
+                m_uiPhaseTimer -= uiDiff;
+        }
+    }
+
+    void MovementInform(uint32 uiType, uint32 uiPointId)
+    {
+        m_creature->HandleEmote(EMOTE_ONESHOT_LOOT);
+        m_uiPhaseTimer = 2000;
+        m_uiPhase = 2;
+    }
+};
+
+CreatureAI* GetAI_npc_nesingwary_trapper(Creature* pCreature)
+{
+    return new npc_nesingwary_trapperAI(pCreature);
+}
+
+/*######
+## go_caribou_trap
+######*/
+
+bool GOUse_go_caribou_trap(Player* pPlayer, GameObject* pGo)
+{
+    float fX, fY, fZ;
+    pGo->GetClosePoint(fX, fY, fZ, pGo->GetObjectBoundingRadius(), 2*INTERACTION_DISTANCE, frand(0, M_PI_F*2));
+
+    if (Creature* pCreature = pGo->SummonCreature(NPC_NESINGWARY_TRAPPER, fX, fY, fZ, pGo->GetOrientation(), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 10000))
+    {
+        if (npc_nesingwary_trapperAI* pTrapperAI = dynamic_cast<npc_nesingwary_trapperAI*>(pCreature->AI()))
+            pTrapperAI->StartAction(pPlayer->GetGUID(), pGo->GetGUID());
+
+        pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+
+        if (GameObject* pGoFur = GetClosestGameObjectWithEntry(pGo, GO_QUALITY_FUR, INTERACTION_DISTANCE))
+        {
+            if (!pGoFur->isSpawned())
+            {
+                pGoFur->SetRespawnTime(10);
+                pGoFur->Refresh();
+            }
+        }
     }
 
     return true;
@@ -450,6 +586,215 @@ CreatureAI* GetAI_npc_lurgglbr(Creature* pCreature)
     return new npc_lurgglbrAI(pCreature);
 }
 
+/*######
+## npc_nexus_drake_hatchling
+######*/
+
+enum
+{
+    SPELL_DRAKE_HARPOON             = 46607,
+    SPELL_RED_DRAGONBLOOD           = 46620,
+    SPELL_DRAKE_HATCHLING_SUBDUED   = 46691,
+    SPELL_SUBDUED                   = 46675,
+
+    NPC_RAELORASZ                   = 26117,
+    DRAKE_HUNT_KILL_CREDIT          = 26175,
+
+    QUEST_DRAKE_HUNT                = 11919,
+    QUEST_DRAKE_HUNT_D              = 11940
+
+};
+
+struct MANGOS_DLL_DECL npc_nexus_drakeAI : public FollowerAI
+{
+    npc_nexus_drakeAI(Creature* pCreature) : FollowerAI(pCreature) { Reset(); }
+    
+     uint64 uiHarpoonerGUID;
+     bool bWithRedDragonBlood;
+     bool bIsFollowing;
+
+     void Reset()
+     {
+         bWithRedDragonBlood = false;
+         bIsFollowing = false;
+     }
+
+     void EnterCombat(Unit* pWho)
+     {
+         AttackStart(pWho);
+     }
+     
+     void SpellHit(Unit* pCaster, SpellEntry const* pSpell)
+     {
+            if (pSpell->Id == SPELL_DRAKE_HARPOON && pCaster->GetTypeId() == TYPEID_PLAYER)
+            {
+                uiHarpoonerGUID = pCaster->GetGUID();
+                DoCast(m_creature, SPELL_RED_DRAGONBLOOD, true);
+            }
+            m_creature->Attack(pCaster,true);
+            bWithRedDragonBlood = true;
+     }
+
+     void MoveInLineOfSight(Unit *pWho)
+     {
+         FollowerAI::MoveInLineOfSight(pWho);
+
+
+         if (pWho->GetEntry() == NPC_RAELORASZ && m_creature->IsWithinDistInMap(pWho, INTERACTION_DISTANCE))
+         {
+           if (Player *pHarpooner = m_creature->GetMap()->GetPlayer(uiHarpoonerGUID))
+                 {
+                    
+                     pHarpooner->KilledMonsterCredit(DRAKE_HUNT_KILL_CREDIT,m_creature->GetGUID());
+                     pHarpooner->RemoveAurasByCasterSpell(SPELL_DRAKE_HATCHLING_SUBDUED,uiHarpoonerGUID);
+                     SetFollowComplete();
+                     uiHarpoonerGUID = 0;
+                     m_creature->ForcedDespawn(1000);
+                 }
+              
+          }
+      }
+     
+     void UpdateAI(const uint32 uidiff)
+        {
+            if (bWithRedDragonBlood && uiHarpoonerGUID && !m_creature->HasAura(SPELL_RED_DRAGONBLOOD))
+            {
+                if (Player *pHarpooner = m_creature->GetMap()->GetPlayer(uiHarpoonerGUID))
+                {
+                    EnterEvadeMode();
+                    StartFollow(pHarpooner, 35, NULL);
+
+                    DoCast(m_creature, SPELL_SUBDUED, true);
+                    pHarpooner->CastSpell(pHarpooner, SPELL_DRAKE_HATCHLING_SUBDUED, true);
+
+                    m_creature->AttackStop();
+                    bIsFollowing = true;
+                    bWithRedDragonBlood = false;
+                }
+            }
+            if(bIsFollowing && !m_creature->HasAura(SPELL_SUBDUED))
+            {
+                m_creature->ForcedDespawn(1000);
+            }
+
+            if (!m_creature->getVictim())
+                return;
+
+            DoMeleeAttackIfReady();
+        }
+};
+
+CreatureAI* GetAI_npc_nexus_drake(Creature* pCreature)
+{
+    return new npc_nexus_drakeAI(pCreature);
+}
+
+/*#####
+## go_scourge_cage
+#####*/
+
+enum
+{
+    QUEST_MERCIFUL_FREEDOM      =  11676,
+    NPC_SCOURGE_PRISONER        =  25610,
+};
+
+bool GOHello_go_scourge_cage(Player* pPlayer, GameObject* pGo)
+{
+    if (pPlayer->GetQuestStatus(QUEST_MERCIFUL_FREEDOM) == QUEST_STATUS_INCOMPLETE)
+    {
+        Creature *pCreature = GetClosestCreatureWithEntry(pGo, NPC_SCOURGE_PRISONER, INTERACTION_DISTANCE);
+        if(pCreature)
+        {
+            pPlayer->KilledMonsterCredit(NPC_SCOURGE_PRISONER, pCreature->GetGUID());
+            pCreature->CastSpell(pCreature, 43014, false);
+        }
+    }
+    return false;
+};
+
+/*######
+## npc_beryl_sorcerer
+######*/
+
+enum eBerylSorcerer
+{
+    NPC_CAPTURED_BERLY_SORCERER         = 25474,
+    NPC_LIBRARIAN_DONATHAN              = 25262,
+
+    SPELL_ARCANE_CHAINS                 = 45611,
+    SPELL_COSMETIC_CHAINS               = 54324,
+    SPELL_COSMETIC_ENSLAVE_CHAINS_SELF  = 45631
+};
+
+struct MANGOS_DLL_DECL npc_beryl_sorcererAI : public FollowerAI
+{
+    npc_beryl_sorcererAI(Creature* pCreature) : FollowerAI(pCreature) { 
+        m_uiNormalFaction = pCreature->getFaction();
+        Reset(); 
+    }
+
+    bool bEnslaved;
+    uint64 uiChainerGUID;
+    uint32 m_uiNormalFaction;
+
+    void Reset()
+    {
+         m_creature->setFaction(m_uiNormalFaction);
+         bEnslaved = false;
+    }
+    void EnterCombat(Unit* pWho)
+    {
+            AttackStart(pWho);
+    }
+    
+    void SpellHit(Unit* pCaster, SpellEntry const* pSpell)
+    {
+        if (pSpell->Id == SPELL_ARCANE_CHAINS && pCaster->GetTypeId() == TYPEID_PLAYER && !bEnslaved)
+            {
+                EnterEvadeMode(); //We make sure that the npc is not attacking the player!
+                m_creature->setFaction(35);
+                uiChainerGUID = pCaster->GetGUID();
+                if(Player *pChainer = m_creature->GetMap()->GetPlayer(uiChainerGUID))
+                {
+                StartFollow(pChainer, 35, NULL);
+                m_creature->UpdateEntry(NPC_CAPTURED_BERLY_SORCERER);
+                DoCast(m_creature, SPELL_COSMETIC_ENSLAVE_CHAINS_SELF, true);
+               
+                bEnslaved = true;
+                }
+            }
+    }
+
+    void MoveInLineOfSight(Unit* pWho)
+    {
+            FollowerAI::MoveInLineOfSight(pWho);
+
+            if (pWho->GetEntry() == NPC_LIBRARIAN_DONATHAN && m_creature->IsWithinDistInMap(pWho, INTERACTION_DISTANCE))
+            {
+                if(Player *pChainer = m_creature->GetMap()->GetPlayer(uiChainerGUID))
+                {
+                    pChainer->KilledMonsterCredit(NPC_CAPTURED_BERLY_SORCERER,m_creature->GetGUID());
+                    SetFollowComplete();
+                    m_creature->ForcedDespawn(1000);
+                }
+            }
+     }
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->getVictim())
+                return;
+
+            DoMeleeAttackIfReady();
+    }
+
+};
+
+CreatureAI* GetAI_npc_beryl_sorcerer(Creature* pCreature)
+{
+    return new npc_beryl_sorcererAI(pCreature);
+}
+
 void AddSC_borean_tundra()
 {
     Script *newscript;
@@ -473,6 +818,16 @@ void AddSC_borean_tundra()
     newscript->RegisterSelf();
 
     newscript = new Script;
+    newscript->Name = "npc_nesingwary_trapper";
+    newscript->GetAI = &GetAI_npc_nesingwary_trapper;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "go_caribou_trap";
+    newscript->pGOUse = &GOUse_go_caribou_trap;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
     newscript->Name = "npc_surristrasz";
     newscript->pGossipHello = &GossipHello_npc_surristrasz;
     newscript->pGossipSelect = &GossipSelect_npc_surristrasz;
@@ -493,5 +848,20 @@ void AddSC_borean_tundra()
     newscript->Name = "npc_lurgglbr";
     newscript->GetAI = &GetAI_npc_lurgglbr;
     newscript->pQuestAcceptNPC = &QuestAccept_npc_lurgglbr;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_nexus_drake";
+    newscript->GetAI = &GetAI_npc_nexus_drake;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "go_scourge_cage";
+    newscript->pGOUse = &GOHello_go_scourge_cage;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_beryl_sorcerer";
+    newscript->GetAI = &GetAI_npc_beryl_sorcerer;
     newscript->RegisterSelf();
 }

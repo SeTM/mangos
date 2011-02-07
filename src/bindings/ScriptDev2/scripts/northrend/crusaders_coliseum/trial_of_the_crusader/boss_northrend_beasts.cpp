@@ -169,7 +169,9 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public BSWScriptedAI
         pBoss = NULL;
         defaultTarget = NULL;
         m_creature->SetInCombatWithZone();
-        m_creature->SetRespawnDelay(DAY);            
+        m_creature->SetRespawnDelay(DAY);
+        pBoss = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GORMOK));
+        if (pBoss) doCast(SPELL_RISING_ANGER,pBoss);
     }
 
     void Aggro(Unit *who)
@@ -769,4 +771,3 @@ void AddSC_northrend_beasts()
     newscript->GetAI = &GetAI_mob_fire_bomb;
     newscript->RegisterSelf();
 }
-

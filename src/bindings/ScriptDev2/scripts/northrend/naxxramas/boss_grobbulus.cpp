@@ -1,32 +1,29 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/* ScriptData
+SDName: Boss_Grobbulus
+SDAuthor: ckegg
+SD%Complete: 0
+SDComment: Place holder
+SDCategory: Naxxramas
+EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
-
-
-/*Poison Cloud 26590
-Slime Spray 28157
-Fallout slime 28218
-Mutating Injection 28169
-Mutagen Explosion 28206
-Enrages 26527
-update creature_template set ScriptName='boss_grobbulus' where entry=15931;
-update creature_template set ScriptName='npc_grobbulus_poison_cloud',faction_A=14,faction_H=14,unit_flags=unit_flags|'33554432' where entry=16363;
-update creature_template set minhealth=75600,maxhealth=75600 where entry=16290;*/
+#include "naxxramas.h"
 
 #define SPELL_BOMBARD_SLIME         28280
 
@@ -55,7 +52,6 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     uint32 MutatingInjection_Timer;
     uint32 SlimeSpary_Timer;
     uint32 Enrage_Timer;
-    //	uint32 PoisonGuard;
     void Reset()
     {
         PoisonCloud_Timer = 15000;
@@ -79,13 +75,14 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     void JustDied(Unit* Killer)
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_GROBBULUS, DONE);
+            m_pInstance->SetData(TYPE_GROBBULUS, DONE);
+
     }
 
     void Aggro(Unit *who)
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_GROBBULUS, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_GROBBULUS, IN_PROGRESS);
     }
 
     void SpellHitTarget(Unit *target, const SpellEntry *spell)
@@ -102,8 +99,8 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
             if (Creature* pSlime = m_creature->SummonCreature(MOB_POISON_SLIME, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, MINUTE*1.5*IN_MILLISECONDS))
                 pSlime->SetInCombatWithZone();
         }*/
-    } 
-
+    }
+    
     void UpdateAI(const uint32 diff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -138,13 +135,13 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
 
         if (SlimeSpary_Timer < diff)
         {
-            DoCast(m_creature->getVictim(), !m_bIsRegularMode ? H_SPELL_SLIME_SPRAY : SPELL_SLIME_SPRAY);
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_SLIME_SPRAY : H_SPELL_SLIME_SPRAY);
             SlimeSpary_Timer = 15000+rand()%15000;
         }else SlimeSpary_Timer -= diff;
 
         if (Enrage_Timer < diff)
         {
-            DoCast(m_creature, SPELL_BERSERK);
+            DoCast(m_creature, SPELL_BERSERK, true);
             Enrage_Timer = 10000;
         }else Enrage_Timer -= diff;
 

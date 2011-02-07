@@ -305,59 +305,52 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         case TYPE_BEASTS:    m_auiEncounter[1] = uiData; break;
         case TYPE_JARAXXUS:  m_auiEncounter[2] = uiData; break;
         case TYPE_CRUSADERS: if (uiData == FAIL && (m_auiEncounter[3] == FAIL || m_auiEncounter[3] == NOT_STARTED))
-                                 m_auiEncounter[3] = NOT_STARTED;
+                             m_auiEncounter[3] = NOT_STARTED;
                              else  m_auiEncounter[3] = uiData;
-                             if (uiData == DONE) 
-                             {
-                                 if (GameObject* pChest = instance->GetGameObject(m_uiCrusadersCacheGUID))
-                                     if (pChest && !pChest->isSpawned())
-                                         pChest->SetRespawnTime(7*DAY);
-                             }
+                             if (uiData == DONE) {
+                                   if (GameObject* pChest = instance->GetGameObject(m_uiCrusadersCacheGUID))
+                                       if (pChest && !pChest->isSpawned())
+                                             pChest->SetRespawnTime(7*DAY);
+                                   };
                              break;
-        case TYPE_CRUSADERS_COUNT:  if (uiData == NOT_STARTED)
-                                        --m_auiCrusadersCount;
-                                    else m_auiCrusadersCount = uiData;
+        case TYPE_CRUSADERS_COUNT:  if (uiData == 0) --m_auiCrusadersCount;
+                                         else m_auiCrusadersCount = uiData;
                                     break;
-        case TYPE_VALKIRIES: if (m_auiEncounter[4] == SPECIAL && uiData == SPECIAL)
-                                 uiData = DONE;
+        case TYPE_VALKIRIES: if (m_auiEncounter[4] == SPECIAL && uiData == SPECIAL) uiData = DONE;
                              m_auiEncounter[4] = uiData; break;
         case TYPE_LICH_KING: m_auiEncounter[5] = uiData; break;
         case TYPE_ANUBARAK:  m_auiEncounter[6] = uiData; 
-                            if (uiData == DONE) 
-                            {
-                                if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
-                                {
-                                    if ( m_auiEncounter[7] >= 25) m_uiTributeChest1GUID = m_uiTC10h25GUID;
-                                    if ( m_auiEncounter[7] >= 45) m_uiTributeChest2GUID = m_uiTC10h45GUID;
-                                    if ( m_auiEncounter[7] >= 49) m_uiTributeChest3GUID = m_uiTC10h50GUID;
-                                    m_uiTributeChest4GUID = m_uiTC10h99GUID;
-                                }
-                                
-                                if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-                                {
-                                    if ( m_auiEncounter[7] >= 25) m_uiTributeChest1GUID = m_uiTC25h25GUID;
-                                    if ( m_auiEncounter[7] >= 45) m_uiTributeChest2GUID = m_uiTC25h45GUID;
-                                    if ( m_auiEncounter[7] >= 49) m_uiTributeChest3GUID = m_uiTC25h50GUID;
-                                    m_uiTributeChest4GUID = m_uiTC25h99GUID;
-                                }
+                            if (uiData == DONE) {
+                            if(Difficulty == RAID_DIFFICULTY_10MAN_HEROIC){
+                                if ( m_auiEncounter[7] >= 25) m_uiTributeChest1GUID = m_uiTC10h25GUID;
+                                if ( m_auiEncounter[7] >= 45) m_uiTributeChest2GUID = m_uiTC10h45GUID;
+                                if ( m_auiEncounter[7] >= 49) m_uiTributeChest3GUID = m_uiTC10h50GUID;
+                                m_uiTributeChest4GUID = m_uiTC10h99GUID;
+                            }
+                            if(Difficulty == RAID_DIFFICULTY_25MAN_HEROIC){
+                                if ( m_auiEncounter[7] >= 25) m_uiTributeChest1GUID = m_uiTC25h25GUID;
+                                if ( m_auiEncounter[7] >= 45) m_uiTributeChest2GUID = m_uiTC25h45GUID;
+                                if ( m_auiEncounter[7] >= 49) m_uiTributeChest3GUID = m_uiTC25h50GUID;
+                                m_uiTributeChest4GUID = m_uiTC25h99GUID;
+                            }
                             // Attention! It is (may be) not off-like, but  spawning all Tribute Chests is real
                             // reward for clearing TOC instance
                             if (m_uiTributeChest1GUID)
-                                if (GameObject* pChest1 = instance->GetGameObject(m_uiTributeChest1GUID))
-                                    if (pChest1 && !pChest1->isSpawned()) pChest1->SetRespawnTime(7*DAY);
+                              if (GameObject* pChest1 = instance->GetGameObject(m_uiTributeChest1GUID))
+                                if (pChest1 && !pChest1->isSpawned()) pChest1->SetRespawnTime(7*DAY);
                             if (m_uiTributeChest2GUID)
-                                if (GameObject* pChest2 = instance->GetGameObject(m_uiTributeChest2GUID))
-                                    if (pChest2 && !pChest2->isSpawned()) pChest2->SetRespawnTime(7*DAY);
+                              if (GameObject* pChest2 = instance->GetGameObject(m_uiTributeChest2GUID))
+                                if (pChest2 && !pChest2->isSpawned()) pChest2->SetRespawnTime(7*DAY);
                             if (m_uiTributeChest3GUID)
-                                if (GameObject* pChest3 = instance->GetGameObject(m_uiTributeChest3GUID))
-                                    if (pChest3 && !pChest3->isSpawned()) pChest3->SetRespawnTime(7*DAY);
+                              if (GameObject* pChest3 = instance->GetGameObject(m_uiTributeChest3GUID))
+                                if (pChest3 && !pChest3->isSpawned()) pChest3->SetRespawnTime(7*DAY);
                             if (m_uiTributeChest4GUID)
-                                if (GameObject* pChest4 = instance->GetGameObject(m_uiTributeChest4GUID))
-                                    if (pChest4 && !pChest4->isSpawned()) pChest4->SetRespawnTime(7*DAY);
+                              if (GameObject* pChest4 = instance->GetGameObject(m_uiTributeChest4GUID))
+                                if (pChest4 && !pChest4->isSpawned()) pChest4->SetRespawnTime(7*DAY);
                             };
         break;
-        case TYPE_COUNTER:          m_auiEncounter[7] = uiData; uiData = DONE; break;
-        case TYPE_EVENT:            m_auiEncounter[8] = uiData; uiData = NOT_STARTED; break;
+        case TYPE_COUNTER:   m_auiEncounter[7] = uiData; uiData = DONE; break;
+        case TYPE_EVENT:     m_auiEncounter[8] = uiData; uiData = NOT_STARTED; break;
         case TYPE_EVENT_TIMER:      m_auiEventTimer = uiData; uiData = NOT_STARTED; break;
         case TYPE_NORTHREND_BEASTS: m_auiNorthrendBeasts = uiData; break;
         case DATA_HEALTH_FJOLA:     m_uiDataDamageFjola = uiData; uiData = NOT_STARTED; break;
@@ -638,4 +631,3 @@ void AddSC_instance_trial_of_the_crusader()
     newscript->GetInstanceData = &GetInstanceData_instance_trial_of_the_crusader;
     newscript->RegisterSelf();
 }
-

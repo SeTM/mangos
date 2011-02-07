@@ -254,10 +254,10 @@ struct MANGOS_DLL_DECL npc_demoniac_scryerAI : public ScriptedAI
 
         switch(m_uiButtressCount)
         {
-        case 1: fAngle = 0.0f; break;
-        case 2: fAngle = M_PI_F+M_PI_F/2; break;
-        case 3: fAngle = M_PI_F/2; break;
-        case 4: fAngle = M_PI_F; break;
+            case 1: fAngle = 0.0f; break;
+            case 2: fAngle = M_PI_F+M_PI_F/2; break;
+            case 3: fAngle = M_PI_F/2; break;
+            case 4: fAngle = M_PI_F; break;
         }
 
         float fX, fY, fZ;

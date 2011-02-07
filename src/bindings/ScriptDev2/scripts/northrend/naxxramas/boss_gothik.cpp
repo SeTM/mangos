@@ -1,29 +1,28 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 /* ScriptData
 SDName: Boss_Gothik
-SDAuthor: ckegg
 SD%Complete: 0
-SDComment: Center gate.........?
+SDComment: Placeholder
 SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
 
 #define SAY_SPEECH                  -1533040
 #define SAY_KILL                    -1533041
@@ -139,7 +138,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
     bool SummonPhase;
     bool BlinkPhase;
 
-    std::list<ObjectGuid> SummonsList;
+    std::list<uint64> SummonsList;
 
     uint32 waveCount;
     uint32 Summon_Timer;
@@ -163,17 +162,9 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
         Blink_Timer = 30000;
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-    }
 
-    void JustRespawned()
-    {
-        JustReachedHome();
-    }
-
-    void JustReachedHome()
-    {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_GOTHIK, NOT_STARTED);
+            m_pInstance->SetData(TYPE_GOTHIK, NOT_STARTED);
     }
 
     void EnterCombat(Unit *who)
@@ -186,10 +177,10 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
 
         if (m_pInstance)
         {
-            m_pInstance->SetData(ENCOUNT_GOTHIK, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_GOTHIK, IN_PROGRESS);
 
-            /*if (GameObject* pGate = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(DATA_GOTHIK_GATE)))
-                pGate->SetGoState(GO_STATE_READY);*/
+            if (GameObject* pGate = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(DATA_GOTHIK_GATE)))
+                pGate->SetGoState(GO_STATE_READY);
         }
     }
 
@@ -204,7 +195,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_GOTHIK, DONE);
+            m_pInstance->SetData(TYPE_GOTHIK, DONE);
     }
 
     void JustSummoned(Creature* pSummon)
@@ -228,7 +219,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
 
             if (ShadowBolt_Timer < diff)
             {
-                DoCast(m_creature->getVictim(), m_bIsRegularMode ? H_SPELL_SHADOWBOLT : SPELL_SHADOWBOLT);
+                DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SHADOWBOLT : H_SPELL_SHADOWBOLT);
                 ShadowBolt_Timer = 1000 + rand()%500;
             }else ShadowBolt_Timer -= diff;
 
@@ -258,7 +249,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
                     {
                         uint8 SummonLoc = rand()%POS_LIVE;
                         if (Creature* pTemp = m_creature->SummonCreature(waves[waveCount].entry, PosSummonLive[SummonLoc][0], PosSummonLive[SummonLoc][1], PosSummonLive[SummonLoc][2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
-                            SummonsList.push_back(pTemp->GetObjectGuid());
+                            SummonsList.push_back(pTemp->GetGUID());
                     }
                     Summon_Timer = waves[waveCount].time;
                     ++waveCount;
@@ -279,9 +270,9 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
         {
             if (!SummonsList.empty())
             {
-                for(std::list<ObjectGuid>::iterator itr = SummonsList.begin(); itr != SummonsList.end(); ++itr)
+                for(std::list<uint64>::iterator itr = SummonsList.begin(); itr != SummonsList.end(); ++itr)
                 {
-                    if (Creature* pTemp = ((Creature*)m_creature->GetMap()->GetUnit(*itr)))
+                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                     {
                         if (!pTemp->isAlive())
                         {
@@ -296,9 +287,9 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
                                 m_creature->SummonCreature(MOB_DEAD_HORSE, PosSummonDead[SummonLoc][0], PosSummonDead[SummonLoc][1], PosSummonDead[SummonLoc][2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
                             }
 
-                            /*if (m_pInstance)
+                            if (m_pInstance)
                                 if (GameObject* pGate = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(DATA_GOTHIK_GATE)))
-                                    pGate->SetGoState(GO_STATE_ACTIVE);*/
+                                    pGate->SetGoState(GO_STATE_ACTIVE);
                             SummonsList.remove(pTemp->GetGUID());
                             break;
                         }

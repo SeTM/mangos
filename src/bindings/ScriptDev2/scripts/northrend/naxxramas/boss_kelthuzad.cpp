@@ -22,7 +22,7 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
 
 //when shappiron dies. dialog between kel and lich king (in this order)
 #define SAY_SAPP_DIALOG1            -1533084
@@ -162,50 +162,50 @@ float AddNpc[7][4]=
 float AddLocations[42][4]=
 {
     // banshe
-    {3757.66, -5150.64, 143.565, 2.0745},
-    {3760,    -5158.89, 143.591, 2.0745},
-    {3742.31, -5160.77, 143.431, 2.06665},
-    {3701.89, -5163.56, 143.385, 1.15951},
-    {3666.62, -5150.67, 143.652, 0.561034},
-    {3668.46, -5141.2,  143.18,  0.546897},
-    {3662.76, -5135.29, 143.354, 0.351333},
-    {3659.97, -5093.71, 143.321, 6.00542},
-    {3677.67, -5064.14, 143.294, 5.22316},
-    {3691.84, -5055.26, 143.229, 5.55617},
-    {3725.44, -5037.12, 143.668, 4.49668},
-    {3729.52, -5049.37, 143.336, 4.40243},
+    {3757.66f, -5150.64f, 143.565f, 2.0745f},
+    {3760,    -5158.89f, 143.591f, 2.0745f},
+    {3742.31f, -5160.77f, 143.431f, 2.06665f},
+    {3701.89f, -5163.56f, 143.385f, 1.15951f},
+    {3666.62f, -5150.67f, 143.652f, 0.561034f},
+    {3668.46f, -5141.2f,  143.18f,  0.546897f},
+    {3662.76f, -5135.29f, 143.354f, 0.351333f},
+    {3659.97f, -5093.71f, 143.321f, 6.00542f},
+    {3677.67f, -5064.14f, 143.294f, 5.22316f},
+    {3691.84f, -5055.26f, 143.229f, 5.55617f},
+    {3725.44f, -5037.12f, 143.668f, 4.49668f},
+    {3729.52f, -5049.37f, 143.336f, 4.40243f},
     // aboms
-    {3750.27, -5158.44, 143.184, 2.16641},
-    {3712.03, -5170.32, 143.687, 1.36845},
-    {3704.83, -5175.21, 143.573, 1.36845},
-    {3706.34, -5167.82, 143.416, 1.36845},
-    {3696.52, -5165.81, 143.639, 1.36845},
-    {3663.72, -5144.91, 143.339, 0.656883},
-    {3683.92, -5059.68, 143.182, 5.37085},
-    {3676.37, -5056.48, 143.462, 5.37085},
-    {3685.22, -5049.63, 143.474, 5.37085},
-    {3735.63, -5042.05, 143.622, 4.36632},
-    {3722.02, -5042.97, 143.63,  4.75588},
-    {3767.75, -5071.23, 143.229, 3.64297},
+    {3750.27f, -5158.44f, 143.184f, 2.16641f},
+    {3712.03f, -5170.32f, 143.687f, 1.36845f},
+    {3704.83f, -5175.21f, 143.573f, 1.36845f},
+    {3706.34f, -5167.82f, 143.416f, 1.36845f},
+    {3696.52f, -5165.81f, 143.639f, 1.36845f},
+    {3663.72f, -5144.91f, 143.339f, 0.656883f},
+    {3683.92f, -5059.68f, 143.182f, 5.37085f},
+    {3676.37f, -5056.48f, 143.462f, 5.37085f},
+    {3685.22f, -5049.63f, 143.474f, 5.37085f},
+    {3735.63f, -5042.05f, 143.622f, 4.36632f},
+    {3722.02f, -5042.97f, 143.63f,  4.75588f},
+    {3767.75f, -5071.23f, 143.229f, 3.64297f},
     // skelets
-    {3761.25, -5065.75, 143.558, 3.92887},
-    {3772.62, -5066.32, 143.461, 4.0671},
-    {3753.59, -5155.48, 143.336, 2.17114},
-    {3745.85, -5160.78, 143.385, 2.17114},
-    {3702.45, -5166.98, 143.377, 1.03231},
-    {3664.42, -5138.49, 143.18,  0.57835},
-    {3670.32, -5146.32, 143.453, 0.587775},
-    {3660.21, -5087.45, 143.606, 6.12091},
-    {3649.8,  -5090.29, 143.428, 1.6677},
-    {3650.77, -5098.65, 143.557, 2.88978},
-    {3657.9,  -5098.26, 143.412, 4.62787},
-    {3655.47, -5091.61, 143.441, 4.62787},
-    {3681.22, -5057.02, 143.181, 5.45725},
-    {3728.03, -5044.25, 143.371, 4.56739},
-    {3733.38, -5046.63, 143.527, 4.56739},
-    {3773.44, -5072.12, 143.389, 5.44939},
-    {3766.86, -5067.02, 143.449, 4.0671},
-    {3769.91, -5075.19, 143.327, 3.74979},
+    {3761.25f, -5065.75f, 143.558f, 3.92887f},
+    {3772.62f, -5066.32f, 143.461f, 4.0671f},
+    {3753.59f, -5155.48f, 143.336f, 2.17114f},
+    {3745.85f, -5160.78f, 143.385f, 2.17114f},
+    {3702.45f, -5166.98f, 143.377f, 1.03231f},
+    {3664.42f, -5138.49f, 143.18f,  0.57835f},
+    {3670.32f, -5146.32f, 143.453f, 0.587775f},
+    {3660.21f, -5087.45f, 143.606f, 6.12091f},
+    {3649.8f,  -5090.29f, 143.428f, 1.6677f},
+    {3650.77f, -5098.65f, 143.557f, 2.88978f},
+    {3657.9f,  -5098.26f, 143.412f, 4.62787f},
+    {3655.47f, -5091.61f, 143.441f, 4.62787f},
+    {3681.22f, -5057.02f, 143.181f, 5.45725f},
+    {3728.03f, -5044.25f, 143.371f, 4.56739f},
+    {3733.38f, -5046.63f, 143.527f, 4.56739f},
+    {3773.44f, -5072.12f, 143.389f, 5.44939f},
+    {3766.86f, -5067.02f, 143.449f, 4.0671f},
+    {3769.91f, -5075.19f, 143.327f, 3.74979f},
 };
 
 struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
@@ -312,7 +312,6 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(ENCOUNT_KELTHUZAD, NOT_STARTED);
     }
-
 
     void KilledUnit()
     {
@@ -585,8 +584,6 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                 Unit* pTarget = NULL;
                 ThreatList const& t_list = m_creature->getThreatManager().getThreatList();
                 std::vector<Unit *> target_list;
-                //std::vector<Unit *> targets;
-                //std::vector<Unit *> targets_2;
                 // find random player target
                 for(ThreatList::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
                 {
@@ -597,51 +594,6 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                 }
                 if (target_list.size())
                     pTarget = *(target_list.begin()+rand()%target_list.size());
-                
-                /*targets.push_back(pTarget);
-
-                // find near players
-                if (Group* pGroup = ((Player*)pTarget)->GetGroup())
-                {
-                    for(GroupReference *itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
-                    {
-                        Player *pGroupie = itr->getSource();
-                        if (pGroupie && pGroupie != pTarget && pGroupie->IsWithinDistInMap(pTarget,9.5f))
-                            targets.push_back(pGroupie);
-                    }
-                }
-
-                targets_2 = targets;
-
-                // find another players
-                for(std::vector<Unit *>::iterator iter = targets_2.begin(); iter!= targets_2.end(); ++iter)
-                {
-                    Unit *target = *iter;
-                    if (target)
-                    {
-                        if (Group* pGroup = ((Player*)target)->GetGroup())
-                        {
-                            for(GroupReference *itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
-                            {
-                                Player *pGroupie = itr->getSource();
-                                if (pGroupie && pGroupie != target && pGroupie->IsWithinDistInMap(target,9.5f))
-                                    targets.push_back(pGroupie);
-                            }
-                        }
-                    }
-                }
-
-                std::set<Unit *> iset(targets.begin(), targets.end());
-
-                for(std::set<Unit *>::iterator iter = iset.begin(); iter!= iset.end(); ++iter)
-                {
-                    DoCast(*iter,SPELL_FROST_BLAST,true);
-                }
-
-                target_list.clear();
-                targets.clear();
-                targets_2.clear();
-                iset.clear();*/
 
                 DoCast(pTarget,SPELL_FROST_BLAST, true);
 

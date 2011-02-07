@@ -453,4 +453,3 @@ void AddSC_boss_devourer_of_souls()
     newscript->GetAI = &GetAI_npc_unleashed_soul;
     newscript->RegisterSelf();
 }
-

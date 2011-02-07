@@ -7,13 +7,12 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ## Process this file with automake to produce Makefile.in
 
 ## Sub-directories to parse
@@ -23,25 +22,26 @@ BUILT_SOURCES = revision.h
 CLEANFILES = revision.h
 ## CPP flags for includes, defines, etc.
 AM_CPPFLAGS = $(MANGOS_INCLUDES) -I$(srcdir) -I$(srcdir)/../../../dep/include -I$(srcdir)/../../shared/ -I$(srcdir)/../../framework/ -I$(srcdir)/../../game/ -I$(srcdir)/include/ -I$(srcdir)/base/ -DSYSCONFDIR=\"$(sysconfdir)/\"
+
 ## Build MaNGOS script library as shared library.
 # libmangosscript shared library will later be reused by world server daemon.
 lib_LTLIBRARIES = libmangosscript.la
 libmangosscript_la_SOURCES = \
 ScriptMgr.cpp \
 ScriptMgr.h \
+config.h \
 base/escort_ai.cpp \
 base/escort_ai.h \
 base/follower_ai.cpp \
 base/follower_ai.h \
 base/guard_ai.cpp \
 base/guard_ai.h \
-base/pet_ai.cpp \
-base/pet_ai.h \
 base/BSW_instance.cpp \
 base/BSW_instance.h \
 base/BSW_ai.cpp \
 base/BSW_ai.h \
-config.h \
+base/pet_ai.cpp \
+base/pet_ai.h \
 include/precompiled.cpp \
 include/precompiled.h \
 include/sc_creature.cpp \
@@ -52,8 +52,9 @@ include/sc_grid_searchers.h \
 include/sc_instance.cpp \
 include/sc_instance.h \
 include/sc_encounter.h \
-revision.h \
 scripts/battlegrounds/battleground.cpp \
+scripts/custom/npc_arena_honor.cpp \
+scripts/custom/teleguy.cpp \
 scripts/eastern_kingdoms/alterac_mountains.cpp \
 scripts/eastern_kingdoms/arathi_highlands.cpp \
 scripts/eastern_kingdoms/blasted_lands.cpp \
@@ -174,15 +175,8 @@ scripts/eastern_kingdoms/scarlet_monastery/instance_scarlet_monastery.cpp \
 scripts/eastern_kingdoms/scarlet_monastery/scarlet_monastery.h \
 scripts/eastern_kingdoms/scholomance/boss_darkmaster_gandling.cpp \
 scripts/eastern_kingdoms/scholomance/boss_death_knight_darkreaver.cpp \
-scripts/eastern_kingdoms/scholomance/boss_doctor_theolen_krastinov.cpp \
-scripts/eastern_kingdoms/scholomance/boss_illucia_barov.cpp \
-scripts/eastern_kingdoms/scholomance/boss_instructor_malicia.cpp \
 scripts/eastern_kingdoms/scholomance/boss_jandice_barov.cpp \
 scripts/eastern_kingdoms/scholomance/boss_kormok.cpp \
-scripts/eastern_kingdoms/scholomance/boss_lord_alexei_barov.cpp \
-scripts/eastern_kingdoms/scholomance/boss_lorekeeper_polkelt.cpp \
-scripts/eastern_kingdoms/scholomance/boss_ras_frostwhisper.cpp \
-scripts/eastern_kingdoms/scholomance/boss_the_ravenian.cpp \
 scripts/eastern_kingdoms/scholomance/boss_vectus.cpp \
 scripts/eastern_kingdoms/scholomance/instance_scholomance.cpp \
 scripts/eastern_kingdoms/scholomance/scholomance.h \
@@ -212,11 +206,12 @@ scripts/eastern_kingdoms/sunwell_plateau/boss_eredar_twins.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/boss_felmyst.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/boss_kalecgos.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/boss_kiljaeden.cpp \
-scripts/eastern_kingdoms/sunwell_plateau/def_sunwell_plateau.h \
+scripts/eastern_kingdoms/sunwell_plateau/boss_muru.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/instance_sunwell_plateau.cpp \
+scripts/eastern_kingdoms/sunwell_plateau/sunwell_plateau.h \
 scripts/eastern_kingdoms/uldaman/boss_archaedas.cpp \
-scripts/eastern_kingdoms/uldaman/uldaman.h \
 scripts/eastern_kingdoms/uldaman/uldaman.cpp \
+scripts/eastern_kingdoms/uldaman/uldaman.h \
 scripts/eastern_kingdoms/uldaman/instance_uldaman.cpp \
 scripts/eastern_kingdoms/zulaman/boss_akilzon.cpp \
 scripts/eastern_kingdoms/zulaman/boss_halazzi.cpp \
@@ -249,17 +244,27 @@ scripts/examples/example_misc.cpp \
 scripts/kalimdor/ashenvale.cpp \
 scripts/kalimdor/azshara.cpp \
 scripts/kalimdor/azuremyst_isle.cpp \
-scripts/kalimdor/blackfathom_deeps/blackfathom_deeps.h \
-scripts/kalimdor/blackfathom_deeps/instance_blackfathom_deeps.cpp \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_lord_epoch.cpp \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_malganis.cpp \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_meathook.cpp \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_salramm.cpp \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/culling_of_stratholme.cpp \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/def_culling_of_stratholme.h \
-scripts/kalimdor/caverns_of_time/culling_of_stratholme/instance_culling_of_stratholme.cpp \
 scripts/kalimdor/bloodmyst_isle.cpp \
 scripts/kalimdor/boss_azuregos.cpp \
+scripts/kalimdor/darkshore.cpp \
+scripts/kalimdor/desolace.cpp \
+scripts/kalimdor/dustwallow_marsh.cpp \
+scripts/kalimdor/felwood.cpp \
+scripts/kalimdor/feralas.cpp \
+scripts/kalimdor/moonglade.cpp \
+scripts/kalimdor/mulgore.cpp \
+scripts/kalimdor/orgrimmar.cpp \
+scripts/kalimdor/silithus.cpp \
+scripts/kalimdor/stonetalon_mountains.cpp \
+scripts/kalimdor/tanaris.cpp \
+scripts/kalimdor/teldrassil.cpp \
+scripts/kalimdor/the_barrens.cpp \
+scripts/kalimdor/thousand_needles.cpp \
+scripts/kalimdor/thunder_bluff.cpp \
+scripts/kalimdor/ungoro_crater.cpp \
+scripts/kalimdor/winterspring.cpp \
+scripts/kalimdor/blackfathom_deeps/blackfathom_deeps.h \
+scripts/kalimdor/blackfathom_deeps/instance_blackfathom_deeps.cpp \
 scripts/kalimdor/caverns_of_time/dark_portal/boss_aeonus.cpp \
 scripts/kalimdor/caverns_of_time/dark_portal/boss_chrono_lord_deja.cpp \
 scripts/kalimdor/caverns_of_time/dark_portal/boss_temporus.cpp \
@@ -278,11 +283,6 @@ scripts/kalimdor/caverns_of_time/old_hillsbrad/boss_leutenant_drake.cpp \
 scripts/kalimdor/caverns_of_time/old_hillsbrad/instance_old_hillsbrad.cpp \
 scripts/kalimdor/caverns_of_time/old_hillsbrad/old_hillsbrad.cpp \
 scripts/kalimdor/caverns_of_time/old_hillsbrad/old_hillsbrad.h \
-scripts/kalimdor/darkshore.cpp \
-scripts/kalimdor/desolace.cpp \
-scripts/kalimdor/dustwallow_marsh.cpp \
-scripts/kalimdor/felwood.cpp \
-scripts/kalimdor/feralas.cpp \
 scripts/kalimdor/dire_maul/dire_maul.cpp \
 scripts/kalimdor/dire_maul/dire_maul.h \
 scripts/kalimdor/dire_maul/instance_dire_maul.cpp \
@@ -307,10 +307,6 @@ scripts/kalimdor/ruins_of_ahnqiraj/boss_moam.cpp \
 scripts/kalimdor/ruins_of_ahnqiraj/boss_ossirian.cpp \
 scripts/kalimdor/ruins_of_ahnqiraj/boss_rajaxx.cpp \
 scripts/kalimdor/ruins_of_ahnqiraj/instance_ruins_of_ahnqiraj.cpp \
-scripts/kalimdor/silithus.cpp \
-scripts/kalimdor/stonetalon_mountains.cpp \
-scripts/kalimdor/tanaris.cpp \
-scripts/kalimdor/teldrassil.cpp \
 scripts/kalimdor/ruins_of_ahnqiraj/ruins_of_ahnqiraj.cpp \
 scripts/kalimdor/ruins_of_ahnqiraj/ruins_of_ahnqiraj.h \
 scripts/kalimdor/temple_of_ahnqiraj/boss_bug_trio.cpp \
@@ -325,35 +321,39 @@ scripts/kalimdor/temple_of_ahnqiraj/boss_viscidus.cpp \
 scripts/kalimdor/temple_of_ahnqiraj/instance_temple_of_ahnqiraj.cpp \
 scripts/kalimdor/temple_of_ahnqiraj/mob_anubisath_sentinel.cpp \
 scripts/kalimdor/temple_of_ahnqiraj/temple_of_ahnqiraj.h \
-scripts/kalimdor/the_barrens.cpp \
-scripts/kalimdor/thousand_needles.cpp \
-scripts/kalimdor/thunder_bluff.cpp \
-scripts/kalimdor/ungoro_crater.cpp \
 scripts/kalimdor/wailing_caverns/instance_wailing_caverns.cpp \
-scripts/kalimdor/winterspring.cpp \
+scripts/kalimdor/wailing_caverns/wailing_caverns.cpp \
 scripts/kalimdor/wailing_caverns/wailing_caverns.h \
 scripts/kalimdor/zulfarrak/boss_zumrah.cpp \
 scripts/kalimdor/zulfarrak/instance_zulfarrak.cpp \
 scripts/kalimdor/zulfarrak/zulfarrak.cpp \
 scripts/kalimdor/zulfarrak/zulfarrak.h \
-scripts/northrend/azjol-nerub/ahnkahet/ahnkahet.h \
+scripts/northrend/borean_tundra.cpp \
+scripts/northrend/dalaran.cpp \
+scripts/northrend/dragonblight.cpp \
+scripts/northrend/grizzly_hills.cpp \
+scripts/northrend/icecrown.cpp \
+scripts/northrend/sholazar_basin.cpp \
+scripts/northrend/storm_peaks.cpp \
+scripts/northrend/howling_fjord.cpp \
+scripts/northrend/zuldrak.cpp \
 scripts/northrend/azjol-nerub/ahnkahet/boss_jedoga.cpp \
+scripts/northrend/azjol-nerub/ahnkahet/boss_amanitar.cpp \
 scripts/northrend/azjol-nerub/ahnkahet/boss_nadox.cpp \
 scripts/northrend/azjol-nerub/ahnkahet/boss_taldaram.cpp \
 scripts/northrend/azjol-nerub/ahnkahet/boss_volazj.cpp \
+scripts/northrend/azjol-nerub/ahnkahet/ahnkahet.h \
 scripts/northrend/azjol-nerub/ahnkahet/instance_ahnkahet.cpp \
 scripts/northrend/azjol-nerub/azjol-nerub/azjol-nerub.h \
 scripts/northrend/azjol-nerub/azjol-nerub/boss_anubarak.cpp \
 scripts/northrend/azjol-nerub/azjol-nerub/boss_hadronox.cpp \
 scripts/northrend/azjol-nerub/azjol-nerub/boss_krikthir.cpp \
 scripts/northrend/azjol-nerub/azjol-nerub/instance_azjol-nerub.cpp \
-scripts/northrend/borean_tundra.cpp \
-scripts/northrend/dalaran.cpp \
-scripts/northrend/dragonblight.cpp \
+scripts/northrend/draktharon_keep/draktharon_keep.h \
+scripts/northrend/draktharon_keep/boss_dred.cpp \
 scripts/northrend/draktharon_keep/boss_novos.cpp \
 scripts/northrend/draktharon_keep/boss_tharonja.cpp \
 scripts/northrend/draktharon_keep/boss_trollgore.cpp \
-scripts/northrend/grizzly_hills.cpp \
 scripts/northrend/draktharon_keep/draktharon_keep.h \
 scripts/northrend/draktharon_keep/instance_draktharon_keep.cpp \
 scripts/northrend/gundrak/boss_colossus.cpp \
@@ -369,12 +369,12 @@ scripts/northrend/icecrown_citadel/frozen_halls/forge_of_souls/boss_devourer_of_
 scripts/northrend/icecrown_citadel/frozen_halls/forge_of_souls/boss_bronjahm.cpp \
 scripts/northrend/icecrown_citadel/frozen_halls/forge_of_souls/forge_of_souls.cpp \
 scripts/northrend/icecrown_citadel/frozen_halls/forge_of_souls/trash_forge_of_souls.cpp \
-scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/def_pit.h \
+scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/boss_forgemaster_gafrost.cpp \
+scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/boss_krick_and_ick.cpp \
+scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/boss_scourgelord_tyrannus.cpp \
 scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/instance_pit_of_saron.cpp \
 scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/pit_of_saron.cpp \
-scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/boss_forgemaster_gafrost.cpp \
-scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/boss_scourgelord_tyrannus.cpp \
-scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/boss_krick_and_ick.cpp \
+scripts/northrend/icecrown_citadel/frozen_halls/pit_of_saron/pit_of_saron.h \
 scripts/northrend/icecrown_citadel/frozen_halls/halls_of_reflection/def_halls.h \
 scripts/northrend/icecrown_citadel/frozen_halls/halls_of_reflection/instance_halls_of_reflection.cpp \
 scripts/northrend/icecrown_citadel/frozen_halls/halls_of_reflection/halls_of_reflection.cpp \
@@ -394,11 +394,11 @@ scripts/northrend/icecrown_citadel/icecrown_citadel/boss_rotface.cpp \
 scripts/northrend/icecrown_citadel/icecrown_citadel/boss_sindragosa.cpp \
 scripts/northrend/icecrown_citadel/icecrown_citadel/boss_the_lich_king.cpp \
 scripts/northrend/icecrown_citadel/icecrown_citadel/boss_valithria_dreamwalker.cpp \
+scripts/northrend/icecrown_citadel/icecrown_citadel/icecrown_citadel.h \
+scripts/northrend/icecrown_citadel/icecrown_citadel/instance_icecrown_citadel.cpp \
 scripts/northrend/icecrown_citadel/icecrown_citadel/gunship_battle.cpp \
 scripts/northrend/icecrown_citadel/icecrown_citadel/icecrown_spire.cpp \
 scripts/northrend/icecrown_citadel/icecrown_citadel/def_spire.h \
-scripts/northrend/howling_fjord.cpp \
-scripts/northrend/icecrown.cpp \
 scripts/northrend/naxxramas/boss_anubrekhan.cpp \
 scripts/northrend/naxxramas/boss_faerlina.cpp \
 scripts/northrend/naxxramas/boss_four_horsemen.cpp \
@@ -414,28 +414,34 @@ scripts/northrend/naxxramas/boss_patchwerk.cpp \
 scripts/northrend/naxxramas/boss_razuvious.cpp \
 scripts/northrend/naxxramas/boss_sapphiron.cpp \
 scripts/northrend/naxxramas/boss_thaddius.cpp \
-scripts/northrend/naxxramas/def_naxxramas.h \
+scripts/northrend/naxxramas/naxxramas.h \
 scripts/northrend/naxxramas/instance_naxxramas.cpp \
+scripts/northrend/nexus/eye_of_eternity/eye_of_eternity.h \
+scripts/northrend/nexus/eye_of_eternity/instance_eye_of_eternity.cpp \
+scripts/northrend/nexus/eye_of_eternity/boss_malygos.cpp \
 scripts/northrend/nexus/nexus/boss_anomalus.cpp \
 scripts/northrend/nexus/nexus/boss_keristrasza.cpp \
 scripts/northrend/nexus/nexus/boss_ormorok.cpp \
 scripts/northrend/nexus/nexus/boss_telestra.cpp \
-scripts/northrend/nexus/nexus/def_nexus.h \
+scripts/northrend/nexus/nexus/nexus.h \
 scripts/northrend/nexus/nexus/instance_nexus.cpp \
-scripts/northrend/nexus/eye_of_eternity/eye_of_eternity.h \
-scripts/northrend/nexus/eye_of_eternity/boss_malygos.cpp \
-scripts/northrend/nexus/eye_of_eternity/instance_eye_of_eternity.cpp \
+scripts/northrend/nexus/oculus/oculus.h \
+scripts/northrend/nexus/oculus/oculus.cpp \
+scripts/northrend/nexus/oculus/instance_oculus.cpp \
+scripts/northrend/nexus/oculus/boss_drakos.cpp \
+scripts/northrend/nexus/oculus/boss_varos.cpp \
+scripts/northrend/nexus/oculus/boss_urom.cpp \
+scripts/northrend/nexus/oculus/boss_eregos.cpp \
 scripts/northrend/obsidian_sanctum/boss_sartharion.cpp \
 scripts/northrend/obsidian_sanctum/instance_obsidian_sanctum.cpp \
 scripts/northrend/obsidian_sanctum/obsidian_sanctum.h \
-scripts/northrend/sholazar_basin.cpp \
-scripts/northrend/storm_peaks.cpp \
+scripts/northrend/ruby_sanctum/ruby_sanctum.h \
+scripts/northrend/ruby_sanctum/ruby_sanctum.cpp \
 scripts/northrend/ruby_sanctum/boss_halion.cpp \
+scripts/northrend/ruby_sanctum/boss_zarithrian.cpp \
 scripts/northrend/ruby_sanctum/boss_baltharus.cpp \
 scripts/northrend/ruby_sanctum/boss_saviana.cpp \
-scripts/northrend/ruby_sanctum/boss_zarithrian.cpp \
 scripts/northrend/ruby_sanctum/instance_ruby_sanctum.cpp \
-scripts/northrend/ruby_sanctum/ruby_sanctum.h \
 scripts/northrend/ulduar/halls_of_lightning/boss_bjarngrim.cpp \
 scripts/northrend/ulduar/halls_of_lightning/boss_ionar.cpp \
 scripts/northrend/ulduar/halls_of_lightning/boss_loken.cpp \
@@ -444,24 +450,28 @@ scripts/northrend/ulduar/halls_of_lightning/halls_of_lightning.h \
 scripts/northrend/ulduar/halls_of_lightning/instance_halls_of_lightning.cpp \
 scripts/northrend/ulduar/halls_of_stone/boss_maiden_of_grief.cpp \
 scripts/northrend/ulduar/halls_of_stone/boss_sjonnir.cpp \
+scripts/northrend/ulduar/halls_of_stone/boss_krystallus.cpp \
 scripts/northrend/ulduar/halls_of_stone/halls_of_stone.cpp \
-scripts/northrend/ulduar/halls_of_stone/halls_of_stone.h \
+scripts/northrend/ulduar/halls_of_stone/def_halls_of_stone.h \
 scripts/northrend/ulduar/halls_of_stone/instance_halls_of_stone.cpp \
 scripts/northrend/ulduar/ulduar/instance_ulduar.cpp \
-scripts/northrend/ulduar/ulduar/ulduar.cpp \
-scripts/northrend/ulduar/ulduar/ulduar.h \
-scripts/northrend/ulduar/ulduar/boss_leviathan.cpp \
-scripts/northrend/ulduar/ulduar/boss_razorscale.cpp \
-scripts/northrend/ulduar/ulduar/boss_ignis.cpp \
-scripts/northrend/ulduar/ulduar/boss_xt002.cpp \
-scripts/northrend/ulduar/ulduar/boss_iron_council.cpp \
-scripts/northrend/ulduar/ulduar/boss_kologarn.cpp \
+scripts/northrend/ulduar/ulduar/def_ulduar.h \
+scripts/northrend/ulduar/ulduar/boss_algalon.cpp \
 scripts/northrend/ulduar/ulduar/boss_auriaya.cpp \
 scripts/northrend/ulduar/ulduar/boss_freya.cpp \
-scripts/northrend/ulduar/ulduar/boss_thorim.cpp \
 scripts/northrend/ulduar/ulduar/boss_hodir.cpp \
+scripts/northrend/ulduar/ulduar/boss_ignis.cpp \
+scripts/northrend/ulduar/ulduar/boss_iron_council.cpp \
+scripts/northrend/ulduar/ulduar/boss_kologarn.cpp \
+scripts/northrend/ulduar/ulduar/boss_leviathan.cpp \
 scripts/northrend/ulduar/ulduar/boss_mimiron.cpp \
+scripts/northrend/ulduar/ulduar/boss_razorscale.cpp \
+scripts/northrend/ulduar/ulduar/boss_thorim.cpp \
 scripts/northrend/ulduar/ulduar/boss_vezax.cpp \
+scripts/northrend/ulduar/ulduar/boss_xt002.cpp \
+scripts/northrend/ulduar/ulduar/boss_yogg_saron.cpp \
+scripts/northrend/ulduar/ulduar/ulduar.cpp \
+scripts/northrend/ulduar/ulduar/ulduar_teleport.cpp \
 scripts/northrend/utgarde_keep/utgarde_keep/boss_ingvar.cpp \
 scripts/northrend/utgarde_keep/utgarde_keep/boss_keleseth.cpp \
 scripts/northrend/utgarde_keep/utgarde_keep/boss_skarvald_and_dalronn.cpp \
@@ -478,41 +488,25 @@ scripts/northrend/vault_of_archavon/boss_archavon.cpp \
 scripts/northrend/vault_of_archavon/boss_emalon.cpp \
 scripts/northrend/vault_of_archavon/boss_koralon.cpp \
 scripts/northrend/vault_of_archavon/boss_toravon.cpp \
-scripts/northrend/vault_of_archavon/def_vault_of_archavon.h \
 scripts/northrend/vault_of_archavon/instance_vault_of_archavon.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_champion/boss_argent_challenge.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_champion/boss_black_knight.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_champion/boss_grand_champions.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_champion/instance_trial_of_the_champion.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_champion/trial_of_the_champion.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_champion/trial_of_the_champion.h \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_anubarak_trial.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_faction_champions.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_jaraxxus.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_northrend_beasts.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_twin_valkyr.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/instance_trial_of_the_crusader.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader.cpp \
-scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader.h \
-scripts/northrend/violet_hold/boss_cyanigosa.cpp \
-scripts/northrend/violet_hold/boss_erekem.cpp \
-scripts/northrend/violet_hold/boss_ichoron.cpp \
-scripts/northrend/violet_hold/boss_lavanthor.cpp \
-scripts/northrend/violet_hold/boss_moragg.cpp \
-scripts/northrend/violet_hold/boss_xevozz.cpp \
-scripts/northrend/violet_hold/boss_zuramat.cpp \
-scripts/northrend/violet_hold/def_violet_hold.h \
-scripts/northrend/violet_hold/instance_violet_hold.cpp \
-scripts/northrend/violet_hold/violet_hold.cpp \
-scripts/northrend/violet_hold/violet_hold.h \
-scripts/northrend/zuldrak.cpp \
+scripts/northrend/vault_of_archavon/vault_of_archavon.h \
+scripts/outland/blades_edge_mountains.cpp \
+scripts/outland/boss_doomlord_kazzak.cpp \
+scripts/outland/boss_doomwalker.cpp \
+scripts/outland/hellfire_peninsula.cpp \
+scripts/outland/nagrand.cpp \
+scripts/outland/netherstorm.cpp \
+scripts/outland/shadowmoon_valley.cpp \
+scripts/outland/shattrath_city.cpp \
+scripts/outland/terokkar_forest.cpp \
+scripts/outland/zangarmarsh.cpp \
 scripts/outland/auchindoun/auchenai_crypts/boss_exarch_maladaar.cpp \
 scripts/outland/auchindoun/auchenai_crypts/boss_shirrak.cpp \
 scripts/outland/auchindoun/mana_tombs/boss_nexusprince_shaffar.cpp \
 scripts/outland/auchindoun/mana_tombs/boss_pandemonius.cpp \
 scripts/outland/auchindoun/sethekk_halls/boss_anzu.cpp \
 scripts/outland/auchindoun/sethekk_halls/boss_darkweaver_syth.cpp \
-scripts/outland/auchindoun/sethekk_halls/boss_tailonking_ikiss.cpp \
+scripts/outland/auchindoun/sethekk_halls/boss_talon_king_ikiss.cpp \
 scripts/outland/auchindoun/sethekk_halls/instance_sethekk_halls.cpp \
 scripts/outland/auchindoun/sethekk_halls/sethekk_halls.h \
 scripts/outland/auchindoun/shadow_labyrinth/boss_ambassador_hellmaw.cpp \
@@ -533,9 +527,6 @@ scripts/outland/black_temple/boss_teron_gorefiend.cpp \
 scripts/outland/black_temple/boss_warlord_najentus.cpp \
 scripts/outland/black_temple/illidari_council.cpp \
 scripts/outland/black_temple/instance_black_temple.cpp \
-scripts/outland/blades_edge_mountains.cpp \
-scripts/outland/boss_doomlord_kazzak.cpp \
-scripts/outland/boss_doomwalker.cpp \
 scripts/outland/coilfang_reservoir/serpent_shrine/boss_fathomlord_karathress.cpp \
 scripts/outland/coilfang_reservoir/serpent_shrine/boss_hydross_the_unstable.cpp \
 scripts/outland/coilfang_reservoir/serpent_shrine/boss_lady_vashj.cpp \
@@ -573,11 +564,6 @@ scripts/outland/hellfire_citadel/shattered_halls/boss_warbringer_omrogg.cpp \
 scripts/outland/hellfire_citadel/shattered_halls/boss_warchief_kargath_bladefist.cpp \
 scripts/outland/hellfire_citadel/shattered_halls/instance_shattered_halls.cpp \
 scripts/outland/hellfire_citadel/shattered_halls/shattered_halls.h \
-scripts/outland/hellfire_peninsula.cpp \
-scripts/outland/nagrand.cpp \
-scripts/outland/netherstorm.cpp \
-scripts/outland/shadowmoon_valley.cpp \
-scripts/outland/shattrath_city.cpp \
 scripts/outland/tempest_keep/arcatraz/arcatraz.cpp \
 scripts/outland/tempest_keep/arcatraz/arcatraz.h \
 scripts/outland/tempest_keep/arcatraz/boss_harbinger_skyriss.cpp \
@@ -596,8 +582,40 @@ scripts/outland/tempest_keep/the_mechanar/boss_nethermancer_sepethrea.cpp \
 scripts/outland/tempest_keep/the_mechanar/boss_pathaleon_the_calculator.cpp \
 scripts/outland/tempest_keep/the_mechanar/instance_mechanar.cpp \
 scripts/outland/tempest_keep/the_mechanar/mechanar.h \
-scripts/outland/terokkar_forest.cpp \
-scripts/outland/zangarmarsh.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_champion/boss_argent_challenge.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_champion/boss_black_knight.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_champion/boss_grand_champions.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_champion/instance_trial_of_the_champion.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_champion/trial_of_the_champion.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_champion/trial_of_the_champion.h \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_anubarak_trial.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_faction_champions.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_jaraxxus.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_northrend_beasts.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_twin_valkyr.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/instance_trial_of_the_crusader.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader.cpp \
+scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader.h \
+scripts/northrend/violet_hold/def_violet_hold.h \
+scripts/northrend/violet_hold/violet_hold.cpp \
+scripts/northrend/violet_hold/boss_cyanigosa.cpp \
+scripts/northrend/violet_hold/boss_moragg.cpp \
+scripts/northrend/violet_hold/instance_violet_hold.cpp \
+scripts/northrend/violet_hold/boss_erekem.cpp \
+scripts/northrend/violet_hold/boss_xevozz.cpp \
+scripts/northrend/violet_hold/boss_ichoron.cpp \
+scripts/northrend/violet_hold/boss_zuramat.cpp \
+scripts/northrend/violet_hold/boss_lavanthor.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/def_culling_of_stratholme.h \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_lord_epoch.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/culling_of_stratholme.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/culling_of_stratholmeai.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_malganis.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_meathook.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/instance_culling_of_stratholme.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_salramm.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/boss_infinite_corruptor.cpp \
+scripts/kalimdor/caverns_of_time/culling_of_stratholme/trash_culling_of_stratholme.cpp \
 scripts/world/areatrigger_scripts.cpp \
 scripts/world/boss_emeriss.cpp \
 scripts/world/boss_lethon.cpp \
@@ -614,10 +632,11 @@ system/MangosdRev.cpp \
 system/ScriptLoader.cpp \
 system/ScriptLoader.h \
 system/system.cpp \
-system/system.h
+system/system.h \
+revision.h
 
 
-## magic to include SVN revision number in SD2 version string
+## magic to include revision data in SD2 version string
 revision.h: FORCE
 	$(top_builddir)/src/tools/genrevision/genrevision $(srcdir)
 
@@ -663,4 +682,3 @@ install-data-hook:
 
 clean-local:
 	rm -f $(sysconf_DATA)
-

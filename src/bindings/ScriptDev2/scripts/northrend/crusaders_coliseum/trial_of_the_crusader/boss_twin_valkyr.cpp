@@ -860,4 +860,3 @@ void AddSC_twin_valkyr()
     newscript->pGossipHello = &GossipHello_mob_dark_essence;
     newscript->RegisterSelf();
 }
-

@@ -16,423 +16,266 @@
 
 /* ScriptData
 SDName: Boss_Maexxna
-SD%Complete: 80
+SD%Complete: 60
 SDComment: this needs review, and rewrite of the webwrap ability
 SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
-#include "ObjectGuid.h"
+#include "naxxramas.h"
 
-// Spells and Mobs used in Maexxna encounter
 enum
 {
-    SPELL_WEBWRAP1        = 28673,                       // Strange spells that may knockback target to the wall
-    SPELL_WEBWRAP2        = 54127,                       //      and trigger SPELL_WEBWRAP_SELF
-    SPELL_WEBWRAP_SELF    = 28622,                       // Spell is normally used by the webwrap on the wall NOT by Maexxna
+    SPELL_WEBWRAP           = 28622,                        //Spell is normally used by the webtrap on the wall NOT by Maexxna
 
-    SPELL_WEBSPRAY        = 29484,
-    SPELL_WEBSPRAY_H      = 54125,
-    SPELL_POISONSHOCK     = 28741,
-    SPELL_POISONSHOCK_H   = 54122,
-    SPELL_NECROTICPOISON  = 28776,
-    SPELL_FRENZY          = 54123,
-    SPELL_FRENZY_H        = 54124,
+    SPELL_WEBSPRAY          = 29484,
+    H_SPELL_WEBSPRAY        = 54125,
+    SPELL_POISONSHOCK       = 28741,
+    H_SPELL_POISONSHOCK     = 54122,
+    SPELL_NECROTICPOISON    = 28776,
+    H_SPELL_NECROTICPOISON  = 54121,
+    SPELL_FRENZY            = 54123,
+    H_SPELL_FRENZY          = 54124,
 
-    MOB_WEBWRAP           = 16486,
-    MOB_SPIDERLING        = 17055
+    //spellId invalid
+    SPELL_SUMMON_SPIDERLING = 29434,
+    NPC_SPIDERLING          = 17055
 };
 
-// Positions for Web Wrap cocoons (near the wall)
-static const uint32 MAX_PLAYERS_WEB_WRAP = 3;
+#define LOC_X1    3546.796f
+#define LOC_Y1    -3869.082f
+#define LOC_Z1    296.450f
 
-WorldLocation WWlocs[MAX_PLAYERS_WEB_WRAP] = 
-{
-    WorldLocation(533,3502.164f,-3832.138f,305.178f,1.570f),
-    WorldLocation(533,3544.651f,-3850.027f,299.068f,2.356f),
-    WorldLocation(533,3561.365f,-3884.543f,297.819f,3.141f)
-};
+#define LOC_X2    3531.271f
+#define LOC_Y2    -3847.424f
+#define LOC_Z2    299.450f
 
-// Cocoon AI. It frees player from SPELL_WEBWRAP_SELF when cocoon dies
+#define LOC_X3    3497.067f
+#define LOC_Y3    -3843.384f
+#define LOC_Z3    302.384f
+
 struct MANGOS_DLL_DECL mob_webwrapAI : public ScriptedAI
 {
-    mob_webwrapAI(Creature *c) : ScriptedAI(c) {victimGUID = 0; Reset();}
-    ObjectGuid victimGUID;
+    mob_webwrapAI(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
+
+    uint64 m_uiVictimGUID;
+
     void Reset()
     {
-        victimGUID = 0;
+        m_uiVictimGUID = 0;
     }
 
-    void Aggro(Unit *who)
-    {
-        return;
-    }
-
-    void SetVictim(Unit* victim)
+    void SetVictim(uint64 victim)
     {
         if (victim)
         {
-            victimGUID = victim->GetObjectGuid();
-            m_creature->AddThreat(victim, 1.0f);
-            m_creature->GetMotionMaster()->MovePoint(0,victim->GetPositionX(),victim->GetPositionY(),victim->GetPositionZ());
-            victim->SetDisplayId(0);
+            m_uiVictimGUID = victim;
+            if (Unit* pVictim = m_creature->GetMap()->GetUnit(m_uiVictimGUID))
+                pVictim->CastSpell(pVictim, SPELL_WEBWRAP, true);
         }
     }
 
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        if (uiDamage > m_creature->GetHealth())
+        {
+            if (Player* pVictim = m_creature->GetMap()->GetPlayer(m_uiVictimGUID))
+            {
+                    pVictim->RemoveAurasDueToSpell(SPELL_WEBWRAP);
+            }
+        }
+    }
     void JustDied(Unit* Killer)
     {
-        Unit* victim = m_creature->GetMap()->GetUnit(victimGUID);
-        if (victim)
-        {
-            victim->RemoveAurasDueToSpell(SPELL_WEBWRAP_SELF);
-            victim->DeMorph();
-            victimGUID = 0;
-        }
+        if (Unit* pVictim = m_creature->GetMap()->GetUnit(m_uiVictimGUID))
+            pVictim->RemoveAurasDueToSpell(SPELL_WEBWRAP);
     }
 
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-        {
-            if (m_creature->isAlive())
-                m_creature->DealDamage(m_creature,m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-            return;
-        }
-        if (m_creature->getVictim()->HasAura(SPELL_WEBSPRAY) || m_creature->getVictim()->HasAura(SPELL_WEBSPRAY_H))
-        {
-            m_creature->getVictim()->RemoveAurasDueToSpell(SPELL_WEBSPRAY);
-            m_creature->getVictim()->RemoveAurasDueToSpell(SPELL_WEBSPRAY_H);
-            m_creature->getVictim()->CastSpell(m_creature->getVictim(), SPELL_WEBWRAP_SELF, true);
-        }
-        m_creature->GetMotionMaster()->MovePoint(0,m_creature->getVictim()->GetPositionX(),m_creature->getVictim()->GetPositionY(),m_creature->getVictim()->GetPositionZ());
-        m_creature->AddThreat(m_creature->getVictim(), 1.0f);
-    }
+    void MoveInLineOfSight(Unit* pWho) { }
+    void UpdateAI(const uint32 uiDiff) { }
 };
 
-static const int MAX_SPIDERLINGS = 16;
 struct MANGOS_DLL_DECL boss_maexxnaAI : public ScriptedAI
 {
-    boss_maexxnaAI(Creature *c) : ScriptedAI(c)
-	{
-        m_bIsRegularMode = c->GetMap()->IsRegularDifficulty();
-		pInstance = ((ScriptedInstance*)c->GetInstanceData());
-        for (int i = 0; i < MAX_PLAYERS_WEB_WRAP; i++)
-            WWplayers[i] = 0;
-        for (int i = 0; i < MAX_SPIDERLINGS; i++)
-            guidSpiderlings[i] = 0;
-		Reset();
-	}
+    boss_maexxnaAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
 
-	ScriptedInstance *pInstance;
+    ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    bool m_ach_10ppl;
-    bool m_ach_25ppl;
-    bool m_ach_arahna_10;
-    bool m_ach_arahna_25;
-    uint32 m_count_ppl;
-    uint32 Ach_Timer;
-    time_t m_arahna_timer;
-
-    uint32 WebWrap_Timer;
-    uint32 WebSpray_Timer;
-    uint32 PoisonShock_Timer;
-    uint32 NecroticPoison_Timer;
-    uint32 SummonSpiderling_Timer;
-    bool Enraged;
-
-    ObjectGuid WWplayers[MAX_PLAYERS_WEB_WRAP];
-    uint32 WWplayersFlyTimer[MAX_PLAYERS_WEB_WRAP];
-    uint32 WWplayersFlyTimer2[MAX_PLAYERS_WEB_WRAP];
-
-    ObjectGuid guidSpiderlings[MAX_SPIDERLINGS];
-    uint32 Spiderlings_count;
+    uint32 m_uiWebWrapTimer;
+    uint32 m_uiWebSprayTimer;
+    uint32 m_uiPoisonShockTimer;
+    uint32 m_uiNecroticPoisonTimer;
+    uint32 m_uiSummonSpiderlingTimer;
+    bool   m_bEnraged;
 
     void Reset()
     {
-        m_ach_10ppl = true;
-        m_ach_25ppl = true;
-        m_ach_arahna_10 = false;
-        m_ach_arahna_25 = false;
-        m_count_ppl = 0;
-        Ach_Timer = 10000;
-
-        WebWrap_Timer = 20000;                              //20 sec init, 40 sec normal
-        WebSpray_Timer = 40000;                             //40 seconds
-        PoisonShock_Timer = 20000;                          //20 seconds
-        NecroticPoison_Timer = 30000;                       //30 seconds
-        SummonSpiderling_Timer = 30000;                     //30 sec init, 40 sec normal
-        Enraged = false;
-
-        // Remove all Spiderlings
-        Spiderlings_count = 0;
-        /*for (int i = 0; i < MAX_SPIDERLINGS; i++)
-        {
-            if (Unit* pUnit = m_creature->GetMap()->GetUnit(guidSpiderlings[i]))
-                pUnit->AddObjectToRemoveList();
-            guidSpiderlings[i] = 0;
-        }*/
-        
-        for (int i = 0; i < MAX_PLAYERS_WEB_WRAP; i++)
-            WWplayers[i] = 0;
+        m_uiWebWrapTimer = 20000;                           //20 sec init, 40 sec normal
+        m_uiWebSprayTimer = 40000;                          //40 seconds
+        m_uiPoisonShockTimer = 20000;                       //20 seconds
+        m_uiNecroticPoisonTimer = 30000;                    //30 seconds
+        m_uiSummonSpiderlingTimer = 30000;                  //30 sec init, 40 sec normal
+        m_bEnraged = false;
     }
 
-    void JustRespawned()
+    void Aggro(Unit* pWho)
     {
-        JustReachedHome();
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_MAEXXNA, IN_PROGRESS);
     }
 
+    void JustDied(Unit* pKiller)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_MAEXXNA, DONE);
+    }
 
     void JustReachedHome()
     {
-        if (pInstance)
-            pInstance->SetData(ENCOUNT_MAEXXNA, NOT_STARTED);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_MAEXXNA, FAIL);
     }
 
-    void Aggro(Unit* who)
+   void DoCastWebWrap()
     {
-        //Close the room for boss fight
-        if(pInstance)
-            pInstance->SetData(ENCOUNT_MAEXXNA, IN_PROGRESS);
-
-        CheckAch();
-    }
-
-    void JustDied(Unit* Killer)
-    {
-        if (!pInstance)
-            return;
-		//Faerlina is slayed -> open all doors to Maexxna
-        pInstance->SetData(ENCOUNT_MAEXXNA, DONE);
-
-        /*if ((time(NULL) - m_arahna_timer)<1200)
+        Unit* pWrapped = NULL;
+        for(uint8 i = 0; i < 1; ++i)
         {
-            m_ach_arahna_10 = true;
-            m_ach_arahna_25 = true;
-        }*/
-
-        Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
-        if (PlList.isEmpty())
-            return;
-        for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
-        {
-            if (Player* pPlayer = i->getSource())
+            float LocX, LocY, LocZ;
+            switch(rand()%3)
             {
-                if (!m_creature->IsWithinDistInMap(pPlayer,200))
-                    continue;
+                case 0:
+                    LocX = LOC_X1 + rand()%5; LocY = LOC_Y1 + rand()%5; LocZ = LOC_Z1 + 1;
+                    break;
+                case 1:
+                    LocX = LOC_X2 + rand()%5; LocY = LOC_Y2 + rand()%5; LocZ = LOC_Z2 + 1;
+                    break;
+                case 2:
+                    LocX = LOC_X3 + rand()%5; LocY = LOC_Y3 + rand()%5; LocZ = LOC_Z3 + 1;
+                    break;
+            }
 
-                if (m_bIsRegularMode && m_ach_10ppl)
-                    pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE,m_creature->GetEntry(),1,0,0,7148);
-                else if (!m_bIsRegularMode && m_ach_25ppl)
-                    pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE,m_creature->GetEntry(),1,0,0,7161);
+            if (Unit* pTarget =  m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,1))
+            {
+                if (pWrapped)
+                    if (pTarget == pWrapped)
+                         return;
 
-                if (m_bIsRegularMode && m_ach_arahna_10)
-                    pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE,m_creature->GetEntry(),1,0,0,7128);
-                else if (!m_bIsRegularMode && m_ach_arahna_25)
-                    pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE,m_creature->GetEntry(),1,0,0,7129);
+                DoTeleportPlayer(pTarget, LocX, LocY, LocZ, pTarget->GetOrientation());
+                if (Creature* pWrap = m_creature->SummonCreature(16486, LocX, LocY, LocZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120000))
+                    ((mob_webwrapAI*)pWrap->AI())->SetVictim(pTarget->GetGUID());
+                pWrapped = pTarget;
             }
         }
-
     }
-
-    void JustSummoned(Creature* temp) 
+    void SummonSpiderling()
     {
-        if (!temp)
-            return;
-
-        //Summoned Spiderling will target random player
-        //guidSpiderlings[Spiderlings_count++] = temp->GetGUID();
-        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,1))
+        uint8 number = 9;
+        float x,y,z;
+        for(uint8 i = 0; number >= i; i++)
         {
-            temp->AddThreat(target,0.2f);
-            m_creature->SetInCombatWithZone();
-        }
-    }
-
-    void CheckAch()
-    {
-        if (!pInstance)
-            return;
-
-        m_count_ppl = 0;
-        Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
-        if (PlList.isEmpty())
-            return;
-        for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
-        {
-            if (Player* pPlayer = i->getSource())
+            if (Unit* pTarget =  m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
             {
-                if (pPlayer->isGameMaster())
-                    continue;
-                ++m_count_ppl;
+                m_creature->GetRandomPoint(m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),7.0f,x,y,z);
+                if(Creature* spiderling = m_creature->SummonCreature(NPC_SPIDERLING, x, y, z,0, TEMPSUMMON_DEAD_DESPAWN, 0))
+                {
+                    spiderling->AddThreat(pTarget, 0.0f);
+                    spiderling->AI()->AttackStart(pTarget);
+                }
             }
         }
-        if (m_bIsRegularMode)
-        {
-            if(m_count_ppl>8)
-                m_ach_10ppl = false;
-        }
-        else
-        {
-            if(m_count_ppl>20)
-                m_ach_25ppl = false;
-        }
     }
 
-    void SendPlayerToWall(Unit* target, uint8 placeOnWall)
+    void UpdateAI(const uint32 uiDiff)
     {
-        if (!target || target->GetTypeId() != TYPEID_PLAYER || !WWplayers[placeOnWall].IsEmpty())
-            return;
-
-        float l = target->GetDistance2d(WWlocs[placeOnWall].coord_x,WWlocs[placeOnWall].coord_y) * 1.4f;
-        float h = WWlocs[placeOnWall].coord_z-target->GetPositionZ() + 30.0f;
-        h = (h > 0) ? h : 0;
-        target->KnockBackPlayerWithAngle(target->GetAngle(WWlocs[placeOnWall].coord_x,WWlocs[placeOnWall].coord_y),sqrt(l*l*10.0f/(h*2)),sqrt(2*10.0f*h));
-        /*float vsin = sin(target->GetAngle(WWlocs[placeOnWall].coord_x,WWlocs[placeOnWall].coord_y));
-        float vcos = cos(target->GetAngle(WWlocs[placeOnWall].coord_x,WWlocs[placeOnWall].coord_y));
-        
-
-        WorldPacket data(SMSG_MOVE_KNOCK_BACK, (8+4+4+4+4+4));
-        data << target->GetPackGUID();
-        data << uint32(0);                                      // Sequence
-        data << float(vcos);                                    // x direction
-        data << float(vsin);                                    // y direction
-        data << float(sqrt(l*l*10.0f/(h*2)));                   // Horizontal speed
-        data << float(-sqrt(2*10.0f*h));                        // Z Movement speed (vertical)
-
-        ((Player*)target)->GetSession()->SendPacket(&data);*/
-        WWplayers[placeOnWall] = target->GetObjectGuid();
-        WWplayersFlyTimer[placeOnWall] = 2300;
-        WWplayersFlyTimer2[placeOnWall] = 99999999;
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!pInstance)
-            return;
-        /*if (pInstance->GetData(ENCOUNT_ANUBREKHAN) == DONE && !m_arahna_timer)
-            m_arahna_timer = time(NULL);*/
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // Handle flying players, cast webwrap and summon cocoon
-        for (int i = 0; i < MAX_PLAYERS_WEB_WRAP; i++)
-            if (!WWplayers[i].IsEmpty())
-            {
-                Unit* pl = m_creature->GetMap()->GetUnit(WWplayers[i]);
-                if (pl)
-                    pl->SetOrientation(WWlocs[i].orientation);
-                if (WWplayersFlyTimer2[i] < diff && pl)
-                {
-                    if (Creature* Cocoon =  m_creature->SummonCreature(MOB_WEBWRAP,pl->GetPositionX(),pl->GetPositionY(),pl->GetPositionZ(),pl->GetOrientation(),
-                                                                TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,60000))
-                    {
-                        ((mob_webwrapAI*)Cocoon->AI())->SetVictim(pl);
-                        WWplayers[i] = 0;
-                    }
-                }else WWplayersFlyTimer2[i] -= diff;
-
-                if (WWplayersFlyTimer[i] < diff && pl)
-                {
-                    pl->CastSpell(pl, SPELL_WEBWRAP_SELF, true);
-                    WWplayersFlyTimer[i] = 999999999;
-                    WWplayersFlyTimer2[i] = 1200;
-                }else WWplayersFlyTimer[i] -= diff;
-            }
-
-        //WebTrap_Timer
-        if (WebWrap_Timer < diff)
+        // Web Wrap
+        if (m_uiWebWrapTimer < uiDiff)
         {
-            Unit *target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,1);
-            if(target && !target->HasAura(SPELL_WEBWRAP_SELF) && !target->HasAura(SPELL_WEBSPRAY))
-                SendPlayerToWall(target,rand()%MAX_PLAYERS_WEB_WRAP);
-            WebWrap_Timer = 40000;
-        }else WebWrap_Timer -= diff;
+            DoCastWebWrap();
+            if(!m_bIsRegularMode)
+                DoCastWebWrap();
+            m_uiWebWrapTimer = 40000;
+        }
+        else
+            m_uiWebWrapTimer -= uiDiff;
 
-        //WebSpray_Timer
-        if (WebSpray_Timer < diff)
+        // Web Spray
+        if (m_uiWebSprayTimer < uiDiff)
         {
-            DoCast(m_creature->getVictim(), !m_bIsRegularMode ? SPELL_WEBSPRAY_H:SPELL_WEBSPRAY);
-            for (int i = 0; i < MAX_PLAYERS_WEB_WRAP; i++)
-                if (!WWplayers[i].IsEmpty())
-                {
-                    Unit* pl = m_creature->GetMap()->GetUnit(WWplayers[i]);
-                    if (pl)
-                    {
-                        pl->RemoveAurasDueToSpell(SPELL_WEBSPRAY);
-                        pl->CastSpell(pl,SPELL_WEBWRAP_SELF,true);
-                    }
-                }
-            WebSpray_Timer = 40000;
-        }else WebSpray_Timer -= diff;
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_WEBSPRAY : H_SPELL_WEBSPRAY);
+            m_uiWebSprayTimer = 40000;
+        }
+        else
+            m_uiWebSprayTimer -= uiDiff;
 
-        //PoisonShock_Timer
-        if (PoisonShock_Timer < diff)
+        // Poison Shock
+        if (m_uiPoisonShockTimer < uiDiff)
         {
-            DoCast(m_creature->getVictim(), !m_bIsRegularMode ? SPELL_POISONSHOCK_H:SPELL_POISONSHOCK);
-            PoisonShock_Timer = 20000;
-        }else PoisonShock_Timer -= diff;
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_POISONSHOCK : H_SPELL_POISONSHOCK);
+            m_uiPoisonShockTimer = 20000;
+        }
+        else
+            m_uiPoisonShockTimer -= uiDiff;
 
-        //NecroticPoison_Timer
-        if (NecroticPoison_Timer < diff)
+        // Necrotic Poison
+        if (m_uiNecroticPoisonTimer < uiDiff)
         {
-            DoCast(m_creature->getVictim(), SPELL_NECROTICPOISON);
-            NecroticPoison_Timer = 30000;
-        }else NecroticPoison_Timer -= diff;
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_NECROTICPOISON : H_SPELL_NECROTICPOISON);
+            m_uiNecroticPoisonTimer = 30000;
+        }
+        else
+            m_uiNecroticPoisonTimer -= uiDiff;
 
-        //SummonSpiderling_Timer
-        if (SummonSpiderling_Timer < diff)
+        // Summon Spiderling
+        if (m_uiSummonSpiderlingTimer < uiDiff)
         {
-            //Cast(m_creature, SPELL_SUMMON_SPIDERLING);
-            for (int i = 0; i < 8 ; i++)
-            {
-                DoSpawnCreature(MOB_SPIDERLING,0,0,0,0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,120000);
-            }
-            SummonSpiderling_Timer = 40000;
-        }else SummonSpiderling_Timer -= diff;
+            SummonSpiderling();
+            m_uiSummonSpiderlingTimer = 40000;
+        }
+        else
+            m_uiSummonSpiderlingTimer -= uiDiff;
 
         //Enrage if not already enraged and below 30%
-        if (!Enraged && (m_creature->GetHealth()*100 / m_creature->GetMaxHealth()) < 30)
+        if (!m_bEnraged && m_creature->GetHealthPercent() < 30.0f)
         {
-            DoCast(m_creature,!m_bIsRegularMode ? SPELL_FRENZY_H:SPELL_FRENZY);
-            Enraged = true;
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_FRENZY : H_SPELL_FRENZY);
+            m_bEnraged = true;
         }
-
-        if (Ach_Timer<diff)
-        {
-            if (m_bIsRegularMode && m_ach_10ppl)
-                CheckAch();
-            else if (!m_bIsRegularMode && m_ach_25ppl)
-                CheckAch();
-            Ach_Timer = 10000;
-        }else Ach_Timer -= diff;  
 
         DoMeleeAttackIfReady();
     }
 };
 
-CreatureAI* GetAI_mob_webwrap(Creature* _Creature)
+CreatureAI* GetAI_mob_webwrap(Creature* pCreature)
 {
-    return new mob_webwrapAI (_Creature);
+    return new mob_webwrapAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_maexxna(Creature *_Creature)
+CreatureAI* GetAI_boss_maexxna(Creature* pCreature)
 {
-    return new boss_maexxnaAI (_Creature);
+    return new boss_maexxnaAI(pCreature);
 }
 
 void AddSC_boss_maexxna()
 {
-    Script *newscript;
+    Script* NewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_maexxna";
-    newscript->GetAI = &GetAI_boss_maexxna;
-    newscript->RegisterSelf();
+    NewScript = new Script;
+    NewScript->Name = "boss_maexxna";
+    NewScript->GetAI = &GetAI_boss_maexxna;
+    NewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_webwrap";
-    newscript->GetAI = &GetAI_mob_webwrap;
-    newscript->RegisterSelf();
+    NewScript = new Script;
+    NewScript->Name = "mob_webwrap";
+    NewScript->GetAI = &GetAI_mob_webwrap;
+    NewScript->RegisterSelf();
 }

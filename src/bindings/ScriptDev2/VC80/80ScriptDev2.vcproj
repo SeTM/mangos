@@ -404,6 +404,14 @@
 			<Filter
 				Name="custom"
 				>
+				<File
+					RelativePath="..\scripts\custom\npc_arena_honor.cpp"
+					>
+				</File>
+ 				<File
+					RelativePath="..\scripts\custom\teleguy.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="eastern_kingdoms"
@@ -932,39 +940,11 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_doctor_theolen_krastinov.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_illucia_barov.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_instructor_malicia.cpp"
-						>
-					</File>
-					<File
 						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_jandice_barov.cpp"
 						>
 					</File>
 					<File
 						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_kormok.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_lord_alexei_barov.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_lorekeeper_polkelt.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_ras_frostwhisper.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_the_ravenian.cpp"
 						>
 					</File>
 					<File
@@ -1648,6 +1628,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\scripts\kalimdor\wailing_caverns\wailing_caverns.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\scripts\kalimdor\wailing_caverns\wailing_caverns.h"
 						>
 					</File>
@@ -1982,7 +1966,7 @@
 							Name="halls_of_reflection"
 							>
 							<File
-								RelativePath="..\scripts\northrend\icecrown_citadel\frozen_halls\halls_of_reflection\boss_falric.cpp"
+								RelativePath="..\scripts\northrend\icecrown_citadel\frozen_halls\halls_of_reflection\boss_falryn.cpp"
 								>
 							</File>
 							<File
@@ -2176,7 +2160,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\northrend\ruby_sanctum\boss_zarithrian.cpp"
+						RelativePath="..\scripts\northrend\ruby_sanctum\boss_zarithian.cpp"
 						>
 					</File>
 					<File
@@ -2227,6 +2211,10 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\northrend\ulduar\halls_of_stone\boss_krystallus.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\ulduar\halls_of_stone\boss_sjonnir.cpp"
 							>
 						</File>
@@ -2246,10 +2234,6 @@
 					<Filter
 						Name="ulduar"
 						>
-						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\assembly_of_iron.cpp"
-							>
-						</File>
 						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_algalon.cpp"
 							>
@@ -2292,6 +2276,10 @@
 						</File>
 						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_thorim.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_vezax.cpp"
 							>
 						</File>
 						<File
@@ -2512,7 +2500,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\outland\auchindoun\sethekk_halls\boss_tailonking_ikiss.cpp"
+							RelativePath="..\scripts\outland\auchindoun\sethekk_halls\boss_talon_king_ikiss.cpp"
 							>
 						</File>
 						<File
@@ -3012,6 +3000,22 @@
 			</File>
 			<File
 				RelativePath="..\include\sc_instance.h"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_ai.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_ai.h"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_iinstance.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_instance.h"
 				>
 			</File>
 		</Filter>

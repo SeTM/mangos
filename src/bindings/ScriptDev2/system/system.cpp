@@ -4,6 +4,7 @@
 
 #include "precompiled.h"
 #include "system.h"
+#include "../config.h"
 #include "ProgressBar.h"
 #include "ObjectMgr.h"
 #include "Database/DatabaseEnv.h"

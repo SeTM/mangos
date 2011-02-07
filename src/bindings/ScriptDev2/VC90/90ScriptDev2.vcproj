@@ -357,22 +357,6 @@
 			Name="base"
 			>
 			<File
-				RelativePath="..\base\BSW_ai.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\base\BSW_ai.h"
-				>
-			</File>
-			<File
-				RelativePath="..\base\BSW_instance.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\base\BSW_instance.h"
-				>
-			</File>
-			<File
 				RelativePath="..\base\escort_ai.cpp"
 				>
 			</File>
@@ -419,6 +403,14 @@
 			<Filter
 				Name="custom"
 				>
+				<File
+					RelativePath="..\scripts\custom\npc_arena_honor.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\scripts\custom\teleguy.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="eastern_kingdoms"
@@ -586,10 +578,6 @@
 				<Filter
 					Name="blackrock_spire"
 					>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\blackrock_spire\blackrock_spire.h"
-						>
-					</File>
 					<File
 						RelativePath="..\scripts\eastern_kingdoms\blackrock_spire\blackrock_spire.h"
 						>
@@ -951,18 +939,6 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_doctor_theolen_krastinov.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_illucia_barov.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_instructor_malicia.cpp"
-						>
-					</File>
-					<File
 						RelativePath="..\scripts\eastern_kingdoms\scholomance\boss_jandice_barov.cpp"
 						>
 					</File>
@@ -1123,11 +1099,15 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\def_sunwell_plateau.h"
+						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_muru.cpp"
 						>
 					</File>
 					<File
 						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\instance_sunwell_plateau.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\sunwell_plateau.h"
 						>
 					</File>
 				</Filter>
@@ -1386,6 +1366,10 @@
 						Name="culling_of_stratholme"
 						>
 						<File
+							RelativePath="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_infinite_corruptor.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_lord_epoch.cpp"
 							>
 						</File>
@@ -1406,11 +1390,19 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\culling_of_stratholmeai.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\def_culling_of_stratholme.h"
 							>
 						</File>
 						<File
 							RelativePath="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\instance_culling_of_stratholme.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\trash_culling_of_stratholme.cpp"
 							>
 						</File>
 					</Filter>
@@ -1679,6 +1671,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\scripts\kalimdor\wailing_caverns\wailing_caverns.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\scripts\kalimdor\wailing_caverns\wailing_caverns.h"
 						>
 					</File>
@@ -1708,15 +1704,7 @@
 				Name="northrend"
 				>
 				<File
-					RelativePath="..\scripts\northrend\ruby_sanctum\boss_baltharus.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\scripts\northrend\ruby_sanctum\boss_halion.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\scripts\northrend\ruby_sanctum\boss_saviana.cpp"
+					RelativePath="..\scripts\northrend\borean_tundra.cpp"
 					>
 				</File>
 				<File
@@ -1759,6 +1747,10 @@
 						>
 						<File
 							RelativePath="..\scripts\northrend\azjol-nerub\ahnkahet\ahnkahet.h"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\azjol-nerub\ahnkahet\boss_amanitar.cpp"
 							>
 						</File>
 						<File
@@ -1879,6 +1871,10 @@
 					Name="draktharon_keep"
 					>
 					<File
+						RelativePath="..\scripts\northrend\draktharon_keep\boss_dred.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\scripts\northrend\draktharon_keep\boss_novos.cpp"
 						>
 					</File>
@@ -1888,6 +1884,10 @@
 					</File>
 					<File
 						RelativePath="..\scripts\northrend\draktharon_keep\boss_trollgore.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\northrend\draktharon_keep\draktharon_keep.h"
 						>
 					</File>
 					<File
@@ -2046,17 +2046,45 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\nexus\nexus\def_nexus.h"
+							RelativePath="..\scripts\northrend\nexus\nexus\instance_nexus.cpp"
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\nexus\nexus\instance_nexus.cpp"
+							RelativePath="..\scripts\northrend\nexus\nexus\nexus.h"
 							>
 						</File>
 					</Filter>
 					<Filter
 						Name="oculus"
 						>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\boss_drakos.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\boss_eregos.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\boss_urom.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\boss_varos.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\instance_oculus.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\oculus.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\nexus\oculus\oculus.h"
+							>
+						</File>
 					</Filter>
 				</Filter>
 				<Filter
@@ -2099,6 +2127,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\scripts\northrend\ruby_sanctum\instance_ruby_sanctum.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\northrend\ruby_sanctum\ruby_sanctum.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\scripts\northrend\ruby_sanctum\ruby_sanctum.h"
 						>
 					</File>
@@ -2138,6 +2174,10 @@
 						Name="halls_of_stone"
 						>
 						<File
+							RelativePath="..\scripts\northrend\ulduar\halls_of_stone\boss_krystallus.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\ulduar\halls_of_stone\boss_maiden_of_grief.cpp"
 							>
 						</File>
@@ -2161,6 +2201,10 @@
 					<Filter
 						Name="ulduar"
 						>
+						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_algalon.cpp"
+							>
+						</File>
 						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_auriaya.cpp"
 							>
@@ -2210,6 +2254,14 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_yogg_saron.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\def_ulduar.h"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\instance_ulduar.cpp"
 							>
 						</File>
@@ -2218,7 +2270,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\ulduar.h"
+							RelativePath="..\scripts\northrend\ulduar\ulduar\ulduar_teleport.cpp"
 							>
 						</File>
 					</Filter>
@@ -2303,11 +2355,11 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\northrend\vault_of_archavon\def_vault_of_archavon.h"
+						RelativePath="..\scripts\northrend\vault_of_archavon\instance_vault_of_archavon.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\northrend\vault_of_archavon\instance_vault_of_archavon.cpp"
+						RelativePath="..\scripts\northrend\vault_of_archavon\vault_of_archavon.h"
 						>
 					</File>
 				</Filter>
@@ -2320,6 +2372,14 @@
 					</File>
 					<File
 						RelativePath="..\scripts\northrend\violet_hold\boss_erekem.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\northrend\violet_hold\boss_erekem.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\northrend\violet_hold\boss_ichoron.cpp"
 						>
 					</File>
 					<File
@@ -2343,7 +2403,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\northrend\violet_hold\def_violet_hold.h"
+						RelativePath="..\scripts\northrend\violet_hold\instance_violet_hold.cpp"
 						>
 					</File>
 					<File
@@ -2352,10 +2412,6 @@
 					</File>
 					<File
 						RelativePath="..\scripts\northrend\violet_hold\violet_hold.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\scripts\northrend\violet_hold\violet_hold.h"
 						>
 					</File>
 				</Filter>
@@ -2418,11 +2474,19 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\icecrown_citadel.h"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\icecrown_spire.cpp"
 							>
 						</File>
 						<File
 							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\icecrown_teleport.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\icecrown_citadel\icecrown_citadel\instance_icecrown_citadel.cpp"
 							>
 						</File>
 						<File
@@ -2482,6 +2546,10 @@
 							</File>
 							<File
 								RelativePath="..\scripts\northrend\icecrown_citadel\frozen_halls\halls_of_reflection\halls_of_reflection.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\scripts\northrend\icecrown_citadel\frozen_halls\halls_of_reflection\halls_of_reflection.h"
 								>
 							</File>
 							<File
@@ -2602,7 +2670,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\outland\auchindoun\sethekk_halls\boss_tailonking_ikiss.cpp"
+							RelativePath="..\scripts\outland\auchindoun\sethekk_halls\boss_talon_king_ikiss.cpp"
 							>
 						</File>
 						<File
@@ -2988,10 +3056,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\scripts\northrend\borean_tundra.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\scripts\world\boss_emeriss.cpp"
 					>
 				</File>
@@ -3041,6 +3105,22 @@
 			Name="include"
 			>
 			<File
+				RelativePath="..\base\BSW_ai.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_ai.h"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_instance.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\base\BSW_instance.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\precompiled.cpp"
 				>
 				<FileConfiguration
@@ -3086,6 +3166,10 @@
 			</File>
 			<File
 				RelativePath="..\include\sc_creature.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\sc_encounter.h"
 				>
 			</File>
 			<File
