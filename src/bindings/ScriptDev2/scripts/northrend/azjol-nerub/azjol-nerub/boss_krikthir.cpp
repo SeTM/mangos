@@ -224,6 +224,9 @@ struct MANGOS_DLL_DECL npc_skittering_infectorAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
          DoMeleeAttackIfReady();
          return;
     }

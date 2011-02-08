@@ -121,6 +121,9 @@ void ScriptedAI::DoStartNoMovement(Unit* pVictim)
 
 void ScriptedAI::DoMeleeAttackIfReady()
 {
+    if (!m_creature->getVictim())
+        return;
+
     //Make sure our attack is ready before checking distance
     if (m_creature->isAttackReady())
     {
