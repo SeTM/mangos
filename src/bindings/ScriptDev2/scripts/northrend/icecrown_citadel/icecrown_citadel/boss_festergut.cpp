@@ -345,16 +345,26 @@ struct MANGOS_DLL_DECL boss_festergutAI : public BSWScriptedAI
 
         if (timedQuery(SPELL_VILE_GAS, diff))
         {
-            if (Player* pTarget = GetPlayerAtMinimumRange(10.0f))
+            Unit* pTarget = NULL;
+            ThreatList const& t_list = m_creature->getThreatManager().getThreatList();
+            std::vector<Unit *> target_list;
+            // find random player target
+            for(ThreatList::const_iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
             {
+                pTarget = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
+                if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER && m_creature->GetDistance(pTarget) > 8.0f)
+                    target_list.push_back(pTarget);
+                pTarget = NULL;
+            }
+            if (target_list.size())
+                pTarget = *(target_list.begin()+rand()%target_list.size());
+
+            if (!pTarget)
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+
+            if (pTarget)
                 if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()))
                     doCast(SPELL_VILE_GAS, pTemp);
-            }
-            else if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
-            {
-                if (Unit* pTemp = doSummon(NPC_VILE_GAS_STALKER,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ()))
-                    doCast(SPELL_VILE_GAS, pTemp);
-            }
 
             DoScriptText(-1631213,m_creature);
         };

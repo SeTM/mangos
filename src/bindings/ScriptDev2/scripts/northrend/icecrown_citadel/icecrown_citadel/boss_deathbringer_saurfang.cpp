@@ -82,7 +82,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public BSWScriptedAI
         setStage(0);
         beasts = 0;
         resetTimers();
-        m_creature->SetMaxPower(POWER_RUNE, 100);
+        m_creature->SetMaxPower(POWER_ENERGY, 100);
         m_creature->SetPower(m_creature->getPowerType(), 0);
         doCast(SPELL_ZERO_REGEN);
         oldPower = 0;
