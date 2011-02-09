@@ -473,6 +473,9 @@ void Creature::Update(uint32 update_diff, uint32 diff)
                 lootForBody         = false;
                 lootForSkin         = false;
 
+                // Clear possible auras having IsDeathPersistent() attribute
+                RemoveAllAuras();
+
                 if(m_originalEntry != GetEntry())
                 {
                     // need preserver gameevent state
@@ -766,8 +769,8 @@ bool Creature::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, 
         //Notify the map's instance data.
         //Only works if you create the object in it, not if it is moves to that map.
         //Normally non-players do not teleport to other maps.
-        if(map->IsDungeon() && ((InstanceMap*)map)->GetInstanceData())
-            ((InstanceMap*)map)->GetInstanceData()->OnCreatureCreate(this);
+        if (InstanceData* iData = map->GetInstanceData())
+            iData->OnCreatureCreate(this);
 
         switch (GetCreatureInfo()->rank)
         {
