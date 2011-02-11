@@ -1206,7 +1206,19 @@ void WorldSession::HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data)
     CharacterDatabase.escape_string(newname);
     Player::Customize(guid, gender, skin, face, hairStyle, hairColor, facialHair);
     CharacterDatabase.BeginTransaction();
-    CharacterDatabase.PExecute("UPDATE characters set name = '%s', race = '%u', at_login = at_login & ~ %u WHERE guid ='%u'", newname.c_str(), race, uint32(used_loginFlag), guid.GetCounter());
+    int8 test = 0;
+    if(QueryResult *result2 = CharacterDatabase.PQuery("SELECT num FROM characters_test WHERE guid = '%u' and expdate > UNIX_TIMESTAMP()", guid.GetCounter()))
+    {
+        Field *fields = result2->Fetch();
+        test = fields2[0].GetUInt8()-1;
+        delete result2;
+    }
+    if (test)
+    {
+        CharacterDatabase.PExecute("UPDATE characters_test set num = num-1  WHERE guid ='%u'", guid.GetCounter());
+        CharacterDatabase.PExecute("UPDATE characters set name = '%s', race = '%u' WHERE guid ='%u'", newname.c_str(), race, guid.GetCounter());
+    }else
+        CharacterDatabase.PExecute("UPDATE characters set name = '%s', race = '%u', at_login = at_login & ~ %u WHERE guid ='%u'", newname.c_str(), race, uint32(used_loginFlag), guid.GetCounter());
     CharacterDatabase.PExecute("DELETE FROM character_declinedname WHERE guid ='%u'", guid.GetCounter());
 
     if(recv_data.GetOpcode() == CMSG_CHAR_FACTION_CHANGE)
@@ -1261,6 +1273,7 @@ void WorldSession::HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data)
                     team == BG_TEAM_ALLIANCE ? achiev_alliance : achiev_horde, team == BG_TEAM_ALLIANCE ? achiev_horde : achiev_alliance, guid.GetCounter());
             }
             while( result2->NextRow() );
+            delete result2;
         }
 
         // Item conversion
@@ -1278,6 +1291,7 @@ void WorldSession::HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data)
                         team == BG_TEAM_ALLIANCE ? item_alliance : item_horde, team == BG_TEAM_ALLIANCE ? item_horde : item_alliance, guid.GetCounter());
             }
             while( result2->NextRow() );
+            delete result2;
         }
 
         // Spell conversion
@@ -1292,6 +1306,7 @@ void WorldSession::HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data)
                     team == BG_TEAM_ALLIANCE ? spell_alliance : spell_horde, team == BG_TEAM_ALLIANCE ? spell_horde : spell_alliance, guid.GetCounter());
             }
             while( result2->NextRow() );
+            delete result2;
         }
 
         // Reputation conversion
@@ -1307,6 +1322,7 @@ void WorldSession::HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data)
                     team == BG_TEAM_ALLIANCE ? reputation_alliance : reputation_horde, team == BG_TEAM_ALLIANCE ? reputation_horde : reputation_alliance, guid.GetCounter());
             }
             while( result2->NextRow() );
+            delete result2;
         }
     }
     CharacterDatabase.CommitTransaction();
