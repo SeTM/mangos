@@ -1726,7 +1726,7 @@ GameObject* WorldObject::SummonGameObject(uint32 entry, float x, float y, float 
 	
     Map *map = GetMap();
 	GameObject *go = new GameObject;
-    uint32 lowGUID = sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT);
+    uint32 lowGUID = map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT);
 	if(!go->Create(lowGUID, entry, map, GetPhaseMask(), x,y,z,ang,rotation0,rotation1,rotation2,rotation3,100,GO_STATE_READY))
 	{
 		delete go;
@@ -1746,7 +1746,7 @@ GameObject* WorldObject::SummonGameobject(uint32 id, float x, float y, float z, 
 
     Map *map = GetMap();
 
-    if(!pGameObj->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_GAMEOBJECT), id, map,
+    if(!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), id, map,
         GetPhaseMask(), x, y, z, angle, 0.0f, 0.0f, 0.0f, 0.0f, 100, GO_STATE_READY))
     {
         delete pGameObj;
