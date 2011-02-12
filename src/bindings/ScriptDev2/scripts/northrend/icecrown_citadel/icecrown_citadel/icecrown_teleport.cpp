@@ -59,10 +59,12 @@ bool GOGossipSelect_go_icecrown_teleporter(Player *pPlayer, GameObject* pGo, uin
     if(!pPlayer->getAttackers().empty())
         return false;
 
-    if(action >= 0 && action < PORTALS_COUNT)
+    if(action < PORTALS_COUNT)
+    {
         pPlayer->TeleportTo(PortalLoc[action].map_num, PortalLoc[action].x, PortalLoc[action].y, PortalLoc[action].z, PortalLoc[action].o);
-    if (PortalLoc[action].spellID != 0)
-        pPlayer->_AddAura(PortalLoc[action].spellID, 2000);
+        if (PortalLoc[action].spellID != 0)
+            pPlayer->_AddAura(PortalLoc[action].spellID, 2000);
+    }
 
     pPlayer->CLOSE_GOSSIP_MENU();
     return true;

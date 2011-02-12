@@ -198,7 +198,7 @@ struct MANGOS_DLL_DECL BSWScriptedAI : public ScriptedAI
         bool queryIndex(uint8 m_uiSpellIdx)
              {
                  if  (m_uiSpellIdx == SPELL_INDEX_ERROR) return false;
-                 else if  (m_uiSpellIdx >= 0 && m_uiSpellIdx < bossSpellCount()) return true;
+                 else if  (m_uiSpellIdx < bossSpellCount()) return true;
                  else return false;
              };
 

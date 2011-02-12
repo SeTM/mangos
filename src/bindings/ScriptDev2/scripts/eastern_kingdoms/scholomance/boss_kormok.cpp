@@ -61,7 +61,6 @@ struct MANGOS_DLL_DECL boss_kormokAI : public ScriptedAI
             case 0: Rand1X = 0 - Rand1; break;
             case 1: Rand1X = 0 + Rand1; break;
         }
-        Rand1 = 0;
         Rand1 = rand()%8;
         switch(urand(0, 1))
         {
@@ -82,7 +81,6 @@ struct MANGOS_DLL_DECL boss_kormokAI : public ScriptedAI
             case 0: Rand2X = 0 - Rand2; break;
             case 1: Rand2X = 0 + Rand2; break;
         }
-        Rand2 = 0;
         Rand2 = rand()%10;
         switch(urand(0, 1))
         {

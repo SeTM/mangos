@@ -50,7 +50,6 @@ struct MANGOS_DLL_DECL boss_ambassador_flamelashAI : public ScriptedAI
             case 0: RandX -= Rand; break;
             case 1: RandX += Rand; break;
         }
-        Rand = 0;
         Rand = rand()%10;
         switch(urand(0, 1))
         {

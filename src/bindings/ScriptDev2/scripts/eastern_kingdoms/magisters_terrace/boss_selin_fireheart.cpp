@@ -115,7 +115,6 @@ struct MANGOS_DLL_DECL boss_selin_fireheartAI : public ScriptedAI
         DrainLifeTimer = urand(3000, 7000);
         DrainManaTimer = DrainLifeTimer + 5000;
         FelExplosionTimer = 2100;
-        DrainCrystalTimer = urand(10000, 15000);
         DrainCrystalTimer = urand(20000, 25000);
         EmpowerTimer = 10000;
 

@@ -173,7 +173,7 @@ struct MANGOS_DLL_DECL boss_halion_realAI : public BSWScriptedAI
     {
         if (!pInstance) return;
 
-        if (pInstance->GetData(TYPE_HALION_EVENT) != FAIL) return
+        if (pInstance->GetData(TYPE_HALION_EVENT) != FAIL) return;
 
         ScriptedAI::JustReachedHome();
 

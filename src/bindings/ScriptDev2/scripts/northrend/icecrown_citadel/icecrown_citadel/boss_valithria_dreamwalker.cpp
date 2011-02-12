@@ -272,7 +272,7 @@ struct MANGOS_DLL_DECL boss_valithria_dreamwalkerAI : public BSWScriptedAI
 
     void JustDied(Unit *killer)
     {
-        if(!pInstance) return
+        if(!pInstance) return;
         pInstance->SetData(TYPE_VALITHRIA, FAIL);
         DoScriptText(-1631409,m_creature);
         DespawnMobs();

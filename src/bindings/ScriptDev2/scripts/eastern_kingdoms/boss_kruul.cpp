@@ -73,7 +73,6 @@ struct MANGOS_DLL_DECL boss_kruulAI : public ScriptedAI
             case 0: RandX = 0 - Rand; break;
             case 1: RandX = 0 + Rand; break;
         }
-        Rand = 0;
         Rand = rand()%10;
         switch(urand(0, 1))
         {
