@@ -1210,7 +1210,7 @@ void WorldSession::HandleCharFactionOrRaceChangeOpcode(WorldPacket& recv_data)
     if(QueryResult *result2 = CharacterDatabase.PQuery("SELECT num FROM characters_test WHERE guid = '%u' and expdate > UNIX_TIMESTAMP()", guid.GetCounter()))
     {
         Field *fields = result2->Fetch();
-        test = fields2[0].GetUInt8()-1;
+        test = fields[0].GetUInt8()-1;
         delete result2;
     }
     if (test)

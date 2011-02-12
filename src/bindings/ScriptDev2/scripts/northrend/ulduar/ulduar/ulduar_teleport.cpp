@@ -73,7 +73,7 @@ bool GOGossipSelect_go_ulduar_teleporter(Player *pPlayer, GameObject* pGo, uint3
 
     if(!pPlayer->getAttackers().empty()) return false;
 
-    if(action <= PORTALS_COUNT)
+    if(action < PORTALS_COUNT)
     {
         pPlayer->TeleportTo(PortalLoc[action].map_num, PortalLoc[action].x, PortalLoc[action].y, PortalLoc[action].z, PortalLoc[action].o);
         if (PortalLoc[action].spellID != 0)
