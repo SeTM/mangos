@@ -452,7 +452,7 @@ void Creature::Update(uint32 update_diff, uint32 diff)
             {
                 if (GetMap()->IsRaid())
                 {
-                    if (uint32 lGuid = sObjectMgr.GetLinkedCreature(m_DBTableGuid))
+                    if (uint32 lGuid = sObjectMgr.GetLinkedCreature(GetGUIDLow()))
                     {
                         Creature *lCreature = NULL;
                         MaNGOS::CreatureWithDbGUIDCheck npc_check(*this, lGuid);

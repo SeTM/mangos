@@ -1142,7 +1142,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return i_obj; }
             bool operator()(Creature const* u) const
             {
-                return u->GetDBTableGUIDLow() == i_db_guid;
+                return u->GetGUIDLow() == i_db_guid;
             }
         private:
             WorldObject const& i_obj;

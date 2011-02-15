@@ -242,9 +242,9 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_SARTHARION_EVENT, NOT_STARTED);
 
-        Creature* pTene = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_TENEBRON));
-        Creature* pShad = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_SHADRON));
-        Creature* pVesp = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_VESPERON));
+        Creature* pTene = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_TENEBRON));
+        Creature* pShad = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_SHADRON));
+        Creature* pVesp = (Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_VESPERON));
 
         if (pTene && pTene->isAlive())
         {
@@ -294,9 +294,9 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
 
     void FetchDragons()
     {
-        Creature* pTene = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_TENEBRON));
-        Creature* pShad = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_SHADRON));
-        Creature* pVesp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_VESPERON));
+        Creature* pTene = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TENEBRON));
+        Creature* pShad = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_SHADRON));
+        Creature* pVesp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_VESPERON));
 
         //if at least one of the dragons are alive and are being called
         bool bCanUseWill = false;
@@ -330,11 +330,11 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
             DoCastSpellIfCan(m_creature, SPELL_WILL_OF_SARTHARION);
     }
 
-    void CallDragon(uint32 uiDataId)
+    void CallDragon(uint32 uiEntry)
     {
         if (m_pInstance)
         {
-            Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(uiDataId));
+            Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(uiEntry));
 
             if (pTemp && pTemp->isAlive() && !pTemp->getVictim())
             {
@@ -507,7 +507,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         // call tenebron
         if (!m_bHasCalledTenebron && m_uiTenebronTimer < uiDiff)
         {
-            CallDragon(DATA_TENEBRON);
+            CallDragon(NPC_TENEBRON);
             m_bHasCalledTenebron = true;
         }
         else
@@ -516,7 +516,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         // call shadron
         if (!m_bHasCalledShadron && m_uiShadronTimer < uiDiff)
         {
-            CallDragon(DATA_SHADRON);
+            CallDragon(NPC_SHADRON);
             m_bHasCalledShadron = true;
         }
         else
@@ -525,7 +525,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         // call vesperon
         if (!m_bHasCalledVesperon && m_uiVesperonTimer < uiDiff)
         {
-            CallDragon(DATA_VESPERON);
+            CallDragon(NPC_VESPERON);
             m_bHasCalledVesperon = true;
         }
         else
@@ -750,7 +750,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                 return;
 
             // Twilight Revenge to main boss
-            if (Creature* pSartharion = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_SARTHARION)))
+            if (Creature* pSartharion = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_SARTHARION)))
             {
                 if (pSartharion->isAlive())
                     m_creature->CastSpell(pSartharion, SPELL_TWILIGHT_REVENGE, true);
@@ -1073,7 +1073,7 @@ struct MANGOS_DLL_DECL mob_acolyte_of_shadronAI : public ScriptedAI
             if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS)
             {
                 //not solo fight, so main boss has deduff
-                pDebuffTarget = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_SARTHARION));
+                pDebuffTarget = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_SARTHARION));
 
                 if (pDebuffTarget && pDebuffTarget->isAlive() && pDebuffTarget->HasAura(SPELL_GIFT_OF_TWILIGTH_SAR))
                     pDebuffTarget->RemoveAurasDueToSpell(SPELL_GIFT_OF_TWILIGTH_SAR);
@@ -1081,7 +1081,7 @@ struct MANGOS_DLL_DECL mob_acolyte_of_shadronAI : public ScriptedAI
             else
             {
                 //event not in progress, then solo fight and must remove debuff mini-boss
-                pDebuffTarget = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_SHADRON));
+                pDebuffTarget = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_SHADRON));
 
                 if (pDebuffTarget && pDebuffTarget->isAlive() && pDebuffTarget->HasAura(SPELL_GIFT_OF_TWILIGTH_SHA))
                     pDebuffTarget->RemoveAurasDueToSpell(SPELL_GIFT_OF_TWILIGTH_SHA);
@@ -1127,7 +1127,7 @@ struct MANGOS_DLL_DECL mob_acolyte_of_vesperonAI : public ScriptedAI
         // remove twilight torment on Vesperon
         if (m_pInstance)
         {
-            Creature* pVesperon = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_VESPERON));
+            Creature* pVesperon = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_VESPERON));
 
             if (pVesperon && pVesperon->isAlive() && pVesperon->HasAura(SPELL_TWILIGHT_TORMENT_VESP))
                 pVesperon->RemoveAurasDueToSpell(SPELL_TWILIGHT_TORMENT_VESP);
@@ -1491,7 +1491,7 @@ struct MANGOS_DLL_DECL mob_onyx_flight_captainAI : public ScriptedAI
         {
             if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS)
             {
-                if (Unit* pSart = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_SARTHARION)))
+                if (Unit* pSart = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_SARTHARION)))
                 {
                     if (pSart->getVictim())
                     {

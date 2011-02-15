@@ -2302,7 +2302,7 @@ bool ChatHandler::HandleNpcLinkCommand(char* args)
         return false;
     }
 
-    uint32 guid = pCreature->GetDBTableGUIDLow();
+    uint32 guid = pCreature->GetGUIDLow();
 
     if (guid == LinkGuid)
         return false;
