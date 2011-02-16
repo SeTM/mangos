@@ -1,178 +1,287 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
-#ifndef DEF_VIOLET_HOLD_H
-#define DEF_VIOLET_HOLD_H
+#ifndef DEF_VIOLET_H
+#define DEF_VIOLET_H
 
 enum
 {
-    MAX_ENCOUNTER           = 9,
+    MAX_ENCOUNTER               = 10,
+    MAX_MINIBOSSES              = 6,
 
-    TYPE_EVENT              = 0,
-    TYPE_RIFT               = 1,
-    TYPE_EREKEM             = 2,
-    TYPE_MORAGG             = 3,
-    TYPE_ICHORON            = 4,
-    TYPE_XEVOZZ             = 5,
-    TYPE_LAVANTHOR          = 6,
-    TYPE_ZURAMAT            = 7,
-    TYPE_CYANIGOSA          = 8,
+    TYPE_MAIN                   = 1,
+    TYPE_SEAL                   = 2,
+    TYPE_PORTAL                 = 3,
+    // Sub Bosses
+    TYPE_LAVANTHOR              = 4,
+    TYPE_MORAGG                 = 5,
+    TYPE_EREKEM                 = 6,
+    TYPE_ICHORON                = 7,
+    TYPE_XEVOZZ                 = 8,
+    TYPE_ZURAMAT                = 9,
 
+    TYPE_CYANIGOSA              = 10,
 
-    WORLD_STATE_VH          = 3816,
-    WORLD_STATE_VH_PRISON   = 3815,
-    WORLD_STATE_VH_PORTALS  = 3810,
+    WORLD_STATE_ID              = 3816,
+    WORLD_STATE_SEAL            = 3815,
+    WORLD_STATE_PORTALS         = 3810,
 
-    TYPE_LASTBOSS           = 19,
-    TYPE_DOOR               = 21,
-    TYPE_PORTAL_TIME        = 22,
-    TYPE_BOSS2              = 42,
+    GO_INTRO_CRYSTAL            = 193615,
+    GO_PRISON_SEAL_DOOR         = 191723,
 
-    TYPE_DISRUPTIONS        = 101,
-    TYPE_LASTBOSS_ID        = 102,
+    GO_CELL_LAVANTHOR           = 191566,
+    GO_CELL_MORAGG              = 191606,
+    GO_CELL_ZURAMAT             = 191565,
+    GO_CELL_EREKEM              = 191564,
+    GO_CELL_EREKEM_GUARD_L      = 191563,
+    GO_CELL_EREKEM_GUARD_R      = 191562,
+    GO_CELL_XEVOZZ              = 191556,
+    GO_CELL_ICHORON             = 191722,
 
-    DATA_EREKEM             = 23,
-    DATA_MORAGG             = 24,
-    DATA_ICHORON            = 25,
-    DATA_XEVOZZ             = 26,
-    DATA_LAVANTHOR          = 27,
-    DATA_ZURAMAT            = 28,
-    DATA_SINCLARI           = 29,
-    DATA_BOSSTIME           = 30,
-    DATA_NPC_SEAL_DOOR      = 31,
+    NPC_EVENT_CONTROLLER        = 30883,
+    NPC_PORTAL_INTRO            = 31011,
+    NPC_PORTAL                  = 30679,
+    NPC_PORTAL_ELITE            = 32174,
+    NPC_DOOR_SEAL               = 30896,
 
-    DATA_SEAL_DOOR          = 32,
-    DATA_EREKEM_DOOR        = 33,
-    DATA_MORAGG_DOOR        = 34,
-    DATA_ICHORON_DOOR       = 35,
-    DATA_XEVOZZ_DOOR        = 36,
-    DATA_LAVANTHOR_DOOR     = 37,
-    DATA_ZURAMAT_DOOR       = 38,
-    DATA_EREKEM_DOOR_L      = 39,
-    DATA_EREKEM_DOOR_R      = 40,
+    NPC_SINCLARI                = 30658,
+    NPC_SINCLARI_ALT            = 32204,                    // yeller for seal weakening and summoner for portals
+    NPC_HOLD_GUARD              = 30659,
 
-    NPC_EREKEM             = 29315,
-    NPC_EREKEM_GUARD       = 29395,
-    NPC_MORAGG             = 29316,
-    NPC_ICHORON            = 29313,
-    NPC_XEVOZZ             = 29266,
-    NPC_LAVANTHOR          = 29312,
-    NPC_ZURAMAT            = 29314,
-    NPC_CYANIGOSA          = 31134,
+    NPC_EREKEM                  = 29315,
+    NPC_EREKEM_GUARD            = 29395,
+    NPC_MORAGG                  = 29316,
+    NPC_ICHORON                 = 29313,
+    NPC_XEVOZZ                  = 29266,
+    NPC_LAVANTHOR               = 29312,
+    NPC_ZURAMAT                 = 29314,
+    NPC_CYANIGOSA               = 31134,
 
-    NPC_AZURE_SABOTEUR     = 31079, // Open boss's cell
+    NPC_PORTAL_GUARDIAN         = 30660,
+    NPC_PORTAL_KEEPER           = 30695,
 
-    NPC_AZURE_CAPTAIN      = 30666, //Melee, 40k - 60k hp, 3 for 1-11, 4 for 13-17
-    NPC_AZURE_RAIDER       = 30668, //Melee, 40k - 60k hp
-    NPC_AZURE_SORCEROR     = 30667, //Caster, 40k - 60k hp
-    NPC_AZURE_STALKER      = 32191, //Melee, 40k - 60k hp
-    NPC_GUARDIAN           = 30660, 
-    NPC_KEEPER             = 30695, 
-    NPC_AZURE_BINDER       = 30663, //Caster, 7k - 10k hp
-    NPC_AZURE_INVADER      = 30661, //Melee, 8k - 12k hp
-    NPC_AZURE_MAGE_SLAYER  = 30664, //Melee, 10k - 15k hp
-    NPC_AZURE_SPELLBREAKER = 30662, //Caster, 10k - 15k hp
+    NPC_AZURE_INVADER           = 30661,
+    NPC_AZURE_SPELLBREAKER      = 30662,
+    NPC_AZURE_BINDER            = 30663,
+    NPC_AZURE_MAGE_SLAYER       = 30664,
+    NPC_MAGE_HUNTER             = 30665,
+    NPC_AZURE_CAPTAIN           = 30666,
+    NPC_AZURE_SORCEROR          = 30667,
+    NPC_AZURE_RAIDER            = 30668,
+    NPC_AZURE_STALKER           = 32191,
 
-    NPC_SINCLARI           = 30658,
-    NPC_GUARD              = 30659,
-    NPC_PORTAL             = 31011,
-    NPC_DOOR_SEAL          = 30896,
+    // used for intro
+    NPC_AZURE_BINDER_INTRO      = 31007,
+    NPC_AZURE_INVADER_INTRO     = 31008,
+    NPC_AZURE_SPELLBREAKER_INTRO= 31009,
+    NPC_AZURE_MAGE_SLAYER_INTRO = 31010,
 
-    GO_DOOR_SEAL           = 191723,
-    GO_DOOR_EREKEM         = 191564,
-    GO_DOOR_EREKEM_RIGHT   = 191563,
-    GO_DOOR_EREKEM_LEFT    = 191562,
-    GO_DOOR_MORAGG         = 191606,
-    GO_DOOR_ICHORON        = 191722,
-    GO_DOOR_XEVOZZ         = 191556,
-    GO_DOOR_LAVANTHOR      = 191566,
-    GO_DOOR_ZURAMAT        = 191565,
+    NPC_AZURE_SABOTEUR          = 31079,
 
-    SPELL_PORTAL_CHANNEL   = 58012,
-    SPELL_CORRUPT          = 58040
+    NPC_DEFENSE_SYSTEM          = 30837,
+    NPC_DEFENSE_DUMMY_TARGET    = 30857,
+
+    // 'Ghosts' for Killed mobs after Wipe
+    NPC_ARAKKOA                 = 32226,
+    NPC_VOID_LORD               = 32230,
+    NPC_ETHERAL                 = 32231,
+    NPC_SWIRLING                = 32234,
+    NPC_WATCHER                 = 32235,
+    NPC_LAVA_HOUND              = 32237,
+
+    SPELL_DEFENSE_SYSTEM_VISUAL = 57887,
+    SPELL_DEFENSE_SYSTEM_SPAWN  = 57886,
+
+    SPELL_DESTROY_DOOR_SEAL     = 58040,                    // spell periodic cast by misc
+    SPELL_TELEPORTATION_PORTAL  = 57687,                    // visual aura, but possibly not used? creature_template model for portals are same
+
+    SPELL_SHIELD_DISRUPTION     = 58291,                    // dummy when opening a cell
+
+    SPELL_PORTAL_PERIODIC       = 58008,                    // most likely the tick for each summon (tick each 15 seconds)
+    SPELL_PORTAL_CHANNEL        = 58012,                    // the blue "stream" between portal and guardian/keeper
+    SPELL_PORTAL_BEAM           = 56046,                    // large beam, unsure if really used here (or possible for something different)
+
+    SPELL_PORTAL_VISUAL_1       = 57872,                    // no idea, but is possibly related based on it's visual appearence
+    SPELL_PORTAL_VISUAL_2       = 57630,
+
+    SAY_SEAL_75                 = -1608002,
+    SAY_SEAL_50                 = -1608003,
+    SAY_SEAL_5                  = -1608004,
+
+    SAY_RELEASE_EREKEM          = -1608008,
+    SAY_RELEASE_ICHORON         = -1608009,
+    SAY_RELEASE_XEVOZZ          = -1608010,
+    SAY_RELEASE_ZURAMAT         = -1608011,
+
+    EMOTE_GUARDIAN_PORTAL       = -1608005,
+    EMOTE_DRAGONFLIGHT_PORTAL   = -1608006,
+    EMOTE_KEEPER_PORTAL         = -1608007,
+
+    MAX_NORMAL_PORTAL           = 8
 };
 
-struct Locations
+static const float fDefenseSystemLoc[4] = {1888.146f, 803.382f, 58.604f, 3.072f};
+
+enum ePortalType
 {
-    float x, y, z;
-    uint32 id;
-};
-struct WayPoints
-{
-    WayPoints(uint32 _id, float _x, float _y, float _z)
-    {
-        id = _id;
-        x = _x;
-        y = _y;
-        z = _z;
-    }
-    uint32 id;
-    float x, y, z;
+    PORTAL_TYPE_NORM = 0,
+    PORTAL_TYPE_SQUAD,
+    PORTAL_TYPE_BOSS,
 };
 
-static Locations PortalLoc[]=
+struct sPortalData
 {
-    {1888.271, 810.781, 38.441}, // 0 center
-    {1857.125, 763.295, 38.654}, // 1 Lavanthor
-    {1925.480, 849.981, 47.174}, // 2 Zuramat
-    {1892.737, 744.589, 47.666}, // 3 Moragg
-    {1878.198, 850.005, 43.333}, // 4 Portal in front of Erekem
-    {1909.381, 806.796, 38.645}, // 5 Portal outside of Ichoron
-    {1936.101, 802.950, 52.417}, // 6 at the highest platform
+    ePortalType pPortalType;
+    float fX, fY, fZ, fOrient;
 };
 
-static Locations BossLoc[]=
+static const sPortalData afPortalLocation[]=
 {
-    {0,0,0},
-    {0,0,0},
-    {1876.100, 857.079, 43.333}, // Erekem
-    {1892.737, 744.589, 47.666}, // Moragg
-    {1908.863, 785.647, 37.435}, // Ichoron
-    {1905.364, 840.607, 38.670}, // Xevozz
-    {1857.125, 763.295, 38.654}, // Lavanthor
-    {1925.480, 849.981, 47.174}, // Zuramat
+    {PORTAL_TYPE_NORM, 1936.07f, 803.198f, 53.3749f, 3.1241f},  //balcony
+    {PORTAL_TYPE_NORM, 1877.51f, 850.104f, 44.6599f, 4.7822f},  //erekem
+    {PORTAL_TYPE_NORM, 1890.64f, 753.471f, 48.7224f, 1.7104f},  //moragg
+    {PORTAL_TYPE_SQUAD, 1911.06f, 802.103f, 38.6465f, 2.8908f}, //below balcony
+    {PORTAL_TYPE_SQUAD, 1928.06f, 763.256f, 51.3167f, 2.3905f}, //bridge
+    {PORTAL_TYPE_SQUAD, 1924.26f, 847.661f, 47.1591f, 4.0202f}, //zuramat
+    {PORTAL_TYPE_NORM, 1914.16f, 832.527f, 38.6441f, 3.5160f},  //xevozz
+    {PORTAL_TYPE_NORM, 1857.30f, 764.145f, 38.6543f, 0.8339f},  //lavanthor
+    {PORTAL_TYPE_BOSS, 1890.73f, 803.309f, 38.4001f, 2.4139f},  //center
 };
-static Locations DragonsWP[]=
+
+struct sBossInformation
 {
-    //center, ichoron
-    {1869.393, 803.902, 38.768}, // 0 
-    {1859.843, 804.222, 44.008}, // 1 
-    {1827.960, 804.208, 44.364}, // 2 
+    uint32 uiType, uiEntry, uiGhostEntry, uiWayPointId;
+    float fX, fY, fZ;                                       // Waypoint for Saboteur
+    int32 iSayEntry;
+};
 
-    //From left side (lavanthor)
-    {1861.016, 789.717, 38.908}, // 3 
-    {1856.217, 796.705, 44.008}, // 4 
-    {1827.960, 804.208, 44.364}, // 5 
+struct sBossSpawn
+{
+    uint32 uiEntry;
+    float fX, fY, fZ, fO;
+};
 
-    //From Zuramat
-    {1931.446, 826.734, 47.556}, // 6 
-    {1913.049, 823.930, 38.792}, // 7 
-    {1827.960, 804.208, 44.364}, // 8 
-    {1869.393, 803.902, 38.768}, // 9 
-    {1859.843, 804.222, 44.008}, // 10 
-    {1827.960, 804.208, 44.364}, // 11 
+static const sBossInformation aBossInformation[] =
+{
+    {TYPE_EREKEM,    NPC_EREKEM,    NPC_ARAKKOA,    1, 1877.03f, 853.84f, 43.33f, SAY_RELEASE_EREKEM},
+    {TYPE_ZURAMAT,   NPC_ZURAMAT,   NPC_VOID_LORD,  1, 1922.41f, 847.95f, 47.15f, SAY_RELEASE_ZURAMAT},
+    {TYPE_XEVOZZ,    NPC_XEVOZZ,    NPC_ETHERAL,    1, 1903.61f, 838.46f, 38.72f, SAY_RELEASE_XEVOZZ},
+    {TYPE_ICHORON,   NPC_ICHORON,   NPC_SWIRLING,   1, 1915.52f, 779.13f, 35.94f, SAY_RELEASE_ICHORON},
+    {TYPE_LAVANTHOR, NPC_LAVANTHOR, NPC_LAVA_HOUND, 1, 1855.28f, 760.85f, 38.65f, 0},
+    {TYPE_MORAGG,    NPC_MORAGG,    NPC_WATCHER,    1, 1890.51f, 752.85f, 47.66f, 0}
+};
 
-    //From Morag
-    {1887.500, 763.096, 47.666}, // 12 
-    {1880.837, 775.769, 38.796}, // 13 
-    {1861.016, 789.717, 38.908}, // 14 
-    {1856.217, 796.705, 44.008}, // 15 
-    {1827.960, 804.208, 44.364}, // 16 
+class MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
+{
+    public:
+        instance_violet_hold(Map* pMap);
+        ~instance_violet_hold();                            // Destructor used to free m_vRandomBosses
 
-    //From erekem
-    {1878.280, 843.267, 43.333}, // 17 
-    {1872.311, 835.531, 38.780}, // 18 
-    {1861.997, 818.766, 38.650}, // 19 
-    {1857.348, 811.230, 44.008}, // 20
-    {1827.960, 804.208, 44.364}, // 21 
+        void Initialize();
+        void ResetAll();
+        void ResetVariables();
 
-    //From Highest platform
-    {1937.298, 824.557, 52.332}, // 22
-    {1913.049, 823.930, 38.792}, // 23
-    {1869.393, 803.902, 38.768}, // 24
-    {1859.843, 804.222, 44.008}, // 25
-    {1827.960, 804.208, 44.364}, // 26
+        void OnCreatureCreate(Creature* pCreature);
+        void OnObjectCreate(GameObject* pGo);
+
+        void UpdateCellForBoss(uint32 uiBossEntry, bool bForceClosing = false);
+        void UpdateWorldState(bool bEnable = true);
+
+        void SetIntroPortals(bool bDeactivate);
+        void SpawnPortal();
+
+        void SetPortalId();
+
+        void CallGuards(bool bRespawn);
+
+        uint32 GetRandomPortalEliteEntry();
+        uint32 GetRandomMobForNormalPortal();
+
+        uint32 GetCurrentPortalNumber() { return m_uiWorldStatePortalCount; }
+
+        sPortalData const* GetPortalData() { return &afPortalLocation[m_uiPortalId]; }
+        sBossInformation const* GetBossInformation(uint32 uiEntry = 0);
+
+        bool IsCurrentPortalForTrash()
+        {
+            if (m_uiWorldStatePortalCount % 6)
+                return true;
+
+            return false;
+        }
+
+        bool IsNextPortalForTrash()
+        {
+            if ((m_uiWorldStatePortalCount+1) % 6)
+                return true;
+
+            return false;
+        }
+
+        void ProcessActivationCrystal(Unit* pUser, bool bIsIntro = false);
+
+        void SetRandomBosses();
+
+        void OnPlayerEnter(Player* pPlayer);
+
+        void OnCreatureEnterCombat(Creature* pCreature);
+        void OnCreatureEvade(Creature* pCreature);
+        void OnCreatureDeath(Creature* pCreature);
+
+        void SetData(uint32 uiType, uint32 uiData);
+        uint32 GetData(uint32 uiType);
+        uint64 GetData64(uint32 uiData);
+
+        const char* Save() { return strInstData.c_str(); }
+        void Load(const char* chrIn);
+
+        void Update(uint32 uiDiff);
+
+        typedef std::multimap<uint32, uint64> BossToCellMap;
+
+    protected:
+        sBossSpawn* CreateBossSpawnByEntry(uint32 uiEntry);
+        uint32 m_auiEncounter[MAX_ENCOUNTER];
+        std::string strInstData;
+
+        uint64 m_uiSinclariGUID;
+        uint64 m_uiSinclariAltGUID;
+        uint64 m_uiErekemGUID;
+        uint64 m_uiMoraggGUID;
+        uint64 m_uiIchoronGUID;
+        uint64 m_uiXevozzGUID;
+        uint64 m_uiLavanthorGUID;
+        uint64 m_uiZuramatGUID;
+        // Ghost Forms
+        uint64 m_uiArokkoaGUID;
+        uint64 m_uiVoidLordGUID;
+        uint64 m_uiEtheralGUID;
+        uint64 m_uiSwirlingGUID;
+        uint64 m_uiWatcherGUID;
+        uint64 m_uiLavaHoundGUID;
+
+        uint64 m_uiCellErekemGuard_LGUID;
+        uint64 m_uiCellErekemGuard_RGUID;
+        uint64 m_uiIntroCrystalGUID;
+        uint64 m_uiDoorSealGUID;
+
+        uint32 m_uiWorldState;
+        uint32 m_uiWorldStateSealCount;
+        uint32 m_uiWorldStatePortalCount;
+
+        uint8 m_uiPortalId;
+        uint32 m_uiPortalTimer;
+        uint32 m_uiMaxCountPortalLoc;
+
+        BossToCellMap m_mBossToCellMap;
+
+        std::list<uint64> m_lIntroPortalList;
+        std::list<uint64> m_lGuardsList;
+        std::list<uint32> m_lRandomBossList;
+
+        std::vector<sBossSpawn*> m_vRandomBosses;
+>>>>>>> f6ad7ce84521f4c2f1d068fbfbf6e66a0215b3fa
 };
 
 #endif

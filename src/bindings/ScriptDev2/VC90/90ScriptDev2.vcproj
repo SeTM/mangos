@@ -2414,6 +2414,10 @@
 						RelativePath="..\scripts\northrend\violet_hold\violet_hold.cpp"
 						>
 					</File>
+					<File
+						RelativePath="..\scripts\northrend\violet_hold\violet_hold.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="icecrown_citadel"
