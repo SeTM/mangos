@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -61,6 +61,7 @@ struct MANGOS_DLL_DECL boss_kormokAI : public ScriptedAI
             case 0: Rand1X = 0 - Rand1; break;
             case 1: Rand1X = 0 + Rand1; break;
         }
+        Rand1 = 0;
         Rand1 = rand()%8;
         switch(urand(0, 1))
         {
@@ -81,6 +82,7 @@ struct MANGOS_DLL_DECL boss_kormokAI : public ScriptedAI
             case 0: Rand2X = 0 - Rand2; break;
             case 1: Rand2X = 0 + Rand2; break;
         }
+        Rand2 = 0;
         Rand2 = rand()%10;
         switch(urand(0, 1))
         {
