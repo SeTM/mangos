@@ -5928,7 +5928,7 @@ SpellCastResult Spell::CheckCasterAuras() const
             bool is_stun_mechanic = true;
             Unit::AuraList const& stunAuras = m_caster->GetAurasByType(SPELL_AURA_MOD_STUN);
             for (Unit::AuraList::const_iterator itr = stunAuras.begin(); itr != stunAuras.end(); ++itr)
-                if (!(*itr)->HasMechanic(MECHANIC_STUN))
+                if (!(*itr)->HasMechanic(MECHANIC_STUN) && !(*itr)->HasMechanic(MECHANIC_SAPPED) && !(*itr)->HasMechanic(MECHANIC_FREEZE))
                 {
                     is_stun_mechanic = false;
                     break;

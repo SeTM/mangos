@@ -2111,10 +2111,6 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\northrend\ruby_sanctum\instance_ruby_sanctum.cpp"
-						>
-					</File>
-					<File
 						RelativePath="..\scripts\northrend\ruby_sanctum\ruby_sanctum.cpp"
 						>
 					</File>
