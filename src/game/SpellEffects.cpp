@@ -856,21 +856,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             damage += combo*40;
                     }
                 }
-                // Gouge
-                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000000008))
-                {
-                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.21f);
-                }
-                // Instant Poison
-                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000002000))
-                {
-                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.10f);
-                }
-                // Wound Poison
-                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000010000000))
-                {
-                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK)*0.04f);
-                }
                 break;
             }
             case SPELLFAMILY_HUNTER:
@@ -5636,7 +5621,7 @@ void Spell::EffectEnchantItemPerm(SpellEffectIndex eff_idx)
         return;
     }
 
-    // not grow at item use at item case, using scrolls does not increase enchanting skill!
+    // Using enchant stored on scroll does not increase enchanting skill! (Already granted on scroll creation)
     if (!(m_CastItem && m_CastItem->GetProto()->Flags & ITEM_FLAG_ENCHANT_SCROLL))
         p_caster->UpdateCraftSkill(m_spellInfo->Id);
 

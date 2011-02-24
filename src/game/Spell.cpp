@@ -6370,15 +6370,14 @@ SpellCastResult Spell::CheckItems()
                 ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_ITEM_GONE;
 
         isVellumTarget = m_targets.getItemTarget()->GetProto()->IsVellum();
-
         if(!m_targets.getItemTarget()->IsFitToSpellRequirements(m_spellInfo))
             return m_IsTriggeredSpell  && !(m_targets.m_targetMask & TARGET_FLAG_TRADE_ITEM)
                 ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_EQUIPPED_ITEM_CLASS;
 
-        isVellumTarget = m_targets.getItemTarget()->GetProto()->IsVellum();
         // Do not enchant vellum with scroll
         if (isVellumTarget && isScrollItem)
-            return SPELL_FAILED_BAD_TARGETS;
+            return m_IsTriggeredSpell  && !(m_targets.m_targetMask & TARGET_FLAG_TRADE_ITEM)
+                ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_BAD_TARGETS;
     }
     // if not item target then required item must be equipped (for triggered case not report error)
     else
@@ -6535,10 +6534,10 @@ SpellCastResult Spell::CheckItems()
                 if (isVellumTarget && m_spellInfo->EffectItemType[i])
                 {
                     ItemPosCountVec dest;
-                    uint8 msg = p_caster->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, m_spellInfo->EffectItemType[i], 1);
+                    uint8 msg = p_caster->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, m_spellInfo->EffectItemType[i], 1 );
                     if (msg != EQUIP_ERR_OK)
                     {
-                        p_caster->SendEquipError(msg, NULL, NULL);
+                        p_caster->SendEquipError( msg, NULL, NULL );
                         return SPELL_FAILED_DONT_REPORT;
                     }
                 }
@@ -6553,7 +6552,7 @@ SpellCastResult Spell::CheckItems()
                         return SPELL_FAILED_NOT_TRADEABLE;
                     // cannot replace vellum with scroll in trade slot
                     if (isVellumTarget)
-                        return SPELL_FAILED_BAD_TARGETS;
+                        return SPELL_FAILED_ITEM_ENCHANT_TRADE_WINDOW;
                 }
                 break;
             }
