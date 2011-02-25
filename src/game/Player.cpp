@@ -22094,6 +22094,10 @@ uint32 Player::CalculateTalentsPoints() const
 
     uint32 talentPointsForLevel = base_talent + m_questRewardTalentCount;
 
+    // temp fix
+    if (getClass() == CLASS_DEATH_KNIGHT && GetMapId() != 609 && (talentPointsForLevel < getLevel() - 9))
+        talentPointsForLevel = getLevel() - 9;
+
     return uint32(talentPointsForLevel * sWorld.getConfig(CONFIG_FLOAT_RATE_TALENT));
 }
 
