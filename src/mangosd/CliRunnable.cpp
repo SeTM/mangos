@@ -431,7 +431,7 @@ bool ChatHandler::HandleCharacterEraseCommand(char* args)
     std::string account_name;
     sAccountMgr.GetName (account_id,account_name);
 
-    Player::DeleteFromDB(target_guid, account_id, true, true);
+    Player::DeleteFromDB(target_guid, account_id, true);
     PSendSysMessage(LANG_CHARACTER_DELETED, target_name.c_str(), target_guid.GetCounter(), account_name.c_str(), account_id);
     return true;
 }
