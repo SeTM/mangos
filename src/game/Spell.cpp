@@ -1650,6 +1650,17 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     if (Unit* realCaster = GetAffectiveCaster())
                         radius = realCaster->GetFloatValue(OBJECT_FIELD_SCALE_X) * 6;
                     break;
+				case 69762:
+					if (Unit* realCaster = GetAffectiveCaster())
+					{
+						if (realCaster->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || 
+							realCaster->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL)
+							unMaxTargets = 2;
+						else
+							unMaxTargets = 6;
+					}
+					break;
+
             }
             break;
         }

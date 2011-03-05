@@ -186,8 +186,9 @@ struct MANGOS_DLL_DECL boss_proffesor_putricideAI : public BSWScriptedAI
 		for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
 		{
 			if (Player* pPlayer = i->getSource())
-				if (pPlayer->isAlive())
-					doCast(QUEST_24749, pPlayer);
+				if (pPlayer->isAlive() && pPlayer->GetQuestStatus(24749) == QUEST_STATUS_INCOMPLETE)
+					pPlayer->CompleteQuest(24749);
+					
 		}
     }
 

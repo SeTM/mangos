@@ -2934,6 +2934,15 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     }
                     return;
                 }
+				case 34463:
+				{
+					// custom spell
+					if (apply)
+						target->SetDisplayId(14406);
+					else
+						target->DeMorph();
+					return;
+				}
                 case 40133:                                 //Summon Fire Elemental
                 {
                     Unit* caster = GetCaster();
