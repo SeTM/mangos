@@ -179,6 +179,16 @@ struct MANGOS_DLL_DECL boss_proffesor_putricideAI : public BSWScriptedAI
                  doRemove(SPELL_MUTATED_PLAGUE, pPlayer);
              }
         }
+
+		Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
+		if (PlList.isEmpty())
+			return;
+		for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
+		{
+			if (Player* pPlayer = i->getSource())
+				if (pPlayer->isAlive())
+					doCast(QUEST_24749, pPlayer);
+		}
     }
 
     void JustSummoned(Creature* summoned)
