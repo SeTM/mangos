@@ -310,7 +310,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_KELTHUZAD, NOT_STARTED);
+            m_pInstance->SetData(TYPE_KELTHUZAD, NOT_STARTED);
     }
 
     void KilledUnit()
@@ -324,7 +324,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     void JustDied(Unit* Killer)
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_KELTHUZAD, DONE);
+            m_pInstance->SetData(TYPE_KELTHUZAD, DONE);
 
         DoScriptText(SAY_DEATH, m_creature);
 
@@ -418,7 +418,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_KELTHUZAD, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_KELTHUZAD, IN_PROGRESS);
     }
 
     void UpdateAI(const uint32 diff)

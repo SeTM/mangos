@@ -22,7 +22,7 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
 
 //Anub'Rekhan speech
 enum Speech
@@ -132,7 +132,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
     void JustReachedHome()
     {
         if (pInstance)
-            pInstance->SetData(ENCOUNT_ANUBREKHAN, NOT_STARTED);
+            pInstance->SetData(TYPE_ANUB_REKHAN, NOT_STARTED);
     }
 
     void Despawnall()
@@ -152,7 +152,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
         if (!pInstance)
             return;
         //Anubrekhan is slayed -> open all doors to Faerlina
-        pInstance->SetData(ENCOUNT_ANUBREKHAN, DONE);
+        pInstance->SetData(TYPE_ANUB_REKHAN, DONE);
 
         Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
         if (PlList.isEmpty())
@@ -211,7 +211,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
     {
         //Close the room for boss fight
         if(pInstance)
-            pInstance->SetData(ENCOUNT_ANUBREKHAN, IN_PROGRESS);
+            pInstance->SetData(TYPE_ANUB_REKHAN, IN_PROGRESS);
 
         switch(rand()%3)
         {
@@ -393,7 +393,7 @@ struct MANGOS_DLL_DECL mob_crypt_guardAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature* pAnubRekhan = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(GUID_ANUBREKHAN)))
+            if (Creature* pAnubRekhan = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ANUB_REKHAN)))
                 if (pAnubRekhan->isAlive() && !pAnubRekhan->getVictim())
                     pAnubRekhan->AI()->AttackStart(who);
         }

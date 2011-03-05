@@ -22,7 +22,7 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_naxxramas.h"
+#include "naxxramas.h"
 
 //Stalagg
 #define SAY_STAL_AGGRO          -1533023
@@ -154,7 +154,7 @@ struct MANGOS_DLL_DECL mob_stalaggAI : public ScriptedAI
         if (DeathCheck_Timer < uiDiff)
         {
             if (m_pInstance)
-                if (Creature* pFeugen = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(GUID_FEUGEN))))
+                if (Creature* pFeugen = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_FEUGEN))))
                 {
                     if (!pFeugen->isAlive() && !m_bIsDeath)
                     {
@@ -285,7 +285,7 @@ struct MANGOS_DLL_DECL mob_feugenAI : public ScriptedAI
         if (DeathCheck_Timer < uiDiff)
         {
             if (m_pInstance)
-                if (Creature* pStalagg = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(GUID_STALAGG))))
+                if (Creature* pStalagg = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_STALAGG))))
                 {
                     if (!pStalagg->isAlive() && !m_bIsDeath)
                     {
@@ -381,11 +381,11 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            if (Creature* pStalagg = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(GUID_STALAGG))))
+            if (Creature* pStalagg = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_STALAGG))))
                 if (!pStalagg->isAlive())
                     pStalagg->Respawn();
 
-            if (Creature* pFeugen = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(GUID_FEUGEN))))
+            if (Creature* pFeugen = ((Creature*)m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_FEUGEN))))
                 if (!pFeugen->isAlive())
                     pFeugen->Respawn();
         }
@@ -401,7 +401,7 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_THADDIUS, NOT_STARTED);
+            m_pInstance->SetData(TYPE_THADDIUS, NOT_STARTED);
     }
 
     void Aggro(Unit* who)
@@ -415,7 +415,7 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
             AttackStart(who);
 
         if(m_pInstance)
-            m_pInstance->SetData(ENCOUNT_THADDIUS, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_THADDIUS, IN_PROGRESS);
     }
 
     void AttackStart(Unit* who)
@@ -460,10 +460,10 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
                     bool m_bIsAlive = false;
                     Creature* pStalagg;
                     Creature* pFeugen;
-                    if (pStalagg = m_pInstance->instance->GetCreature(m_pInstance->GetData64(GUID_STALAGG)))
+                    if (pStalagg = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_STALAGG)))
                         if (pStalagg->isAlive())
                             m_bIsAlive = true;
-                    if (pFeugen = m_pInstance->instance->GetCreature(m_pInstance->GetData64(GUID_FEUGEN)))
+                    if (pFeugen = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_FEUGEN)))
                         if (pFeugen->isAlive())
                             m_bIsAlive = true;
 
@@ -537,12 +537,12 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
                         else if (pStalagg->isInCombat() || pFeugen->isInCombat())
                         {
                             if (m_pInstance)
-                                m_pInstance->SetData(ENCOUNT_THADDIUS, IN_PROGRESS);
+                                m_pInstance->SetData(TYPE_THADDIUS, IN_PROGRESS);
                         }
                         else if (!pStalagg->isInCombat() && !pFeugen->isInCombat())
                         {
                             if (m_pInstance)
-                                m_pInstance->SetData(ENCOUNT_THADDIUS, NOT_STARTED);
+                                m_pInstance->SetData(TYPE_THADDIUS, NOT_STARTED);
                         }
 
                         Active_Timer = 1000;
@@ -617,7 +617,7 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_THADDIUS, DONE);
+            m_pInstance->SetData(TYPE_THADDIUS, DONE);
 
         Map::PlayerList const &PList = m_pInstance->instance->GetPlayers();
         for(Map::PlayerList::const_iterator i = PList.begin(); i != PList.end(); ++i)

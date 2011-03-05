@@ -115,7 +115,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_HEIGAN, NOT_STARTED);
+            m_pInstance->SetData(TYPE_HEIGAN, NOT_STARTED);
         despawnBlizzards();
     }
 
@@ -135,7 +135,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
         if (!m_pInstance)
             return;
         DoScriptText(SAY_DEATH, m_creature);
-        m_pInstance->SetData(ENCOUNT_HEIGAN, DONE);
+        m_pInstance->SetData(TYPE_HEIGAN, DONE);
 
         despawnBlizzards();
 
@@ -204,7 +204,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
         blizzGuard2 = (TemporarySummon*)m_creature->SummonCreature(5764, BLIZZ_GUARDIAN2_X, BLIZZ_GUARDIAN2_Y, BLIZZ_GUARDIAN2_Z, BLIZZ_GUARDIAN2_O, TEMPSUMMON_MANUAL_DESPAWN, 120*IN_MILLISECONDS);  
 
         if(m_pInstance)
-            m_pInstance->SetData(ENCOUNT_HEIGAN, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_HEIGAN, IN_PROGRESS);
         CheckAch();
         switch(rand()%3)
         {
@@ -319,7 +319,6 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
     uint32 fastTimer;
     uint32 phaseTimer;
     uint32 slowTimer;
-    uint64 heiganGUID;
     bool forward;
 
     //Let's Dance!
@@ -328,7 +327,6 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         if(!pInstance)
             return;
 
-        heiganGUID = pInstance->GetData64(GUID_HEIGAN);
         Map::PlayerList const &PlList = pInstance->instance->GetPlayers();
         if (PlList.isEmpty())
             return;
@@ -509,7 +507,6 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
 
     void Reset()
     {
-        heiganGUID;
         phase = 1;
         safeSpot = 1;
         fastTimer = 7000;
@@ -529,7 +526,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
     }
     void UpdateAI(const uint32 diff)
     {
-        if(pInstance && pInstance->GetData(ENCOUNT_HEIGAN) != IN_PROGRESS)
+        if(pInstance && pInstance->GetData(TYPE_HEIGAN) != IN_PROGRESS)
         {
             //We dance only when fighting Heigan
             EnterEvadeMode();

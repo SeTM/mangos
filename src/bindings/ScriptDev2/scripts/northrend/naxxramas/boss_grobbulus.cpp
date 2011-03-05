@@ -69,7 +69,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(ENCOUNT_GROBBULUS, NOT_STARTED);
+            m_pInstance->SetData(TYPE_GROBBULUS, NOT_STARTED);
     }
 
     void JustDied(Unit* Killer)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -7,7 +7,7 @@
 
 enum
 {
-    MAX_ENCOUNTER               = 15,
+    MAX_ENCOUNTER               = 16,
 
     // Kel'Thuzad's taunts after killing Wing Bosses
     SAY_KELTHUZAD_TAUNT1        = -1533090,
@@ -31,30 +31,26 @@ enum
     TYPE_GROBBULUS              = 11,
     TYPE_GLUTH                  = 12,
     TYPE_THADDIUS               = 13,
-    TYPE_STALAGG                = 14,
-    TYPE_FEUGEN                 = 15,
 
-    TYPE_SAPPHIRON              = 16,
-    TYPE_KELTHUZAD              = 17,
+    TYPE_SAPPHIRON              = 14,
+    TYPE_KELTHUZAD              = 15,
 
-    TYPE_BLAUMEUX               = 18,
-    TYPE_RIVENDARE              = 19,
-    TYPE_ZELIEK                 = 20,
-    TYPE_KORTHAZZ               = 21,
+    TYPE_UNDYING_FAILED         = 16,                       // Achievements Undying and Immortal, needs to be saved to database
 
-    DATA_ANUB_REKHAN            = 30,
-    DATA_FAERLINA               = 31,
-    DATA_GOTHIK_GATE            = 32,
+    MAX_HEIGAN_TRAP_AREAS       = 4,
+    TYPE_MAX_HEIGAN_TRAPS_1     = 18,
+    TYPE_MAX_HEIGAN_TRAPS_2     = 19,
+    TYPE_MAX_HEIGAN_TRAPS_3     = 20,
+    TYPE_MAX_HEIGAN_TRAPS_4     = 21,
 
-    DATA_THADDIUS               = 33,
-    DATA_STALAGG                = 34,
-    DATA_FEUGEN                 = 35,
+    MAX_SPECIAL_ACHIEV_CRITS    = 6,
 
-    DATA_KORTHAZZ               = 36,
-    DATA_RIVENDARE              = 37,
-    DATA_BLAUMEUX               = 38,
-    DATA_ZELIEK                 = 39,
-    DATA_HEIGAN_ERUPT           = 40,
+    TYPE_ACHIEV_SAFETY_DANCE    = 0,
+    TYPE_ACHIEV_KNOCK_YOU_OUT   = 1,
+    TYPE_ACHIEV_HUNDRED_CLUB    = 2,
+    TYPE_ACHIEV_SHOCKING        = 3,
+    TYPE_ACHIEV_SPORE_LOSER     = 4,
+    TYPE_ACHIEV_GET_ENOUGH      = 5,
 
     NPC_ANUB_REKHAN             = 15956,
     NPC_FAERLINA                = 15953,
@@ -138,75 +134,35 @@ enum
     GO_MILI_PORTAL              = 181578,
     GO_CONS_PORTAL              = 181576,
 
-    AREATRIGGER_FROSTWYRM       = 4120,                    //not needed here, but AT to be scripted
+    AREATRIGGER_FROSTWYRM       = 4120,                     // not needed here, but AT to be scripted
     AREATRIGGER_KELTHUZAD       = 4112,
-    AREATRIGGER_GOTHIK          = 4116
-};
+    AREATRIGGER_GOTHIK          = 4116,
 
-enum
-{
-    //Spiderwing
-    ENCOUNT_ANUBREKHAN   = 0,
-    ENCOUNT_FAERLINA     = 1,
-    ENCOUNT_MAEXXNA      = 2,
+    // Achievement related
+    ACHIEV_CRIT_SAFETY_DANCE_N  = 7264,                     // Heigan, achievs 1996, 2139
+    ACHIEV_CRIT_SAFETY_DANCE_H  = 7548,
+    ACHIEV_CRIT_KNOCK_YOU_OUT_N = 7265,                     // Faerlina, achievs 1997, 2140
+    ACHIEV_CRIT_KNOCK_YOU_OUT_H = 7549,
+    ACHIEV_CRIT_HUNDRED_CLUB_N  = 7567,                     // Sapphiron, achievs 2146, 2147
+    ACHIEV_CRIT_HUNDRED_CLUB_H  = 7568,
+    ACHIEV_CRIT_SHOCKING_N      = 7604,                     // Thaddius, achievs 2178, 2179
+    ACHIEV_CRIT_SHOCKING_H      = 7605,
+    ACHIEV_CRIT_SPORE_LOSER_N   = 7612,                     // Loatheb, achievs 2182, 2183
+    ACHIEV_CRIT_SPORE_LOSER_H   = 7613,
+    ACHIEV_CRIT_GET_ENOUGH_N    = 7614,                     // Kel'Thuzad, achievs 2184, 2185
+    ACHIEV_CRIT_GET_ENOUGH_H    = 7615,
 
-    //Abomination Wing
-    ENCOUNT_PATCHWERK    = 3,
-    ENCOUNT_GROBBULUS    = 4,
-    ENCOUNT_GLUTH        = 5,
-    ENCOUNT_THADDIUS     = 6,
-
-    //Deathknight Wing
-    ENCOUNT_RAZUVIOUS    = 7,
-    ENCOUNT_GOTHIK       = 8,
-    ENCOUNT_FOURHORSEMAN = 9,
-
-    //Plague Wing
-    ENCOUNT_NOTH         = 10,
-    ENCOUNT_HEIGAN       = 11,
-    ENCOUNT_LOATHEB      = 12,
-
-    //Frostwyrm Lair
-    ENCOUNT_SAPPHIRON    = 13,
-    ENCOUNT_KELTHUZAD    = 14
-};
-
-//Bosses
-enum
-{
-    //Spiderwing
-    GUID_ANUBREKHAN   = 100,
-    GUID_FAERLINA     = 101,
-    GUID_MAEXXNA      = 102,
-    GUID_WORSHIPPER1  = 20,
-    GUID_WORSHIPPER2  = 21,
-    GUID_WORSHIPPER3  = 22,
-    GUID_WORSHIPPER4  = 23,
-
-    //Abomination Wing
-    GUID_PATCHWERK    = 103,
-    GUID_GROBBULUS    = 104,
-    GUID_GLUTH        = 105,
-    GUID_THADDIUS     = 600,
-    GUID_FEUGEN       = 601,
-    GUID_STALAGG      = 602,
-
-    //Deathknight Wing
-    GUID_RAZUVIOUS    = 107,
-    GUID_GOTHIK       = 108,
-    GUID_KORTHAZZ     = 901,
-    GUID_BLAUMEUX     = 902,
-    GUID_RIVENDARE    = 903,
-    GUID_ZELIEK       = 904,
-
-    //Plague Wing
-    GUID_NOTH          = 110,
-    GUID_HEIGAN       = 111,
-    GUID_LOATHEB      = 112,
-
-    //Frostwyrm Lair
-    GUID_SAPPHIRON    = 113,
-    GUID_KELTHUZAD    = 114
+    // 'The Immortal'(25m) or 'Undying'(10m) - (achievs 2186, 2187)
+    ACHIEV_CRIT_IMMORTAL_KEL    = 7616,
+    ACHIEV_CRIT_IMMOORTAL_LOA   = 13236,
+    ACHIEV_CRIT_IMMOORTAL_THAD  = 13235,
+    ACHIEV_CRIT_IMMOORTAL_MAEX  = 13234,
+    ACHIEV_CRIT_IMMOORTAL_HORSE = 13233,
+    ACHIEV_CRIT_UNDYING_KEL     = 7617,
+    ACHIEV_CRIT_UNDYING_HORSE   = 13237,
+    ACHIEV_CRIT_UNDYING_MAEX    = 13238,
+    ACHIEV_CRIT_UNDYING_LOA     = 13239,
+    ACHIEV_CRIT_UNDYING_THAD    = 13240,
 };
 
 struct GothTrigger
@@ -228,9 +184,14 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         void OnCreatureCreate(Creature* pCreature);
         void OnObjectCreate(GameObject* pGo);
 
+        void OnPlayerDeath(Player* pPlayer);
+
         void SetData(uint32 uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
         uint64 GetData64(uint32 uiData);
+
+        void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
 
         const char* Save() { return strInstData.c_str(); }
         void Load(const char* chrIn);
@@ -241,13 +202,17 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         void GetGothSummonPointCreatures(std::list<Creature*> &lList, bool bRightSide);
         bool IsInRightSideGothArea(Unit* pUnit);
 
+        // Heigan
+        uint64 GetHeiganTrapData64(uint8 uiAreaIndex, uint32 uiIndex);
+
         // kel
         void SetChamberCenterCoords(float fX, float fY, float fZ);
         void GetChamberCenterCoords(float &fX, float &fY, float &fZ) { fX = m_fChamberCenterX; fY = m_fChamberCenterY; fZ = m_fChamberCenterZ; }
         void DoTaunt();
-        
+
     protected:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
+        bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
         std::string strInstData;
 
         uint64 m_uiAracEyeRampGUID;
@@ -301,6 +266,7 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         uint64 m_uiHeigEntryDoorGUID;
         uint64 m_uiHeigExitDoorGUID;
         uint64 m_uiLoathebDoorGUID;
+        std::vector<uint64> m_avuiHeiganTraps[MAX_HEIGAN_TRAP_AREAS];
 
         uint64 m_uiKelthuzadDoorGUID;
         uint64 m_uiKelthuzadExitDoorGUID;
