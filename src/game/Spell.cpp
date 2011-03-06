@@ -6979,7 +6979,7 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
         || m_spellInfo->Id == 71053
         || m_spellInfo->Id == 71054
         || m_spellInfo->Id == 71055)
-        && target->HasAura(70867))
+        && target->HasAura(70157))
         return false;
 
     // Check targets for LOS visibility (except spells without range limitations )
