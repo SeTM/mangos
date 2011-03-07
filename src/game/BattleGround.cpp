@@ -267,6 +267,8 @@ BattleGround::BattleGround()
     m_PrematureCountDown = false;
     m_PrematureCountDownTimer = 0;
 
+    m_ArenaEnded = false;
+
     m_StartDelayTimes[BG_STARTING_EVENT_FIRST]  = BG_START_DELAY_2M;
     m_StartDelayTimes[BG_STARTING_EVENT_SECOND] = BG_START_DELAY_1M;
     m_StartDelayTimes[BG_STARTING_EVENT_THIRD]  = BG_START_DELAY_30S;
@@ -506,6 +508,24 @@ void BattleGround::Update(uint32 diff)
                 RemovePlayerAtLeave(itr->first, true, true);// remove player from BG
                 // do not change any battleground's private variables
             }
+        }
+    }
+
+    // Arena time limit
+    if(isArena() && !m_ArenaEnded)
+    {
+        if(m_StartTime > uint32(ARENA_TIME_LIMIT))
+        {
+            Team winner;
+            // winner is team with higher damage
+            if(GetDamageDoneForTeam(ALLIANCE) > GetDamageDoneForTeam(HORDE))
+                winner = ALLIANCE;
+            else if (GetDamageDoneForTeam(HORDE) > GetDamageDoneForTeam(ALLIANCE))
+                winner = HORDE;
+            else
+                winner = TEAM_NONE;
+           EndBattleGround(winner);
+           m_ArenaEnded = true;
         }
     }
 
@@ -1285,6 +1305,22 @@ void BattleGround::AddPlayer(Player *plr)
     DETAIL_LOG("BATTLEGROUND: Player %s joined the battle.", plr->GetName());
 }
 
+uint32 BattleGround::GetDamageDoneForTeam(Team team)
+{
+    uint32 finaldamage = 0;
+    for(BattleGroundPlayerMap::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+    {
+        Team bgTeam = itr->second.PlayerTeam;
+        Player *plr = sObjectMgr.GetPlayer(itr->first);
+        if (!plr)
+            continue;
+        if(!bgTeam) bgTeam = plr->GetTeam();
+        if(bgTeam == team)
+            finaldamage += GetPlayerScore(plr, SCORE_DAMAGE_DONE);
+    }
+    return finaldamage;
+}
+
 /* this method adds player to his team's bg group, or sets his correct group if player is already in bg group */
 void BattleGround::AddOrSetPlayerToCorrectBgGroup(Player *plr, ObjectGuid plr_guid, Team team)
 {
@@ -1438,11 +1474,13 @@ uint32 BattleGround::GetPlayerScore(Player *Source, uint32 type)
     case SCORE_KILLING_BLOWS:                           // Killing blows 
         return itr->second->KillingBlows; 
     case SCORE_DEATHS:                                  // Deaths 
-        return itr->second->Deaths; 
-    default: 
+        return itr->second->Deaths;
+	case SCORE_DAMAGE_DONE:
+		return itr->second->DamageDone;					// Damage Done
+	default: 
         sLog.outError("BattleGround: Unknown player score type %u", type); 
-        return -1; 
-    } 
+        return -1;
+	}
 }
 
 bool BattleGround::AddObject(uint32 type, uint32 entry, float x, float y, float z, float o, float rotation0, float rotation1, float rotation2, float rotation3, uint32 /*respawnTime*/)
