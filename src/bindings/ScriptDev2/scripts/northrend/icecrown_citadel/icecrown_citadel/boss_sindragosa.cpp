@@ -132,10 +132,10 @@ struct MANGOS_DLL_DECL boss_sindragosaAI : public BSWScriptedAI
 
         if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_RIMEFANG)))
            if (!pTemp->isAlive())
-                pTemp->SetRespawnDelay(HOUR);
+                pTemp->SetRespawnTime(4*HOUR);
         if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_SPINESTALKER)))
            if (!pTemp->isAlive())
-                pTemp->SetRespawnDelay(HOUR);
+                pTemp->SetRespawnTime(4*HOUR);
     }
 
     void EnterEvadeMode()
@@ -161,6 +161,7 @@ struct MANGOS_DLL_DECL boss_sindragosaAI : public BSWScriptedAI
 
         DoScriptText(-1631420,m_creature,who);
         doCast(SPELL_FROST_AURA_1);
+        pInstance->SetData(TYPE_SINDRAGOSA, IN_PROGRESS);
     }
 
     void JustDied(Unit *killer)
@@ -172,9 +173,9 @@ struct MANGOS_DLL_DECL boss_sindragosaAI : public BSWScriptedAI
         DoScriptText(-1631423,m_creature,killer);
         doCast(QUEST_24757);
         if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_RIMEFANG)))
-            pTemp->SetRespawnDelay(7*DAY);
+            pTemp->SetRespawnTime(7*DAY);
         if (Creature* pTemp = m_creature->GetMap()->GetCreature(pInstance->GetData64(NPC_SPINESTALKER)))
-            pTemp->SetRespawnDelay(7*DAY);
+            pTemp->SetRespawnTime(7*DAY);
     }
 
     void MovementInform(uint32 type, uint32 id)
@@ -512,7 +513,7 @@ struct MANGOS_DLL_DECL mob_rimefangAI : public BSWScriptedAI
         if (pInstance->GetData(TYPE_SINDRAGOSA) != DONE)
             pInstance->SetData(TYPE_SINDRAGOSA, NOT_STARTED);
         resetTimers();
-        m_creature->SetRespawnDelay(30*MINUTE);
+        m_creature->SetRespawnDelay(60*MINUTE);
     }
 
     void MoveInLineOfSight(Unit* pWho) 
@@ -603,7 +604,7 @@ struct MANGOS_DLL_DECL mob_spinestalkerAI : public BSWScriptedAI
         if (pInstance->GetData(TYPE_SINDRAGOSA) != DONE)
             pInstance->SetData(TYPE_SINDRAGOSA, NOT_STARTED);
         resetTimers();
-        m_creature->SetRespawnDelay(30*MINUTE);
+        m_creature->SetRespawnDelay(60*MINUTE);
     }
 
     void MoveInLineOfSight(Unit* pWho) 
