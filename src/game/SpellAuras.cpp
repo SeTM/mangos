@@ -6654,28 +6654,8 @@ void Aura::HandleModDamageDone(bool apply, bool Real)
 
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
     // This information for client side use only
-    if(target->GetTypeId() == TYPEID_PLAYER)
-    {
-        if(m_positive)
-        {
-            for(int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
-            {
-                if((m_modifier.m_miscvalue & (1<<i)) != 0)
-                    target->ApplyModUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + i, m_modifier.m_amount, apply);
-            }
-        }
-        else
-        {
-            for(int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
-            {
-                if((m_modifier.m_miscvalue & (1<<i)) != 0)
-                    target->ApplyModUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + i, m_modifier.m_amount, apply);
-            }
-        }
-        Pet* pet = target->GetPet();
-        if(pet)
-            pet->UpdateAttackPowerAndDamage();
-    }
+    if (target->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)target)->UpdateSpellDamageAndHealingBonus();
 }
 
 void Aura::HandleModDamagePercentDone(bool apply, bool Real)
