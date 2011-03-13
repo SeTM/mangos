@@ -2522,6 +2522,21 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     triggered_spell_id = 71824;
                     break;
                 }
+                // Item - Shaman T10 Elemental 4P Bonus
+                case 70817:
+                {
+                    if (Aura *aur = pVictim->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_SHAMAN, UI64LIT(0x0000000010000000), 0, GetGUID()))
+                    {
+                        if (aur->GetHolder())
+                        {
+                            int32 amount = aur->GetAuraDuration() + triggerAmount * IN_MILLISECONDS;
+                            aur->SetAuraDuration(amount);
+                            aur->GetHolder()->SendAuraUpdate(false);
+                            return SPELL_AURA_PROC_OK;
+                        }
+                    }
+                    return SPELL_AURA_PROC_FAILED;
+                }
             }
             // Storm, Earth and Fire
             if (dummySpell->SpellIconID == 3063)
