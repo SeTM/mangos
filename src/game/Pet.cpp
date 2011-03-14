@@ -1044,7 +1044,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 					}
 				case 31216: // Mirror Image
 					{
-						SetBonusDamage(int32(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.33f));
+						//SetBonusDamage(int32(owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.33f));
 						SetCreateMana(160*petlevel);
 						SetCreateHealth(35*petlevel);
 						break;
