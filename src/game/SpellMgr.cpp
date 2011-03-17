@@ -1895,6 +1895,14 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     (spellInfo_2->Id == 32756 && spellInfo_1->Id == 38081))
                     return false;
 
+                // Blood Fury and Rage of the Unraveller
+                if (spellInfo_1->SpellIconID == 1662 && spellInfo_2->SpellIconID == 1662)
+                    return false;
+
+                // Kindred Spirits
+                if (spellInfo_1->SpellIconID == 3559 && spellInfo_2->SpellIconID == 3559)
+                    return false;
+
                 // Thunderfury
                 if ((spellInfo_1->Id == 21992 && spellInfo_2->Id == 27648) ||
                     (spellInfo_2->Id == 21992 && spellInfo_1->Id == 27648))

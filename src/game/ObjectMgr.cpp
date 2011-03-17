@@ -2421,7 +2421,7 @@ void ObjectMgr::LoadItemPrototypes()
 
 void ObjectMgr::LoadItemConverts()
 {
-    m_ItemRequiredTarget.clear();                           // needed for reload case
+    m_ItemConvert.clear();                                  // needed for reload case
 
     uint32 count = 0;
 
