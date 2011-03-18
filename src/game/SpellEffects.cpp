@@ -4104,7 +4104,27 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
         delete Aur;
         return;
     }
-    
+
+    // FG: apply additional auras on aura apply -- very hacky
+    if(caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        switch(Aur->GetSpellProto()->SpellFamilyName)
+        {
+            case SPELLFAMILY_DRUID:
+            {
+                // FG: Item - Druid T10 Balance 2P Bonus
+                if(m_spellInfo->Id == 16870)
+                {
+                    if(caster->HasAura(70718))
+                    {
+                        caster->CastSpell(caster, 70721, true);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
     if(duration != Aur->GetAuraMaxDuration())
     {
         Aur->SetAuraMaxDuration(duration);
