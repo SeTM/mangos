@@ -3499,10 +3499,26 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
 {
     PlayerSpellMap::iterator itr = m_spells.find(spell_id);
     if (itr == m_spells.end())
+    {
+        // remove dependent spells
+        SpellLearnSpellMapBounds spell_bounds = sSpellMgr.GetSpellLearnSpellMapBounds(spell_id);
+
+        for(SpellLearnSpellMap::const_iterator itr2 = spell_bounds.first; itr2 != spell_bounds.second; ++itr2)
+            removeSpell(itr2->second.spell, disabled);
+        
         return;
+    }
 
     if (itr->second.state == PLAYERSPELL_REMOVED || (disabled && itr->second.disabled))
+    {
+        // remove dependent spells
+        SpellLearnSpellMapBounds spell_bounds = sSpellMgr.GetSpellLearnSpellMapBounds(spell_id);
+
+        for(SpellLearnSpellMap::const_iterator itr2 = spell_bounds.first; itr2 != spell_bounds.second; ++itr2)
+            removeSpell(itr2->second.spell, disabled);
+
         return;
+    }
 
     // unlearn non talent higher ranks (recursive)
     SpellChainMapNext const& nextMap = sSpellMgr.GetSpellChainNext();
@@ -3550,19 +3566,19 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
                 (*iter).second.state = PLAYERSPELL_REMOVED;
             else
                 m_talents[m_activeSpec].erase(iter);
+
+            // free talent points
+            uint32 talentCosts = GetTalentSpellCost(talentPos);
+
+            if(talentCosts < m_usedTalentCount)
+                m_usedTalentCount -= talentCosts;
+            else
+                m_usedTalentCount = 0;
+
+            UpdateFreeTalentPoints(false);
         }
         else
             sLog.outError("removeSpell: Player (GUID: %u) has talent spell (id: %u) but doesn't have talent",GetGUIDLow(), spell_id );
-
-        // free talent points
-        uint32 talentCosts = GetTalentSpellCost(talentPos);
-
-        if(talentCosts < m_usedTalentCount)
-            m_usedTalentCount -= talentCosts;
-        else
-            m_usedTalentCount = 0;
-
-        UpdateFreeTalentPoints(false);
     }
 
     // update free primary prof.points (if not overflow setting, can be in case GM use before .learn prof. learning)
