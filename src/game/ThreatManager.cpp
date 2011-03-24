@@ -296,6 +296,9 @@ HostileReference* ThreatContainer::selectNextVictim(Creature* pAttacker, Hostile
         Unit* target = currentRef->getTarget();
         MANGOS_ASSERT(target);                              // if the ref has status online the target must be there !
 
+        if (!target)
+            break;
+
         // some units are prefered in comparison to others
         if(!noPriorityTargetFound && (target->IsImmunedToDamage(pAttacker->GetMeleeDamageSchoolMask()) || target->hasNegativeAuraWithInterruptFlag(AURA_INTERRUPT_FLAG_DAMAGE)) )
         {
