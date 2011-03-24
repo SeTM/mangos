@@ -21,6 +21,7 @@
 
 #include "Platform/CompilerDefs.h"
 #include "revision.h"
+#include "sd2_revision_nr.h"
 
 // Format is YYYYMMDDRR where RR is the change in the conf file
 // for that day.

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,41 +15,98 @@
  */
 
 /* ScriptData
-SDName: boss_flame_leviathan
-SD%Complete: 0%
-SDComment:
+SDName: boss_leviathan
+SD%Complete: 
+SDComment: needs vehicles
 SDCategory: Ulduar
 EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
+#include "Vehicle.h"
 
-enum
+/*
+#define SAY_AGGRO -1
+#define SAY_SLAY -1
+*/
+
+#define SPELL_ENRAGE 64238
+
+struct MANGOS_DLL_DECL boss_flameleviatanAI : public ScriptedAI
 {
-    SAY_AGGRO                               = -1603159,
-    SAY_SLAY                                = -1603160,
-    SAY_DEATH                               = -1603161,
+    boss_flameleviatanAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
 
-    SAY_CHANGE_1                            = -1603162,
-    SAY_CHANGE_2                            = -1603163,
-    SAY_CHANGE_3                            = -1603164,
-    SAY_PLAYER_RIDE                         = -1603165,
-    SAY_OVERLOAD_1                          = -1603166,
-    SAY_OVERLOAD_2                          = -1603167,
-    SAY_OVERLOAD_3                          = -1603168,
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;    
+    uint32 m_uiEnrageTimer;
 
-    SAY_HARD_MODE                           = -1603169,
+    void Reset()
+    {
+        m_uiEnrageTimer = 540000;
 
-    SAY_TOWER_FROST                         = -1603170,
-    SAY_TOWER_FIRE                          = -1603171,
-    SAY_TOWER_ENERGY                        = -1603172,
-    SAY_TOWER_NATURE                        = -1603173,
-    SAY_TOWER_DOWN                          = -1603174,
+        if(m_pInstance)
+            m_pInstance->SetData(TYPE_LEVIATHAN, NOT_STARTED);
+    }
 
-    EMOTE_PURSUE                            = -1603175,
+    void KilledUnit(Unit *victim)
+    {
+    }
+
+    void JustDied(Unit *victim)
+    {
+        if(m_pInstance)
+            m_pInstance->SetData(TYPE_LEVIATHAN, DONE);
+    }
+
+    void DamageTaken(Unit *pDoneBy, uint32 &dmg)
+    {
+        dmg *= 1.5;
+    }
+
+    void Aggro(Unit* pWho)
+    {
+//        DoScriptText(SAY_AGGRO, m_creature);
+        m_creature->SetInCombatWithZone();
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_LEVIATHAN, IN_PROGRESS);
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+//SPELLS TODO:
+
+        /*if (m_uiEnrageTimer <= diff)
+        {
+            DoCast(m_creature, SPELL_ENRAGE, true);
+            m_uiEnrageTimer = 10000;
+        }else m_uiEnrageTimer -= diff;*/
+//
+        DoMeleeAttackIfReady();
+
+        //EnterEvadeIfOutOfCombatArea(diff);
+
+    }
+
 };
 
-void AddSC_boss_flame_leviathan()
+CreatureAI* GetAI_boss_flameleviatan(Creature* pCreature)
 {
+    return new boss_flameleviatanAI(pCreature);
+}
 
+void AddSC_boss_flameleviatan()
+{
+    Script *newscript;
+    newscript = new Script;
+    newscript->Name = "boss_flameleviatan";
+    newscript->GetAI = &GetAI_boss_flameleviatan;
+    newscript->RegisterSelf();
 }

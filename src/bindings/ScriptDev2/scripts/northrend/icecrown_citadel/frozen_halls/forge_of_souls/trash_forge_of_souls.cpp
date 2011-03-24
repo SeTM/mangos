@@ -22,7 +22,7 @@ SDCategory: The Forge of Souls
 EndScriptData */
 
 #include "precompiled.h"
-#include "def_forge.h"
+//#include "def_forge.h"
 
 enum
 {

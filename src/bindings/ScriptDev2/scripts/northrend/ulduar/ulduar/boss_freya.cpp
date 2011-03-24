@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,15 +14,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "precompiled.h"
-#include "ulduar.h"
-
 /* ScriptData
 SDName: Boss Freya
 SD%Complete: 80%
 SDComment: 
 SDCategory: ulduar
 EndScriptData */
+
+#include "precompiled.h"
+#include "ulduar.h"
 
 enum
 {
@@ -256,7 +256,7 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature *pElderIronbranch = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ELDER_IRONBRANCH)))
+            if (Creature *pElderIronbranch = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_IRONBRACH)))
             {
                 if (pElderIronbranch->isAlive())
                 {
@@ -267,7 +267,7 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
                 }
             }
 
-            if (Creature *pElderStonebark = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ELDER_STONEBARK)))
+            if (Creature *pElderStonebark = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_STONEBARK)))
             {
                 if (pElderStonebark->isAlive())
                 {
@@ -278,7 +278,7 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
                 }
             }
 
-            if (Creature *pElderBrightleaf = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ELDER_BRIGHTLEAF)))
+            if (Creature *pElderBrightleaf = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BRIGHTLEAF)))
             {
                 if (pElderBrightleaf->isAlive())
                 {
@@ -305,7 +305,7 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
     void ResetElders()
     {
 
-        if (Creature *pElderIronbranch = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ELDER_IRONBRANCH)))
+        if (Creature *pElderIronbranch = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_IRONBRACH)))
         {
             if (pElderIronbranch->isAlive())
             {
@@ -314,7 +314,7 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
             }
         }
 
-        if (Creature *pElderStonebark = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ELDER_STONEBARK)))
+        if (Creature *pElderStonebark = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_STONEBARK)))
         {
             if (pElderStonebark->isAlive())
             {
@@ -323,7 +323,7 @@ struct MANGOS_DLL_DECL boss_freya_AI : public ScriptedAI
             }
         }
 
-        if (Creature *pElderBrightleaf = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ELDER_BRIGHTLEAF)))
+        if (Creature *pElderBrightleaf = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BRIGHTLEAF)))
         {
             if (pElderBrightleaf->isAlive())
             {
