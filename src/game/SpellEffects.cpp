@@ -6697,6 +6697,9 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
     map->Add(pGameObj);
     m_caster->AddGameObject(pGameObj);
 
+    // Store the GO to the caster
+    m_caster->AddWildGameObject(pGameObj);
+
     if(pGameObj->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP && m_caster->GetTypeId() == TYPEID_PLAYER)
     {
         Player *pl = (Player*)m_caster;
