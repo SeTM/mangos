@@ -24,30 +24,7 @@
 tags
 TAGS
 INSTALL
-
 !.gitignore
-
-#
-# Build generated files
-#
-aclocal.m4
-autom4te.cache
-compile
-config.guess
-config.h.in
-config.log
-config.status
-config.sub
-configure
-depcomp
-libtool
-install-sh
-ltmain.sh
-missing
-stamp-h1
-
-Makefile.in
-Makefile
 
 #
 # Editors / debuggers / other output files
@@ -55,6 +32,7 @@ Makefile
 *~
 *.bak
 *.orig
+*.patch
 callgrind.out.*
 
 #
@@ -62,11 +40,6 @@ callgrind.out.*
 #
 # stgit directories
 patches-*
-
-#
-# System-internal temporary files
-#
-revision.h
 
 #
 # VS binaries output
@@ -85,11 +58,6 @@ bin/*
 ipch
 *.user
 
-*__Win32_Debug*
-*__x64_Debug*
-*__Win32_Release*
-*__x64_Release*
-
 #
 # CMake temporary files
 #
@@ -106,3 +74,5 @@ cmake_install.cmake
 #
 # Special exceptions
 #
+!dep/ACE_wrappers/ace/ace_message_table.bin
+!dep/tbb/src/Makefile
