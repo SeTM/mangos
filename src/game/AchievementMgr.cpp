@@ -1437,8 +1437,9 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                 // speedup for non-login case
                 if(miscvalue1 && achievementCriteria->own_item.itemID != miscvalue1)
                     continue;
-                change = GetPlayer()->GetItemCount(achievementCriteria->own_item.itemID, true);
-                progressType = PROGRESS_HIGHEST;
+                //change = GetPlayer()->GetItemCount(achievementCriteria->own_item.itemID, true);  wrong to gather achievements
+                change = miscvalue2;
+                progressType = PROGRESS_ACCUMULATE;
                 break;
             case ACHIEVEMENT_CRITERIA_TYPE_WIN_RATED_ARENA:
                 // miscvalue1 contains the personal rating

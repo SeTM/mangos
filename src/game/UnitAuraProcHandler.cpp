@@ -1016,6 +1016,100 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     }
                     break;
                 }
+                // Necrotic Touch
+                case 71875:
+                case 71877:
+                {
+                    basepoints[EFFECT_INDEX_0] = int32(triggerAmount*damage /100);
+                    triggered_spell_id = 71879;
+                    break;
+                }
+                // Item - Icecrown 25 Normal Melee Trinket 
+                case 71519:
+                {
+                    if(GetTypeId() != TYPEID_PLAYER)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    // Select class defined buff
+                    switch (getClass())
+                    {
+                    case CLASS_PALADIN:
+                    case CLASS_DEATH_KNIGHT:
+                    case CLASS_WARRIOR:
+                        {
+                            uint32 RandomSpell[]={71484,71492,71491};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    case CLASS_ROGUE:
+                    case CLASS_SHAMAN:
+                        {
+                            uint32 RandomSpell[]={71485,71492,71486};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    case CLASS_HUNTER:
+                        {
+                            uint32 RandomSpell[]={71485,71491,71486};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    case CLASS_DRUID:
+                        {
+                            uint32 RandomSpell[]={71485,71492,71484};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    default:
+                        return SPELL_AURA_PROC_FAILED;
+                    }
+
+                    target = this;
+                    break;
+                }
+                // Item - Icecrown 25 Heroic Melee Trinket 
+                case 71562:
+                {
+                    if(GetTypeId() != TYPEID_PLAYER)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    // Select class defined buff
+                    switch (getClass())
+                    {
+                    case CLASS_PALADIN:
+                    case CLASS_DEATH_KNIGHT:
+                    case CLASS_WARRIOR:
+                        {
+                            uint32 RandomSpell[]={71561,71560,71559};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    case CLASS_ROGUE:
+                    case CLASS_SHAMAN:
+                        {
+                            uint32 RandomSpell[]={71556,71560,71558};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    case CLASS_HUNTER:
+                        {
+                            uint32 RandomSpell[]={71556,71559,71558};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    case CLASS_DRUID:
+                        {
+                            uint32 RandomSpell[]={71556,71560,71561};
+                            triggered_spell_id = RandomSpell[ irand(0, sizeof(RandomSpell)/sizeof(uint32) - 1) ];
+                            break;
+                        }
+                    default:
+                        return SPELL_AURA_PROC_FAILED;
+                    }
+
+                    target = this;
+                    break;
+                }
             }
             break;
         }
