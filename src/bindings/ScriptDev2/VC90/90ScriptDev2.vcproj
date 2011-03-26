@@ -3236,6 +3236,14 @@
 				RelativePath="..\include\sc_instance.h"
 				>
 			</File>
+			<File
+				RelativePath="..\include\sc_outdoor_pvp.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\include\sc_outdoor_pvp.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="system"
