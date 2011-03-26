@@ -7140,6 +7140,10 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
 
     if(m_zoneUpdateId != newZone)
     {
+        //Called when a player leave zone
+        if (InstanceData* mapInstance = GetInstanceData())
+            mapInstance->OnPlayerLeaveZone(this, m_zoneUpdateId);
+
         SendInitWorldStates(newZone, newArea);              // only if really enters to new zone, not just area change, works strange...
 
         if (sWorld.getConfig(CONFIG_BOOL_WEATHER))
@@ -23736,7 +23740,7 @@ void Player::ChangeGrantableLevels(uint8 increase)
 {
     if (increase)
     {
-        if (m_GrantableLevelsCount <= uint32(sWorld.getConfig(CONFIG_UINT32_RAF_MAXGRANTLEVEL) * sWorld.getConfig(CONFIG_FLOAT_RATE_RAF_LEVELPERLEVEL)))
+        if (m_GrantableLevelsCount <= int32(sWorld.getConfig(CONFIG_UINT32_RAF_MAXGRANTLEVEL) * sWorld.getConfig(CONFIG_FLOAT_RATE_RAF_LEVELPERLEVEL)))
             m_GrantableLevelsCount += increase;
     }
     else
