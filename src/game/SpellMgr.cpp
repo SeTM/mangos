@@ -396,6 +396,9 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
                 // SpellIcon 2560 is Spell 46687, does not have this flag
                 if ((spellInfo->AttributesEx2 & SPELL_ATTR_EX2_FOOD_BUFF) || spellInfo->SpellIconID == 2560)
                     return SPELL_WELL_FED;
+                else if ((spellInfo->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_STAT &&  spellInfo->Attributes & SPELL_ATTR_NOT_SHAPESHIFT &&
+                    spellInfo->SchoolMask & SPELL_SCHOOL_MASK_NATURE && spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE) || spellInfo->Id == 72590)
+                    return SPELL_SCROLL;
             }
             break;
         }
@@ -1863,6 +1866,36 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
     if ((spellInfo_1->Attributes & SPELL_ATTR_PASSIVE)!=(spellInfo_2->Attributes & SPELL_ATTR_PASSIVE))
         return false;
 
+    // Mistletoe debuff stack with everything
+    if (spellInfo_1->Id == 26218 || spellInfo_2->Id == 26218)
+        return false;
+
+    // Ardent Defender cooldown debuff stacks with everything
+    if (spellInfo_1->Id == 66233 || spellInfo_2->Id == 66233)
+        return false;
+
+    // Improved Mind Blast debuff stacks with everything
+    if (spellInfo_1->Id == 48301 || spellInfo_2->Id == 48301)
+        return false;
+
+    if (spellInfo_1->AttributesEx6 & SPELL_ATTR_EX6_UNK26 && spellInfo_2->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+    {
+        // Marks and Gifts of the Wild
+        if (spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_2] == SPELL_AURA_MOD_RESISTANCE_EXCLUSIVE &&
+            spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_2] == SPELL_AURA_MOD_RESISTANCE_EXCLUSIVE)
+            return true;
+
+        // Blessings of Kings and Blessing of Forgotten Kings
+        if (spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE &&
+            spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE)
+            return true;
+
+        // Battle Shout and Blessings of Might
+        if (spellInfo_1->EffectApplyAuraName[EFFECT_INDEX_1] == SPELL_AURA_MOD_RANGED_ATTACK_POWER &&
+            spellInfo_2->EffectApplyAuraName[EFFECT_INDEX_1] == SPELL_AURA_MOD_RANGED_ATTACK_POWER)
+            return true;
+    }
+
     // Specific spell family spells
     switch(spellInfo_1->SpellFamilyName)
     {
@@ -1948,6 +1981,33 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Kindred Spirits
                 if (spellInfo_1->SpellIconID == 3559 && spellInfo_2->SpellIconID == 3559)
                     return false;
+
+                //Thaddius (Naxxramas) - Positive Charge Buff should not remove Positive Charge itself
+                if ((spellInfo_1->Id == 29659) && (spellInfo_2->Id == 28059))
+                    return false;
+
+                //Thaddius (Naxxramas) - Negative Charge Buff should not remove Negative Charge itself
+                if ((spellInfo_1->Id == 29660) && (spellInfo_2->Id == 28084))
+                    return false;
+
+                //Maexxna (Naxxramas) - Web Spray should not remove Web Wrap
+                if ((spellInfo_1->Id == 29484 || spellInfo_1->Id == 54125) && (spellInfo_2->Id == 28622))
+                    return false;
+
+                // Blue Flame Shield and Blue Power Focus (more generic rule needed for all spells with dummy auras)
+                if ((spellInfo_1->Id == 46796 && spellInfo_2->Id == 46789) ||
+                    (spellInfo_2->Id == 46796 && spellInfo_1->Id == 46789))
+                    return false;
+
+                // Health Funnel and Improved Health Funnel (Ranks 1,2)
+                if (spellInfo_1->SpellFamilyFlags & 0x01000000 && (spellInfo_2->Id == 60955 || spellInfo_2->Id == 60956))
+                    return false;
+            }
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST)
+            {
+                // Runescroll of Fortitude & Prayer/PW  Fortitude
+                if (spellInfo_1->Id == 72590 && spellInfo_2->SpellVisual[0] == 278)
+                    return true;
             }
             // Dragonmaw Illusion, Blood Elf Illusion, Human Illusion, Illidari Agent Illusion, Scarlet Crusade Disguise
             if (spellInfo_1->SpellIconID == 1691 && spellInfo_2->SpellIconID == 1691)
@@ -2072,6 +2132,16 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if ((spellInfo_1->SpellIconID == 566 && spellInfo_2->SpellIconID == 2820) ||
                     (spellInfo_2->SpellIconID == 566 && spellInfo_1->SpellIconID == 2820))
                     return false;
+            }
+            else if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
+            {
+                // Mind Trauma and Berserk/Enrage (PvE spells)
+                if (spellInfo_1->Id == 48301 && spellInfo_2->SpellIconID == 95)
+                    return false;
+
+                // Prayer/PW  Fortitude && Runescroll of Fortitude
+                if (spellInfo_1->SpellVisual[0] == 278 && spellInfo_2->Id == 72590)
+                    return true;
             }
             break;
         case SPELLFAMILY_DRUID:
