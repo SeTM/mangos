@@ -5899,14 +5899,51 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         if (!caster)
             return;
 
-        // Parasitic Shadowfiend - handle summoning of two Shadowfiends on DoT expire
-        if(spellProto->Id == 41917)
+        switch(spellProto->Id)
+        {
+        case 41917:
             target->CastSpell(target, 41915, true);
-
-        if (spellProto->Id == 55053)
+            break;
+        case 55053:
             target->CastSpell(target,55601,true,0,0,caster->GetGUID());
-        if (spellProto->Id == 29865)
+            break;
+        case 29865:
             target->CastSpell(target,55594,true,0,0,caster->GetGUID());
+            break;
+        case 70337:                       // Necrotic Plague
+        case 73912:
+        case 73913:
+        case 73914:
+        case 70338:
+        case 73785:
+        case 73786:
+        case 73787:
+            {
+                uint32 trigger_spell;
+                // The correct spell must be chosen himself, depending on complexity, but on the off case ...
+                switch(spellProto->Id)
+                {
+                case 70337: trigger_spell = 70338; break;
+                case 73912: trigger_spell = 73785; break;
+                case 73913: trigger_spell = 73786; break;
+                case 73914: trigger_spell = 73787; break;
+                default: trigger_spell = spellProto->Id; break;
+                }
+
+                if (m_removeMode == AURA_REMOVE_BY_DISPEL)
+                    caster->CastSpell(target,trigger_spell,true);
+                else
+                {
+                    caster->CastSpell(target,trigger_spell,true);
+                    caster->CastSpell(target,trigger_spell,true);
+                }
+                // buff Lich King
+                caster->CastSpell(target,74074,true);
+                break;
+            }
+        default:
+            break;
+        }
     }
 }
 
@@ -7531,6 +7568,8 @@ void Aura::PeriodicTick()
                     case 73780:
                     case 73781:
                     {
+                        // increase damage on 15%
+                        m_modifier.m_amount = m_modifier.m_amount * 1.15;
                         if(target->GetHealth() >= target->GetMaxHealth() * 0.9 )
                         {
                             target->RemoveAurasDueToSpell(GetId());

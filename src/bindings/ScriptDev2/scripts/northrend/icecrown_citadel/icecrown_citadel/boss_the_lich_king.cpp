@@ -453,7 +453,7 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public BSWScriptedAI
 //                    timedCast(SPELL_SHOCKWAVE, diff);
                     timedCast(SPELL_INFEST, diff);
                     timedCast(SPELL_SUMMON_DRUDGE_GHOULS, diff);
-                    timedCast(SPELL_PLAGUE_SIPHON, diff);
+                    //timedCast(SPELL_PLAGUE_SIPHON, diff);
                     timedCast(SPELL_SUMMON_SHAMBLING_HORROR, diff);
                     timedCast(SPELL_NECROTIC_PLAGUE, diff);
 
