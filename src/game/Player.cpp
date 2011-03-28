@@ -16321,9 +16321,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
 
     // must be before inventory (some items required reputation check)
     m_reputationMgr.LoadFromDB(holder->GetResult(PLAYER_LOGIN_QUERY_LOADREPUTATION));
-    
-    m_achievementMgr.LoadFromDB(holder->GetResult(PLAYER_LOGIN_QUERY_LOADACHIEVEMENTS), holder->GetResult(PLAYER_LOGIN_QUERY_LOADCRITERIAPROGRESS));
-    m_achievementMgr.CheckAllAchievementCriteria();
 
     _LoadInventory(holder->GetResult(PLAYER_LOGIN_QUERY_LOADINVENTORY), time_diff);
     _LoadItemLoot(holder->GetResult(PLAYER_LOGIN_QUERY_LOADITEMLOOT));
