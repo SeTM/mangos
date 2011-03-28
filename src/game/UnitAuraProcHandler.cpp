@@ -1030,6 +1030,10 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     if(GetTypeId() != TYPEID_PLAYER)
                         return SPELL_AURA_PROC_FAILED;
 
+                    // custom cooldown processing case
+                    if (cooldown && ((Player*)this)->HasSpellCooldown(dummySpell->Id))
+                        return SPELL_AURA_PROC_FAILED;
+
                     // Select class defined buff
                     switch (getClass())
                     {
@@ -1065,12 +1069,20 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     }
 
                     target = this;
+
+                    if (cooldown && GetTypeId() == TYPEID_PLAYER)
+                        ((Player*)this)->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + cooldown);
+
                     break;
                 }
                 // Item - Icecrown 25 Heroic Melee Trinket 
                 case 71562:
                 {
                     if(GetTypeId() != TYPEID_PLAYER)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    // custom cooldown processing case
+                    if (cooldown && ((Player*)this)->HasSpellCooldown(dummySpell->Id))
                         return SPELL_AURA_PROC_FAILED;
 
                     // Select class defined buff
@@ -1108,6 +1120,10 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     }
 
                     target = this;
+
+                    if (cooldown && GetTypeId() == TYPEID_PLAYER)
+                        ((Player*)this)->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + cooldown);
+
                     break;
                 }
             }
