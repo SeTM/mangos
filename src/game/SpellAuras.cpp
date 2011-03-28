@@ -189,7 +189,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleModHealingDone,                            //135 SPELL_AURA_MOD_HEALING_DONE
     &Aura::HandleNoImmediateEffect,                         //136 SPELL_AURA_MOD_HEALING_DONE_PERCENT   implemented in Unit::SpellHealingBonusDone
     &Aura::HandleModTotalPercentStat,                       //137 SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE
-    &Aura::HandleAuraModMeleeHaste,                         //138 SPELL_AURA_MOD_MELEE_HASTE
+    &Aura::HandleModMeleeSpeedPct,                          //138 SPELL_AURA_MOD_MELEE_HASTE
     &Aura::HandleForceReaction,                             //139 SPELL_AURA_FORCE_REACTION
     &Aura::HandleAuraModRangedHaste,                        //140 SPELL_AURA_MOD_RANGED_HASTE
     &Aura::HandleRangedAmmoHaste,                           //141 SPELL_AURA_MOD_RANGED_AMMO_HASTE
@@ -426,7 +426,7 @@ m_isPersistent(false), m_in_use(0), m_spellAuraHolder(holder)
         }
     }
 
-    SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff]);
+    SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff], damage);
 
     if (caster)
         m_maxduration = caster->CalculateBaseSpellDuration(spellproto, &m_modifier.periodictime);
@@ -451,8 +451,6 @@ m_isPersistent(false), m_in_use(0), m_spellAuraHolder(holder)
     // Start periodic on next tick or at aura apply
     if (!(spellproto->AttributesEx5 & SPELL_ATTR_EX5_START_PERIODIC_AT_APPLY))
         m_periodicTimer += m_modifier.periodictime;
-
-    m_stacking = IsEffectStacking();
 }
 
 Aura::~Aura()
@@ -566,6 +564,7 @@ void Aura::SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue, int32 a2
 {
     m_modifier.m_auraname = t;
     m_modifier.m_amount = a;
+    m_modifier.m_amount2 = a2;
     m_modifier.m_miscvalue = miscValue;
     m_modifier.periodictime = pt;
 }
@@ -788,6 +787,33 @@ void AreaAura::Update(uint32 diff)
 
                     if (addedToExisting)
                     {
+                        if (!aur->IsEffectStacking())
+                        {
+                            AuraType aurName = AuraType(aur->GetModifier()->m_auraname);
+                            Unit::AuraList const& mModStat = (*tIter)->GetAurasByType(aurName);
+                            for(Unit::AuraList::const_iterator i = mModStat.begin(); i != mModStat.end(); ++i)
+                            {
+                                if ((*i)->IsEffectStacking())
+                                    continue;
+
+                                Modifier *i_mod = (*i)->GetModifier();
+                                Modifier *a_mod = aur->GetModifier();
+
+                                if (i_mod->m_miscvalue != a_mod->m_miscvalue)
+                                    continue;
+
+                                if (i_mod->m_amount <= 0 || a_mod->m_amount < 0)     // don't check negative and proved auras
+                                    continue;
+                                if (i_mod->m_amount >= a_mod->m_amount)
+                                    aur->SetModifier(aurName,0,a_mod->periodictime,a_mod->m_miscvalue,a_mod->m_amount2);
+                                else
+                                {
+                                    (*i)->ApplyModifier(false,false);
+                                    (*i)->SetModifier(aurName,0,i_mod->periodictime,i_mod->m_miscvalue,i_mod->m_amount2);
+                                }
+                            }
+                        }
+
                         (*tIter)->AddAuraToModList(aur);
                         holder->SetInUse(true);
                         aur->ApplyModifier(true,true);
@@ -1071,7 +1097,6 @@ bool Aura::IsEffectStacking()
     case SPELL_AURA_MOD_ATTACK_POWER:                               // (Greater) Blessing of Might / Battle Shout
     case SPELL_AURA_MOD_RANGED_ATTACK_POWER:
     case SPELL_AURA_MOD_POWER_REGEN:                                // (Greater) Blessing of Wisdom
-    case SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN:                       // Renewed Hope / (Greater) Blessing of Sanctuary / Vigilance // Glyph of Salvation / Pain Suppression / Safeguard ?
         if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
             return false;
         // (Improved) Icy Talons check
@@ -6037,17 +6062,15 @@ void Aura::HandleAuraModStat(bool apply, bool /*Real*/)
         return;
     }
 
-    Unit *target = GetTarget();
-
     for(int32 i = STAT_STRENGTH; i < MAX_STATS; i++)
     {
         // -1 or -2 is all stats ( misc < -2 checked in function beginning )
         if (m_modifier.m_miscvalue < 0 || m_modifier.m_miscvalue == i)
         {
             //m_target->ApplyStatMod(Stats(i), m_modifier.m_amount,apply);
-            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_VALUE, float(m_modifier.m_amount), apply, 0, i+1);
-            if((target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->IsPet()) && change != 0)
-                target->ApplyStatBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply);
+            GetTarget()->HandleStatModifier(UnitMods(UNIT_MOD_STAT_START + i), TOTAL_VALUE, float(m_modifier.m_amount), apply);
+            if(GetTarget()->GetTypeId() == TYPEID_PLAYER || ((Creature*)GetTarget())->IsPet())
+                GetTarget()->ApplyStatBuffMod(Stats(i), float(m_modifier.m_amount), apply);
         }
     }
 }
@@ -6309,7 +6332,7 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
     }
 
     // generic case
-    target->CheckAuraStackingAndApply(this, UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+    target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
 }
 
 void  Aura::HandleAuraModIncreaseMaxHealth(bool apply, bool /*Real*/)
@@ -6318,7 +6341,7 @@ void  Aura::HandleAuraModIncreaseMaxHealth(bool apply, bool /*Real*/)
     uint32 oldhealth = target->GetHealth();
     double healthPercentage = (double)oldhealth / (double)target->GetMaxHealth();
 
-    target->CheckAuraStackingAndApply(this, UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+    target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
 
     // refresh percentage
     if(oldhealth > 0)
@@ -6438,43 +6461,11 @@ void Aura::HandleAuraModCritPercent(bool apply, bool Real)
     // with spell->EquippedItemClass and  EquippedItemSubClassMask and EquippedItemInventoryTypeMask
     // m_modifier.m_miscvalue comparison with item generated damage types
 
-    float amount = float(m_modifier.m_amount);
-
     if (GetSpellProto()->EquippedItemClass == -1)
     {
-        if(IsStacking())
-        {
-            ((Player*)target)->HandleBaseModValue(CRIT_PERCENTAGE,         FLAT_MOD, amount, apply);
-            ((Player*)target)->HandleBaseModValue(OFFHAND_CRIT_PERCENTAGE, FLAT_MOD, amount, apply);
-            ((Player*)target)->HandleBaseModValue(RANGED_CRIT_PERCENTAGE,  FLAT_MOD, amount, apply);
-        }
-        else
-        {
-            float current = ((Player*)target)->GetBaseModValue(NONSTACKING_CRIT_PERCENTAGE, FLAT_MOD);
-
-            if(amount < current)
-                return;
-
-            // unapply old aura
-            if(current)
-            {
-                ((Player*)target)->HandleBaseModValue(CRIT_PERCENTAGE,         FLAT_MOD, current, false);
-                ((Player*)target)->HandleBaseModValue(OFFHAND_CRIT_PERCENTAGE, FLAT_MOD, current, false);
-                ((Player*)target)->HandleBaseModValue(RANGED_CRIT_PERCENTAGE,  FLAT_MOD, current, false);
-            }
-
-            if(!apply)
-                amount = target->GetMaxPositiveAuraModifier(SPELL_AURA_MOD_CRIT_PERCENT, true);
-
-            if(amount)
-            {
-                ((Player*)target)->HandleBaseModValue(CRIT_PERCENTAGE,         FLAT_MOD, amount, true);
-                ((Player*)target)->HandleBaseModValue(OFFHAND_CRIT_PERCENTAGE, FLAT_MOD, amount, true);
-                ((Player*)target)->HandleBaseModValue(RANGED_CRIT_PERCENTAGE,  FLAT_MOD, amount, true);
-            }
-
-            ((Player*)target)->SetBaseModValue(NONSTACKING_CRIT_PERCENTAGE, FLAT_MOD, amount);
-        }
+        ((Player*)target)->HandleBaseModValue(CRIT_PERCENTAGE,         FLAT_MOD, float (m_modifier.m_amount), apply);
+        ((Player*)target)->HandleBaseModValue(OFFHAND_CRIT_PERCENTAGE, FLAT_MOD, float (m_modifier.m_amount), apply);
+        ((Player*)target)->HandleBaseModValue(RANGED_CRIT_PERCENTAGE,  FLAT_MOD, float (m_modifier.m_amount), apply);
     }
     else
     {
@@ -6560,41 +6551,10 @@ void Aura::HandleModMeleeRangedSpeedPct(bool apply, bool /*Real*/)
 void Aura::HandleModCombatSpeedPct(bool apply, bool /*Real*/)
 {
     Unit *target = GetTarget();
-
-    if(IsStacking())
-    {
-        target->ApplyCastTimePercentMod(m_modifier.m_amount, apply);
-        target->ApplyAttackTimePercentMod(BASE_ATTACK, m_modifier.m_amount, apply);
-        target->ApplyAttackTimePercentMod(OFF_ATTACK, m_modifier.m_amount, apply);
-        target->ApplyAttackTimePercentMod(RANGED_ATTACK, m_modifier.m_amount, apply);
-    }
-    else
-    {
-        // Only positive effects are nonstacking in this handler
-        float amount = float(m_modifier.m_amount);
-
-        if(amount < target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL])
-            return;
-
-        // unapply old aura
-        if(target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL])
-        {
-            target->ApplyCastTimePercentMod(target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL], false);
-            target->ApplyAttackTimePercentMod(BASE_ATTACK, target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL], false);
-            target->ApplyAttackTimePercentMod(OFF_ATTACK, target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL], false);
-            target->ApplyAttackTimePercentMod(RANGED_ATTACK, target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL], false);
-        }
-
-        if(!apply)
-            amount = target->GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MELEE_RANGED_HASTE, true);
-
-        target->ApplyCastTimePercentMod(amount, true);
-        target->ApplyAttackTimePercentMod(BASE_ATTACK, amount, true);
-        target->ApplyAttackTimePercentMod(OFF_ATTACK, amount, true);
-        target->ApplyAttackTimePercentMod(RANGED_ATTACK, amount, true);
-
-        target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL] = amount;
-    }
+    target->ApplyCastTimePercentMod(float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(BASE_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(OFF_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(RANGED_ATTACK, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleModAttackSpeed(bool apply, bool /*Real*/)
@@ -6602,37 +6562,11 @@ void Aura::HandleModAttackSpeed(bool apply, bool /*Real*/)
     GetTarget()->ApplyAttackTimePercentMod(BASE_ATTACK,float(m_modifier.m_amount),apply);
 }
 
-void Aura::HandleAuraModMeleeHaste(bool apply, bool /*Real*/)
+void Aura::HandleModMeleeSpeedPct(bool apply, bool /*Real*/)
 {
     Unit *target = GetTarget();
-
-    if (IsStacking())
-    {
-        target->ApplyAttackTimePercentMod(BASE_ATTACK, m_modifier.m_amount, apply);
-        target->ApplyAttackTimePercentMod(OFF_ATTACK, m_modifier.m_amount, apply);
-    }
-    else
-    {
-        if(m_modifier.m_amount < target->m_modAttackSpeedPct[NONSTACKING_MOD_MELEE])
-            return;
-
-        float amount = float(m_modifier.m_amount);
-
-        // unapply old aura
-        if(target->m_modAttackSpeedPct[NONSTACKING_MOD_MELEE])
-        {
-            target->ApplyAttackTimePercentMod(BASE_ATTACK, target->m_modAttackSpeedPct[NONSTACKING_MOD_MELEE], false);
-            target->ApplyAttackTimePercentMod(OFF_ATTACK, target->m_modAttackSpeedPct[NONSTACKING_MOD_MELEE], false);
-        }
-
-        if(!apply)
-            amount = target->GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MELEE_HASTE, true);
-
-        target->ApplyAttackTimePercentMod(BASE_ATTACK, amount, true);
-        target->ApplyAttackTimePercentMod(OFF_ATTACK, amount, true);
-
-        target->m_modAttackSpeedPct[NONSTACKING_MOD_MELEE] = amount;
-    }
+    target->ApplyAttackTimePercentMod(BASE_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(OFF_ATTACK, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModRangedHaste(bool apply, bool /*Real*/)
@@ -6653,7 +6587,7 @@ void Aura::HandleRangedAmmoHaste(bool apply, bool /*Real*/)
 
 void Aura::HandleAuraModAttackPower(bool apply, bool /*Real*/)
 {
-    GetTarget()->CheckAuraStackingAndApply(this, UNIT_MOD_ATTACK_POWER, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+    GetTarget()->HandleStatModifier(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModRangedAttackPower(bool apply, bool /*Real*/)
@@ -6661,13 +6595,13 @@ void Aura::HandleAuraModRangedAttackPower(bool apply, bool /*Real*/)
     if((GetTarget()->getClassMask() & CLASSMASK_WAND_USERS)!=0)
         return;
 
-    GetTarget()->CheckAuraStackingAndApply(this, UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+    GetTarget()->HandleStatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModAttackPowerPercent(bool apply, bool /*Real*/)
 {
     //UNIT_FIELD_ATTACK_POWER_MULTIPLIER = multiplier - 1
-    GetTarget()->CheckAuraStackingAndApply(this, UNIT_MOD_ATTACK_POWER, TOTAL_PCT, float(m_modifier.m_amount), apply);
+    GetTarget()->HandleStatModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModRangedAttackPowerPercent(bool apply, bool /*Real*/)
@@ -6676,7 +6610,7 @@ void Aura::HandleAuraModRangedAttackPowerPercent(bool apply, bool /*Real*/)
         return;
 
     //UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER = multiplier - 1
-    GetTarget()->CheckAuraStackingAndApply(this, UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, float(m_modifier.m_amount), apply);
+    GetTarget()->HandleStatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModRangedAttackPowerOfStatPercent(bool /*apply*/, bool Real)
@@ -6718,6 +6652,14 @@ void Aura::HandleModDamageDone(bool apply, bool Real)
 {
     Unit *target = GetTarget();
 
+    // apply item specific bonuses for already equipped weapon
+    if(Real && target->GetTypeId() == TYPEID_PLAYER)
+    {
+        for(int i = 0; i < MAX_ATTACK; ++i)
+            if(Item* pItem = ((Player*)target)->GetWeaponForAttack(WeaponAttackType(i),true,false))
+                ((Player*)target)->_ApplyWeaponDependentAuraDamageMod(pItem, WeaponAttackType(i), this, apply);
+    }
+
     // m_modifier.m_miscvalue is bitmask of spell schools
     // 1 ( 0-bit ) - normal school damage (SPELL_SCHOOL_MASK_NORMAL)
     // 126 - full bitmask all magic damages (SPELL_SCHOOL_MASK_MAGIC) including wands
@@ -6746,7 +6688,7 @@ void Aura::HandleModDamageDone(bool apply, bool Real)
             if(m_positive)
                 target->ApplyModUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS, m_modifier.m_amount, apply);
             else
-                target->ApplyModInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG, m_modifier.m_amount, apply);
+                target->ApplyModUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG, m_modifier.m_amount, apply);
         }
     }
 
@@ -6765,23 +6707,8 @@ void Aura::HandleModDamageDone(bool apply, bool Real)
 
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
     // This information for client side use only
-    if(target->GetTypeId() == TYPEID_PLAYER)
-    {
-        if(!m_positive)
-        {
-            for(int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
-            {
-                if((m_modifier.m_miscvalue & (1<<i)) != 0)
-                    target->ApplyModInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + i, m_modifier.m_amount, apply);
-            }
-        }
-
+    if (target->GetTypeId() == TYPEID_PLAYER)
         ((Player*)target)->UpdateSpellDamageAndHealingBonus();
-
-        Pet* pet = target->GetPet();
-        if(pet)
-            pet->UpdateAttackPowerAndDamage();
-    }
 }
 
 void Aura::HandleModDamagePercentDone(bool apply, bool Real)
@@ -8491,7 +8418,7 @@ void Aura::PeriodicDummyTick()
                             if(Aura* Aur = holder->GetAuraByEffectIndex(SpellEffectIndex(0)))
                             {
                                 Modifier* mod = Aur->GetModifier();
-                                Aur->SetModifier(mod->m_auraname, mod->m_amount - 10, mod->periodictime, mod->m_miscvalue);
+                                Aur->SetModifier(mod->m_auraname, mod->m_amount - 10, mod->periodictime, mod->m_miscvalue, mod->m_amount2);
                                 target->UpdateSpeed(MOVE_RUN, true);
                                 target->UpdateSpeed(MOVE_SWIM, true);
                                 target->UpdateSpeed(MOVE_FLIGHT, true);

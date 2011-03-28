@@ -26,6 +26,7 @@ struct Modifier
 {
     AuraType m_auraname;
     int32 m_amount;
+    int32 m_amount2;
     int32 m_miscvalue;
     uint32 periodictime;
 };
@@ -243,7 +244,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraModIncreaseEnergyPercent(bool Apply, bool Real);
         void HandleAuraModIncreaseHealthPercent(bool Apply, bool Real);
         void HandleAuraModRegenInterrupt(bool Apply, bool Real);
-        void HandleAuraModMeleeHaste(bool Apply, bool Real);
+        void HandleModMeleeSpeedPct(bool Apply, bool Real);
         void HandlePeriodicTriggerSpell(bool Apply, bool Real);
         void HandlePeriodicTriggerSpellWithValue(bool apply, bool Real);
         void HandlePeriodicEnergize(bool Apply, bool Real);
@@ -408,7 +409,6 @@ class MANGOS_DLL_SPEC Aura
         bool IsAreaAura() const { return m_isAreaAura; }
         bool IsPeriodic() const { return m_isPeriodic; }
         bool IsInUse() const { return m_in_use; }
-        bool IsStacking() const { return m_stacking;}
 
         void SetInUse(bool state)
         {
@@ -445,6 +445,8 @@ class MANGOS_DLL_SPEC Aura
         bool IsLastAuraOnHolder();
 
         bool HasMechanic(uint32 mechanic) const;
+
+        bool IsEffectStacking();
     protected:
         Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, SpellAuraHolder *holder, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
 
@@ -457,8 +459,6 @@ class MANGOS_DLL_SPEC Aura
 
         bool IsCritFromAbilityAura(Unit* caster, uint32& damage);
         void ReapplyAffectedPassiveAuras();
-
-        bool IsEffectStacking();
 
         Modifier m_modifier;
         SpellModifier *m_spellmod;
@@ -480,7 +480,6 @@ class MANGOS_DLL_SPEC Aura
         bool m_isPeriodic:1;
         bool m_isAreaAura:1;
         bool m_isPersistent:1;
-        bool m_stacking:1;                                  // Aura is not overwritten, but effects are not cumulative with similar effects
 
         uint32 m_in_use;                                    // > 0 while in Aura::ApplyModifier call/Aura::Update/etc
 
