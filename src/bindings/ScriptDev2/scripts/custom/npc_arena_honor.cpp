@@ -24,10 +24,10 @@ EndScriptData */
 #include "sc_creature.h"
 #include "sc_gossip.h"
 
-#define GOSSIP_ITEM_ARENA_TO_HONOR  -3000770
-#define GOSSIP_ITEM_ARENA_TO_HONOR1 -3000771
-#define GOSSIP_ITEM_HONOR_TO_ARENA  -3000772
-#define GOSSIP_ITEM_HONOR_TO_ARENA1 -3000773
+#define GOSSIP_ITEM_ARENA_TO_HONOR  3000770
+#define GOSSIP_ITEM_ARENA_TO_HONOR1 3000771
+#define GOSSIP_ITEM_HONOR_TO_ARENA  3000772
+#define GOSSIP_ITEM_HONOR_TO_ARENA1 3000773
 
 #define UNSUCCESSFUL_HONOR  -1001007
 #define UNSUCCESSFUL_ARENA  -1001008
@@ -46,9 +46,9 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
 {
     if (action == GOSSIP_ACTION_INFO_DEF + 1)
     {
-        if (pPlayer->GetHonorPoints() >= 1000)
+        if (pPlayer->GetHonorPoints() >= 2000)
         {
-            pPlayer->ModifyHonorPoints(-1000);
+            pPlayer->ModifyHonorPoints(-2000);
             pPlayer->ModifyArenaPoints(+50);
         }
         else
@@ -56,9 +56,9 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
     }
     if (action == GOSSIP_ACTION_INFO_DEF + 2)
     {
-        if (pPlayer->GetHonorPoints() >= 10000)
+        if (pPlayer->GetHonorPoints() >= 20000)
         {
-            pPlayer->ModifyHonorPoints(-10000);
+            pPlayer->ModifyHonorPoints(-20000);
             pPlayer->ModifyArenaPoints(+500);
         }
         else
@@ -69,7 +69,7 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
         if (pPlayer->GetArenaPoints() >= 100)
         {
             pPlayer->ModifyArenaPoints(-100);
-            pPlayer->ModifyHonorPoints(+2000);
+            pPlayer->ModifyHonorPoints(+4000);
         }
         else
             DoScriptText(UNSUCCESSFUL_ARENA, pCreature);
@@ -79,7 +79,7 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
         if (pPlayer->GetArenaPoints() >= 1000)
         {
             pPlayer->ModifyArenaPoints(-1000);
-            pPlayer->ModifyHonorPoints(+20000);
+            pPlayer->ModifyHonorPoints(+40000);
         }
         else
             DoScriptText(UNSUCCESSFUL_ARENA, pCreature);
