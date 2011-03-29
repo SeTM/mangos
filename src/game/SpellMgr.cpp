@@ -4491,6 +4491,7 @@ bool IsMultiStacking(SpellEntry const *spellInfo)
         case 71157:                     // Infected Wound
         case 29306:
         case 45770:                     // Shadow Bolt Volley
+        case 74074:                     // Plague Siphon
             return true;
         default: return false;
     }
