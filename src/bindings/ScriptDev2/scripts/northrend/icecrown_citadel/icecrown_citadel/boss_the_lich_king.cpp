@@ -447,6 +447,10 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public BSWScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        // Plague Avoidance
+        if (!m_creature->HasAura(72846))
+            DoCast(m_creature,72846,true);
+
         switch(stage)
         {
             case 0:           // Phase 1

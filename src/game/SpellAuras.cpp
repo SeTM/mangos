@@ -5929,15 +5929,9 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 case 73914: trigger_spell = 73787; break;
                 default: trigger_spell = spellProto->Id; break;
                 }
-
-                if (m_removeMode == AURA_REMOVE_BY_DISPEL)
-                    target->CastSpell(target,trigger_spell,true);
-                else
-                {
-                    target->CastSpell(target,trigger_spell,true);
-                    target->CastSpell(target,trigger_spell,true);
-                }
-                // buff Lich King
+                
+                // required to implement the transfer of stacks
+                target->CastSpell(target, trigger_spell, true, NULL, this);
                 target->CastSpell(target,74074,true);
                 break;
             }
