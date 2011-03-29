@@ -1597,6 +1597,14 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 73023:
                 case 71340:                                 // Pact of darkfallen (hack for script work)
                 case 68950:                                 // Fear
+                case 70337:                                 // Necrotic Plague
+                case 73912:
+                case 73913:
+                case 73914:
+                case 70338:
+                case 73785:
+                case 73786:
+                case 73787:
                     unMaxTargets = 1;
                     break;
                 case 28542:                                 // Life Drain
@@ -2001,6 +2009,23 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                             break;
                         }
                     }
+                }
+            }
+
+            // Necrotic Plague, If not found scripted creatures trying to cast a least as, but not of the Lich King
+            if (m_spellInfo->Id == 70338 || m_spellInfo->Id == 73785 ||
+                m_spellInfo->Id == 73786 || m_spellInfo->Id == 73787)
+            {
+                if (bounds.first != bounds.second && targetUnitMap.empty())
+                    FillAreaTargets(targetUnitMap, m_caster->GetPositionX(), m_caster->GetPositionY(), radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
+
+                for (UnitList::const_iterator iter = targetUnitMap.begin(); iter != targetUnitMap.end(); ++iter)
+                {
+                    if ((*iter)->GetTypeId() != TYPEID_UNIT)
+                        continue;
+
+                    if ((*iter)->GetEntry() == 36597)
+                        targetUnitMap.remove((*iter));
                 }
             }
             
