@@ -751,6 +751,10 @@ struct MANGOS_DLL_DECL boss_tirion_iccAI : public ScriptedAI
             Reset();
         }
 
+        // Plague Avoidance
+        if (!m_creature->HasAura(72846))
+            DoCast(m_creature,72846,true);
+
         if (pInstance->GetData(TYPE_EVENT_NPC) == NPC_TIRION)
         {
             UpdateTimer = pInstance->GetData(TYPE_EVENT_TIMER);

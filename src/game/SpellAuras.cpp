@@ -5931,8 +5931,10 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 }
                 
                 // required to implement the transfer of stacks
-                target->CastSpell(target, trigger_spell, true, NULL, this);
-                target->CastSpell(target,74074,true);
+                target->CastSpell(target, trigger_spell, true);
+
+                // buff Lich King
+                caster->CastSpell(caster,74074,true);
                 break;
             }
         default:
