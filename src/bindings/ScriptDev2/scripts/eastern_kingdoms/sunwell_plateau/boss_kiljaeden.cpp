@@ -612,9 +612,7 @@ struct MANGOS_DLL_DECL mob_sinister_reflectionAI : public ScriptedAI
         }
 
 
-    }
-
-    
+    }    
 };
 
 /*######

@@ -4475,3 +4475,25 @@ SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty)
     SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellDiff->spellId[difficulty]);
     return spellEntry;
 }
+
+// These spells can stack a few casters
+bool IsMultiStacking(SpellEntry const *spellInfo)
+{
+    if (spellInfo->StackAmount == 0)
+        return false;
+
+    switch (spellInfo->Id)
+    {
+        case 70338:                     // Necrotic Plague
+        case 73785:
+        case 73786:
+        case 73787:
+        case 71157:                     // Infected Wound
+        case 29306:
+        case 45770:                     // Shadow Bolt Volley
+            return true;
+        default: return false;
+    }
+
+    return false;
+}

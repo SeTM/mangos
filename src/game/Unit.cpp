@@ -4243,8 +4243,7 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder *holder)
         for (SpellAuraHolderMap::iterator iter = spair.first; iter != spair.second; ++iter)
         {
             SpellAuraHolder *foundHolder = iter->second;
-            if((foundHolder->GetCasterGUID() == holder->GetCasterGUID()) ||
-                (holder->GetCaster() && holder->GetCaster()->GetTypeId() != TYPEID_PLAYER && aurSpellInfo->StackAmount >= 99))
+            if((foundHolder->GetCasterGUID() == holder->GetCasterGUID()) || IsMultiStacking(aurSpellInfo))
             {
                 // Aura can stack on self -> Stack it;
                 if(aurSpellInfo->StackAmount)

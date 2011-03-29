@@ -514,6 +514,8 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
 
 MANGOS_DLL_SPEC SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty);
 
+bool IsMultiStacking(SpellEntry const *spellInfo);
+
 // Spell proc event related declarations (accessed using SpellMgr functions)
 enum ProcFlags
 {
