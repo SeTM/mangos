@@ -52,7 +52,7 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
             pPlayer->ModifyArenaPoints(+50);
         }
         else
-            DoScriptText(UNSUCCESSFUL_HONOR, pCreature);
+            DoScriptText(UNSUCCESSFUL_HONOR, pCreature, pPlayer);
     }
     if (action == GOSSIP_ACTION_INFO_DEF + 2)
     {
@@ -62,7 +62,7 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
             pPlayer->ModifyArenaPoints(+500);
         }
         else
-            DoScriptText(UNSUCCESSFUL_HONOR, pCreature);
+            DoScriptText(UNSUCCESSFUL_HONOR, pCreature, pPlayer);
     }
     if (action == GOSSIP_ACTION_INFO_DEF + 3)
     {
@@ -72,7 +72,7 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
             pPlayer->ModifyHonorPoints(+4000);
         }
         else
-            DoScriptText(UNSUCCESSFUL_ARENA, pCreature);
+            DoScriptText(UNSUCCESSFUL_ARENA, pCreature, pPlayer);
     }
     if (action == GOSSIP_ACTION_INFO_DEF + 4)
     {
@@ -82,7 +82,7 @@ bool GossipSelect_npc_arena_honor(Player *pPlayer, Creature *pCreature, uint32 s
             pPlayer->ModifyHonorPoints(+40000);
         }
         else
-            DoScriptText(UNSUCCESSFUL_ARENA, pCreature);
+            DoScriptText(UNSUCCESSFUL_ARENA, pCreature, pPlayer);
     }
     pPlayer->CLOSE_GOSSIP_MENU();
     return true;
