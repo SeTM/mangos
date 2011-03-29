@@ -5931,14 +5931,14 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 }
 
                 if (m_removeMode == AURA_REMOVE_BY_DISPEL)
-                    caster->CastSpell(target,trigger_spell,true);
+                    target->CastSpell(target,trigger_spell,true);
                 else
                 {
-                    caster->CastSpell(target,trigger_spell,true);
-                    caster->CastSpell(target,trigger_spell,true);
+                    target->CastSpell(target,trigger_spell,true);
+                    target->CastSpell(target,trigger_spell,true);
                 }
                 // buff Lich King
-                caster->CastSpell(target,74074,true);
+                target->CastSpell(target,74074,true);
                 break;
             }
         default:
