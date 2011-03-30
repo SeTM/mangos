@@ -5934,7 +5934,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 target->CastSpell(target, trigger_spell, true);
 
                 // buff Lich King
-                caster->CastSpell(caster,74074,true);
+                target->CastSpell(target,74074,true);
                 break;
             }
         default:
