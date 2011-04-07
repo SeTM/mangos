@@ -350,6 +350,7 @@ class Spell
         void EffectPlayMusic(SpellEffectIndex eff_idx);
         void EffectSpecCount(SpellEffectIndex eff_idx);
         void EffectActivateSpec(SpellEffectIndex eff_idx);
+        void EffectCancelAura(SpellEffectIndex eff_idx);
 
         void EffectFriendSummon(SpellEffectIndex eff_idx);
 
@@ -520,6 +521,7 @@ class Spell
         WeaponAttackType m_attackType;                      // For weapon based attack
         uint32 m_powerCost;                                 // Calculated spell cost     initialized only in Spell::prepare
         int32 m_casttime;                                   // Calculated spell cast time initialized only in Spell::prepare
+        int32 m_duration;
         bool m_canReflect;                                  // can reflect this spell?
         bool m_autoRepeat;
         uint8 m_runesState;
@@ -550,7 +552,7 @@ class Spell
         Unit* unitTarget;
         Item* itemTarget;
         GameObject* gameObjTarget;
-        SpellAuraHolder* spellAuraHolder;                   // spell aura holder for current target, created only if spell has aura applying effect
+        SpellAuraHolder* m_spellAuraHolder;                 // spell aura holder for current target, created only if spell has aura applying effect
         int32 damage;
 
         // this is set in Spell Hit, but used in Apply Aura handler

@@ -224,8 +224,8 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectNULL,                                     //160 SPELL_EFFECT_160                      single spell: Nerub'ar Web Random Unit
     &Spell::EffectSpecCount,                                //161 SPELL_EFFECT_TALENT_SPEC_COUNT        second talent spec (learn/revert)
     &Spell::EffectActivateSpec,                             //162 SPELL_EFFECT_TALENT_SPEC_SELECT       activate primary/secondary spec
-    &Spell::EffectNULL,                                     //163
-    &Spell::EffectRemoveAura,                               //164 SPELL_EFFECT_REMOVE_AURA
+    &Spell::EffectUnused,                                   //163 unused in 3.3.5a
+    &Spell::EffectCancelAura,                               //164 SPELL_EFFECT_CANCEL_AURA
 };
 
 void Spell::EffectEmpty(SpellEffectIndex /*eff_idx*/)
@@ -1728,6 +1728,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     // Towers of Certain Doom: Tower Caster Instakill
                     m_caster->CastSpell(m_caster, 43072, true);
+                    return;
+                }
+                case 43209:                                 // Place Ram Meat
+                {
+                    if (!unitTarget)
+                        return;
+
+                    // Self Visual - Sleep Until Cancelled (DND)
+                    unitTarget->RemoveAurasDueToSpell(6606);
                     return;
                 }
                 case 43572:                                 // Send Them Packing: On /Raise Emote Dummy to Player
@@ -4102,7 +4111,7 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     Unit* caster = GetAffectiveCaster();
     if(!caster)
     {
-        // FIXME: currently we can't have auras applied explIcitly by gameobjects
+        // FIXME: currently we can't have auras applied explicitly by gameobjects
         // so for auras from wild gameobjects (no owner) target used
         if (m_originalCasterGUID.IsGameObject())
             caster = unitTarget;
@@ -4112,61 +4121,8 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
 
-    Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], spellAuraHolder, unitTarget, caster, m_CastItem);
-
-    // Now Reduce spell duration using data received at spell hit
-    int32 duration = Aur->GetAuraMaxDuration();
-    int32 limitduration = GetDiminishingReturnsLimitDuration(m_diminishGroup,m_spellInfo);
-    
-    // Fear (warlock's spell) duration recalculation in PvP
-    // Need for some talents, because Mod Mechanic Duration is applied BEFORE PvP limitation of spell's duration
-    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000040000000000))
-        limitduration = int32(float(duration) / GetSpellDuration(m_spellInfo) * limitduration);
-    
-    unitTarget->ApplyDiminishingToDuration(m_diminishGroup, duration, m_caster, m_diminishLevel,limitduration);
-    spellAuraHolder->setDiminishGroup(m_diminishGroup);
-
-    if (sSpellMgr.GetSpellElixirSpecific(m_spellInfo->Id))                   // table spell_elixer have it all
-        if (unitTarget->HasAura(53042) && unitTarget->HasSpell(m_spellInfo->EffectTriggerSpell[0]))
-        {
-            duration *= 2;
-            Aur->GetModifier()->m_amount *= 1.3f;
-        }
-
-    // if Aura removed and deleted, do not continue.
-    if(duration== 0 && !(spellAuraHolder->IsPermanent()))
-    {
-        delete Aur;
-        return;
-    }
-
-    // FG: apply additional auras on aura apply -- very hacky
-    if(caster->GetTypeId() == TYPEID_PLAYER)
-    {
-        switch(Aur->GetSpellProto()->SpellFamilyName)
-        {
-            case SPELLFAMILY_DRUID:
-            {
-                // FG: Item - Druid T10 Balance 2P Bonus
-                if(m_spellInfo->Id == 16870)
-                {
-                    if(caster->HasAura(70718))
-                    {
-                        caster->CastSpell(caster, 70721, true);
-                    }
-                }
-                break;
-            }
-        }
-    }
-
-    if(duration != Aur->GetAuraMaxDuration())
-    {
-        Aur->SetAuraMaxDuration(duration);
-        Aur->SetAuraDuration(duration);
-    }
-
-    spellAuraHolder->AddAura(Aur, eff_idx);
+    Aura* aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, caster, m_CastItem);
+    m_spellAuraHolder->AddAura(aur, eff_idx);
 }
 
 void Spell::EffectUnlearnSpecialization(SpellEffectIndex eff_idx)
@@ -4648,9 +4604,8 @@ void Spell::EffectPersistentAA(SpellEffectIndex eff_idx)
     if (Player* modOwner = m_caster->GetSpellModOwner())
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_RADIUS, radius);
 
-    int32 duration = GetSpellDuration(m_spellInfo);
     DynamicObject* dynObj = new DynamicObject;
-    if (!dynObj->Create(m_caster->GetMap()->GenerateLocalLowGuid(HIGHGUID_DYNAMICOBJECT), m_caster, m_spellInfo->Id, eff_idx, m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, duration, radius))
+    if (!dynObj->Create(m_caster->GetMap()->GenerateLocalLowGuid(HIGHGUID_DYNAMICOBJECT), m_caster, m_spellInfo->Id, eff_idx, m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, m_duration, radius))
     {
         delete dynObj;
         return;
@@ -5025,8 +4980,8 @@ void Spell::EffectApplyAreaAura(SpellEffectIndex eff_idx)
     if (!unitTarget->isAlive())
         return;
 
-    AreaAura* Aur = new AreaAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], spellAuraHolder, unitTarget, m_caster, m_CastItem);
-    spellAuraHolder->AddAura(Aur, eff_idx);
+    AreaAura* Aur = new AreaAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, m_caster, m_CastItem);
+    m_spellAuraHolder->AddAura(Aur, eff_idx);
 }
 
 void Spell::EffectSummonType(SpellEffectIndex eff_idx)
@@ -5166,13 +5121,16 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     uint32 pet_entry = m_spellInfo->EffectMiscValue[eff_idx];
     if (!pet_entry)
         return;
+
+    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(pet_entry);
+    if (!cInfo)
+    {
+        sLog.outErrorDb("Spell::DoSummon: creature entry %u not found for spell %u.", pet_entry, m_spellInfo->Id);
+        return;
+    }
+
     uint32 level = m_caster->getLevel();
     Pet* spawnCreature = new Pet(SUMMON_PET);
-
-    int32 duration = GetSpellDuration(m_spellInfo);
-    if (duration > 0)
-        if (Player* modOwner = m_caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
 
     if (m_caster->GetTypeId()==TYPEID_PLAYER && spawnCreature->LoadPetFromDB((Player*)m_caster,pet_entry))
     {
@@ -5180,11 +5138,9 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
             spawnCreature->Relocate(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, -m_caster->GetOrientation());
 
-
-
         // set timer for unsummon
-        if (duration > 0)
-            spawnCreature->SetDuration(duration);
+        if (m_duration > 0)
+            spawnCreature->SetDuration(m_duration);
 
         return;
     }
@@ -5197,9 +5153,9 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
 
     Map *map = m_caster->GetMap();
     uint32 pet_number = sObjectMgr.GeneratePetNumber();
-    if (!spawnCreature->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, m_spellInfo->EffectMiscValue[eff_idx], pet_number))
+    if (!spawnCreature->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, pet_number))
     {
-        sLog.outErrorDb("Spell::EffectSummon: no such creature entry %u",m_spellInfo->EffectMiscValue[eff_idx]);
+        sLog.outErrorDb("Spell::EffectSummon: can't create creature with entry %u for spell %u", cInfo->equipmentId, m_spellInfo->Id);
         delete spawnCreature;
         return;
     }
@@ -5207,8 +5163,8 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     spawnCreature->SetSummonPoint(pos);
 
     // set timer for unsummon
-    if (duration > 0)
-        spawnCreature->SetDuration(duration);
+    if (m_duration > 0)
+        spawnCreature->SetDuration(m_duration);
 
     spawnCreature->SetOwnerGuid(m_caster->GetObjectGuid());
     spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
@@ -5593,6 +5549,13 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
     if (!propEntry)
         return;
 
+    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(pet_entry);
+    if (!cInfo)
+    {
+        sLog.outErrorDb("Spell::DoSummonGuardian: creature entry %u not found for spell %u.", pet_entry, m_spellInfo->Id);
+        return;
+    }
+
     PetType petType = propEntry->Title == UNITNAME_SUMMON_TITLE_COMPANION ? PROTECTOR_PET : GUARDIAN_PET;
 
     // second direct cast unsummon guardian(s) (guardians without like functionality have cooldown > spawn time)
@@ -5638,10 +5601,6 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
     float center_z = m_targets.m_destZ;
 
     float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
-    int32 duration = GetSpellDuration(m_spellInfo);
-    if (duration > 0)
-        if (Player* modOwner = m_caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
 
     int32 amount = damage > 0 ? damage : 1;
 
@@ -5672,17 +5631,17 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
 
         Map *map = m_caster->GetMap();
         uint32 pet_number = sObjectMgr.GeneratePetNumber();
-        if (!spawnCreature->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, m_spellInfo->EffectMiscValue[eff_idx], pet_number))
+        if (!spawnCreature->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, pet_number))
         {
-            sLog.outError("no such creature entry %u", m_spellInfo->EffectMiscValue[eff_idx]);
+            sLog.outError("Spell::DoSummonGuardian: can't create creature entry %u for spell %u.", pet_entry, m_spellInfo->Id);
             delete spawnCreature;
             return;
         }
 
         spawnCreature->SetSummonPoint(pos);
 
-        if (duration > 0)
-            spawnCreature->SetDuration(duration);
+        if (m_duration > 0)
+            spawnCreature->SetDuration(m_duration);
 
         //spawnCreature->SetName("");                       // generated by client
         spawnCreature->SetOwnerGuid(m_caster->GetObjectGuid());
@@ -6127,33 +6086,28 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
             return;
     }
 
+    // not error in case fail hunter call pet
+    if (!petentry)
+        return;
+
+    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(petentry);
+    if(!cInfo)
+    {
+        sLog.outErrorDb("EffectSummonPet: creature entry %u not found.", petentry);
+        return;
+    }
+
     Pet* NewSummon = new Pet;
 
     // petentry==0 for hunter "call pet" (current pet summoned if any)
-    if(m_caster->GetTypeId() == TYPEID_PLAYER && NewSummon->LoadPetFromDB((Player*)m_caster, petentry))
+    if (m_caster->GetTypeId() == TYPEID_PLAYER && NewSummon->LoadPetFromDB((Player*)m_caster, petentry))
         return;
-
-    // not error in case fail hunter call pet
-    if (!petentry)
-    {
-        delete NewSummon;
-        return;
-    }
-
-    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(petentry);
-
-    if(!cInfo)
-    {
-        sLog.outError("EffectSummonPet: creature entry %u not found.", petentry);
-        delete NewSummon;
-        return;
-    }
 
     CreatureCreatePos pos(m_caster, m_caster->GetOrientation());
 
     Map *map = m_caster->GetMap();
     uint32 pet_number = sObjectMgr.GeneratePetNumber();
-    if (!NewSummon->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, petentry, pet_number))
+    if (!NewSummon->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, pet_number))
     {
         delete NewSummon;
         return;
@@ -6653,7 +6607,7 @@ void Spell::EffectHealMaxHealth(SpellEffectIndex /*eff_idx*/)
     m_healing += heal;
 }
 
-void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
+void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
 {
     if(!unitTarget)
         return;
@@ -6670,7 +6624,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
             // check if we can interrupt spell
             if ((curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) && curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE )
             {
-                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), unitTarget->CalculateSpellDuration(m_caster, GetSpellDuration(m_spellInfo), m_spellInfo, eff_idx));
+                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), GetSpellDuration(m_spellInfo));
                 unitTarget->InterruptSpell(CurrentSpellTypes(i),false);
             }
         }
@@ -7766,26 +7720,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOD_STUN);
                     return;
                 }
-                // Glyph of Starfire
-                case 54846:
-                {
-                    if (Aura* aura = unitTarget->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, UI64LIT(0x00000002), 0, m_caster->GetGUID()))
-                    {
-                        uint32 countMin = aura->GetAuraMaxDuration();
-                        uint32 countMax = GetSpellMaxDuration(aura->GetSpellProto());
-                        countMax += 9000;
-                        countMax += m_caster->HasAura(38414) ? 3000 : 0;
-                        countMax += m_caster->HasAura(57865) ? 3000 : 0;
-
-                        if (countMin < countMax)
-                        {
-                            aura->SetAuraDuration(aura->GetAuraDuration() + 3000);
-                            aura->SetAuraMaxDuration(countMin + 3000);
-                            aura->GetHolder()->SendAuraUpdate(false);
-                        }
-                    }
-                    return;
-                }
                 case 55328:                                    // Stoneclaw Totem I
                 case 55329:                                    // Stoneclaw Totem II
                 case 55330:                                    // Stoneclaw Totem III
@@ -8042,8 +7976,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                                     if (countMin < countMax)
                                     {
-                                        aura->SetAuraDuration(aura->GetAuraDuration() + 3000);
-                                        aura->SetAuraMaxDuration(countMin + 3000);
+                                        aura->GetHolder()->SetAuraDuration(aura->GetAuraDuration() + 3000);
+                                        aura->GetHolder()->SetAuraMaxDuration(countMin + 3000);
                                         aura->GetHolder()->SendAuraUpdate(false);
                                     }
                                 }
@@ -8169,8 +8103,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     if (countMin < countMax)
                     {
-                        aurEff->SetAuraDuration(uint32(aurEff->GetAuraDuration()+3000));
-                        aurEff->SetAuraMaxDuration(countMin+3000);
+                        aurEff->GetHolder()->SetAuraDuration(uint32(aurEff->GetAuraDuration()+3000));
+                        aurEff->GetHolder()->SetAuraMaxDuration(countMin+3000);
                         aurEff->GetHolder()->SendAuraUpdate(false);
                     }
                 }
@@ -8872,9 +8806,16 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
 
     CreatureCreatePos pos(m_caster, m_caster->GetOrientation(), 2.0f, angle);
 
+    CreatureInfo const *cinfo = ObjectMgr::GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]);
+    if (!cinfo)
+    {
+        sLog.outErrorDb("Creature entry %u does not exist but used in spell %u totem summon.", m_spellInfo->Id, m_spellInfo->EffectMiscValue[eff_idx]);
+        return;
+    }
+
     Totem* pTotem = new Totem;
 
-    if (!pTotem->Create(m_caster->GetMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, m_spellInfo->EffectMiscValue[eff_idx], m_caster))
+    if (!pTotem->Create(m_caster->GetMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, cinfo, m_caster))
     {
         delete pTotem;
         return;
@@ -8889,11 +8830,7 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     pTotem->SetOwner(m_caster);
     pTotem->SetTypeBySummonSpell(m_spellInfo);              // must be after Create call where m_spells initialized
 
-    int32 duration=GetSpellDuration(m_spellInfo);
-    if (duration > 0)
-        if (Player* modOwner = m_caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
-    pTotem->SetDuration(duration);
+    pTotem->SetDuration(m_duration);
 
     if (m_spellInfo->Id == 16190)
         damage = m_caster->GetMaxHealth() * m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_1) / 100;
@@ -8930,7 +8867,7 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
         WorldPacket data(SMSG_TOTEM_CREATED, 1 + 8 + 4 + 4);
         data << uint8(slot);
         data << pTotem->GetObjectGuid();
-        data << uint32(duration);
+        data << uint32(m_duration);
         data << uint32(m_spellInfo->Id);
         ((Player*)m_caster)->SendDirectMessage(&data);
     }
@@ -9448,6 +9385,13 @@ void Spell::DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction)
     if(!pet_entry)
         return;
 
+    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(pet_entry);
+    if (!cInfo)
+    {
+        sLog.outErrorDb("Spell::DoSummonCritter: creature entry %u not found for spell %u.", pet_entry, m_spellInfo->Id);
+        return;
+    }
+
     Pet* old_critter = m_caster->GetMiniPet();
 
     // for same pet just despawn (player unsummon command)
@@ -9470,7 +9414,7 @@ void Spell::DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction)
 
     Map *map = m_caster->GetMap();
     uint32 pet_number = sObjectMgr.GeneratePetNumber();
-    if (!critter->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, pet_entry, pet_number))
+    if (!critter->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, pet_number))
     {
         sLog.outError("Spell::EffectSummonCritter, spellid %u: no such creature entry %u", m_spellInfo->Id, pet_entry);
         delete critter;
@@ -10167,14 +10111,6 @@ void Spell::EffectTeachTaxiNode( SpellEffectIndex eff_idx )
     }
 }
 
-void Spell::EffectRemoveAura(SpellEffectIndex eff_idx)
-{
-    if (unitTarget)
-        return;
-    // there may be need of specifying casterguid of removed auras
-    unitTarget->RemoveAurasDueToSpell(m_spellInfo->EffectTriggerSpell[eff_idx]);
-}
-
 void Spell::EffectQuestStart(SpellEffectIndex eff_idx)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -10285,4 +10221,20 @@ void Spell::EffectFriendSummon( SpellEffectIndex eff_idx )
     DEBUG_LOG( "Spell::EffectFriendSummon called for player %u", ((Player*)m_caster)->GetSelectionGuid().GetCounter());
 
     m_caster->CastSpell(m_caster, m_spellInfo->EffectTriggerSpell[eff_idx], true);
+}
+
+void Spell::EffectCancelAura(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget)
+        return;
+
+    uint32 spellId = m_spellInfo->EffectTriggerSpell[eff_idx];
+
+    if (!sSpellStore.LookupEntry(spellId))
+    {
+        sLog.outError("Spell::EffectCancelAura: spell %u doesn't exist", spellId);
+        return;
+    }
+
+    unitTarget->RemoveAurasDueToSpell(spellId);
 }
