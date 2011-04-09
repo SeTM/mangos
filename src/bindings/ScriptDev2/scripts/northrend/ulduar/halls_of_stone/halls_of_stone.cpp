@@ -180,7 +180,7 @@ struct MANGOS_DLL_DECL mob_tribuna_controllerAI : public ScriptedAI
 
     void UpdateFacesList()
     {   
-        std::list<Creature*> m_lKaddrakList;
+        /*std::list<Creature*> m_lKaddrakList;
         m_lKaddrakGUIDList.clear();
         GetCreatureListWithEntryInGrid(m_lKaddrakList, m_creature, NPC_KADDRAK, 50.0f);
         if (!m_lKaddrakGUIDList.empty())
@@ -209,7 +209,7 @@ struct MANGOS_DLL_DECL mob_tribuna_controllerAI : public ScriptedAI
                     ++uiPositionCounter;
                 }
             }
-        }
+        }*/
         //GetCreatureListWithEntryInGrid(m_lMarnakGUIDList, m_creature, NPC_MARNAK, 50.0f);
         //GetCreatureListWithEntryInGrid(m_lAbedneumGUIDList, m_creature, NPC_ABEDNEUM, 50.0f);
     }
