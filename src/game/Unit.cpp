@@ -5430,7 +5430,7 @@ void Unit::AddGameObject(GameObject* gameObj)
 
 void Unit::RemoveGameObject(GameObject* gameObj, bool del)
 {
-    //MANGOS_ASSERT(gameObj && gameObj->GetOwnerGuid() == GetObjectGuid());
+    MANGOS_ASSERT(gameObj && gameObj->GetOwnerGuid() == GetObjectGuid());
 
     gameObj->SetOwnerGuid(ObjectGuid());
 
