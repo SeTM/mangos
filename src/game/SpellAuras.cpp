@@ -8561,7 +8561,7 @@ void Aura::PeriodicDummyTick()
         case SPELLFAMILY_WARLOCK:
             switch (spell->Id)
             {
-                case 48018:
+                /*case 48018:
                     GameObject* obj = target->GetGameObject(spell->Id);
                     if (!obj)
                     {
@@ -8574,7 +8574,7 @@ void Aura::PeriodicDummyTick()
                     if (target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(goToCircleSpell->rangeIndex))))
                         target->CastSpell(target, 62388, true);
                     else
-                        target->RemoveAurasDueToSpell(62388);
+                        target->RemoveAurasDueToSpell(62388);*/
             }
             break;
         case SPELLFAMILY_ROGUE:
