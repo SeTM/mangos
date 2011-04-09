@@ -6086,14 +6086,12 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
             return;
     }
 
-    // not error in case fail hunter call pet
-    if (!petentry)
-        return;
+    CreatureInfo const* cInfo = petentry ? sCreatureStorage.LookupEntry<CreatureInfo>(petentry) : NULL;
 
-    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(petentry);
-    if(!cInfo)
+    // == 0 in case call current pet, check only real summon case
+    if (petentry && !cInfo)
     {
-        sLog.outErrorDb("EffectSummonPet: creature entry %u not found.", petentry);
+        sLog.outErrorDb("EffectSummonPet: creature entry %u not found for spell %u.", petentry, m_spellInfo->Id);
         return;
     }
 
@@ -6102,6 +6100,13 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     // petentry==0 for hunter "call pet" (current pet summoned if any)
     if (m_caster->GetTypeId() == TYPEID_PLAYER && NewSummon->LoadPetFromDB((Player*)m_caster, petentry))
         return;
+
+    // not error in case fail hunter call pet
+    if (!petentry)
+    {
+        delete NewSummon;
+        return;
+    }
 
     CreatureCreatePos pos(m_caster, m_caster->GetOrientation());
 
@@ -7400,9 +7405,9 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    if (unitTarget->GetAreaId() == 4156)
+                    if (unitTarget->GetAreaId() == 4157)
                         unitTarget->CastSpell(unitTarget, 47324, true);
-                    else if (unitTarget->GetAreaId() == 4157)
+                    else if (unitTarget->GetAreaId() == 4156)
                         unitTarget->CastSpell(unitTarget, 47325, true);
 
                     break;
