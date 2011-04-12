@@ -2844,13 +2844,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         ((Player*)caster)->CompleteQuest( 9718 );
                 return;
             }
-            case 50141: // Q: Truce?
-            {
-                if (Unit* caster = GetCaster())
-                    if( caster->GetTypeId() == TYPEID_PLAYER && ((Player*)caster)->GetQuestStatus(11989) == QUEST_STATUS_INCOMPLETE )
-                        ((Player*)caster)->CastSpell( caster, 50001, true );
-                return;
-            }
             case 68839:                                     // Corrupt Soul
             {
                 // Knockdown Stun
