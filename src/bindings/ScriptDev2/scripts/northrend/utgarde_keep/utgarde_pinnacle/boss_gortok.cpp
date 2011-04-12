@@ -92,7 +92,7 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE); 
 
         for(uint8 i=0; i<4; ++i)
-            m_uiAddGUID[i] = 0;
+            m_uiAddGUID[i].Clear();
     }
 
     void Aggro(Unit* pWho)

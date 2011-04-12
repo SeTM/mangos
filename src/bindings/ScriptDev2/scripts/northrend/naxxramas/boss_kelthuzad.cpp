@@ -212,11 +212,11 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 {
     boss_kelthuzadAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        GuardiansOfIcecrown[0] = 0;
-        GuardiansOfIcecrown[1] = 0;
-        GuardiansOfIcecrown[2] = 0;
-        GuardiansOfIcecrown[3] = 0;
-        GuardiansOfIcecrown[4] = 0;
+        GuardiansOfIcecrown[0].Clear();
+        GuardiansOfIcecrown[1].Clear();
+        GuardiansOfIcecrown[2].Clear();
+        GuardiansOfIcecrown[3].Clear();
+        GuardiansOfIcecrown[4].Clear();
         GuardiansOfIcecrown_Count = 0;
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
@@ -275,7 +275,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                         pGuardian->ForcedDespawn();
                 }
 
-                GuardiansOfIcecrown[i] = 0;
+                GuardiansOfIcecrown[i].Clear();
             }
         }
 
@@ -290,7 +290,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                         pGuardian->ForcedDespawn();
                 }
 
-                MobsArround[i] = 0;
+                MobsArround[i].Clear();
             }
         }
 
@@ -488,7 +488,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                             if (pGuardian->isAlive())
                                 pGuardian->ForcedDespawn();
 
-                        MobsArround[i] = 0;
+                        MobsArround[i].Clear();
                     }
                 }
             }

@@ -131,7 +131,7 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
         m_uiDarkSlashTimer           = urand(28000,33000);
         m_uiAncestorsVengeanceTimer  = 50000;
         m_uiOrbTargetChanger         = 5000;
-        m_uiOrbGUID                  = 0;
+        m_uiOrbGUID.Clear();
         m_uiCurentBoat               = 0;
         m_uiHealthAmountModifier     = 1;
     }

@@ -71,7 +71,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
         m_bIsRegularMode = c->GetMap()->IsRegularDifficulty();
         
         for (int i = 0; i < MAX_CRYPT_GUARDS; i++)
-            guidCryptGuards[i] = 0;
+            guidCryptGuards[i].Clear();
         HasTaunted = false;
         Reset();
     }
@@ -118,7 +118,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
             Unit* pUnit = m_creature->GetMap()->GetUnit(guidCryptGuards[i]);
             if (pUnit)
                 pUnit->AddObjectToRemoveList();
-            guidCryptGuards[i] = 0;
+            guidCryptGuards[i].Clear();
         }
         //Remove all corpse scarabs
         Despawnall();

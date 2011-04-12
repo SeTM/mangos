@@ -218,7 +218,7 @@ struct MANGOS_DLL_DECL boss_kologarn_right_armAI : public ScriptedAI
     {
         Stone_Grip_Timer = 20000;
         Addcount = 0;
-        GripTarget = 0;
+        GripTarget.Clear();
         gripdmg = 0;
         freedmg = 0;
         grip = false;

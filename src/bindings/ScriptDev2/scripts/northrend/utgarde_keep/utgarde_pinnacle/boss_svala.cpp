@@ -111,7 +111,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
     {
         m_uiPlayerGUID;
         for(uint8 i=0; i<3; ++i)
-            m_uiAddsGUID[i] = 0;
+            m_uiAddsGUID[i].Clear();
 
         m_bIsSacrifice = false;
         m_uiSinisterStrikeTimer = urand(10000,20000);
@@ -292,7 +292,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                         {
                             pAdd->SetVisibility(VISIBILITY_OFF);
                         }
-                        m_uiAddsGUID[k] = 0;
+                        m_uiAddsGUID[k].Clear();
                     }
                     m_bIsSacrifice = false;
                     return;

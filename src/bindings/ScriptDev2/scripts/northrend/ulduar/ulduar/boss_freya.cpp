@@ -1325,8 +1325,8 @@ struct MANGOS_DLL_DECL mob_ancient_water_spirit_AI : public ScriptedAI
     {
         m_bIsDeath = false;
         m_bIsDeath2 = false;
-        StormLasherGuid = 0;
-        SnaplasherGuid = 0;
+        StormLasherGuid.Clear();
+        SnaplasherGuid.Clear();
         DeathCheck_Timer = 1000;
         m_uiChangeTargetTimer = urand(4000, 10000);
     }
@@ -1430,8 +1430,8 @@ struct MANGOS_DLL_DECL mob_storm_lasher_AI : public ScriptedAI
     {
         m_bIsDeath = false;
         m_bIsDeath2 = false;
-        AncientWaterSpiritGuid = 0;
-        SnaplasherGuid = 0;
+        AncientWaterSpiritGuid.Clear();
+        SnaplasherGuid.Clear();
         DeathCheck_Timer = 1000;
         m_uiStormboltTimer = urand(4000, 6000);
         m_uiLightningLashTimer = urand(6000, 10000);
@@ -1542,8 +1542,8 @@ struct MANGOS_DLL_DECL mob_snaplasher_AI : public ScriptedAI
     {
         m_bIsDeath = false;
         m_bIsDeath2 = false;
-        StormLasherGuid = 0;
-        AncientWaterSpiritGuid = 0;
+        StormLasherGuid.Clear();
+        AncientWaterSpiritGuid.Clear();
         DeathCheck_Timer = 1000;
     }
 
