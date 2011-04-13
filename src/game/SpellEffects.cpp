@@ -1575,6 +1575,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 32146:                                 // Liquid Fire
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT || m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    ((Player*)m_caster)->KilledMonsterCredit(unitTarget->GetEntry(), unitTarget->GetObjectGuid());
+                    ((Creature*)unitTarget)->ForcedDespawn();
+                    return;
+                }
                 case 33060:                                 // Make a Wish
                 {
                     if (m_caster->GetTypeId()!=TYPEID_PLAYER)
@@ -5155,7 +5164,7 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     uint32 pet_number = sObjectMgr.GeneratePetNumber();
     if (!spawnCreature->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, pet_number))
     {
-        sLog.outErrorDb("Spell::EffectSummon: can't create creature with entry %u for spell %u", cInfo->equipmentId, m_spellInfo->Id);
+        sLog.outErrorDb("Spell::EffectSummon: can't create creature with entry %u for spell %u", cInfo->Entry, m_spellInfo->Id);
         delete spawnCreature;
         return;
     }
@@ -6117,6 +6126,8 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         delete NewSummon;
         return;
     }
+
+    NewSummon->SetSummonPoint(pos);
 
     uint32 petlevel = m_caster->getLevel();
     NewSummon->setPetType(SUMMON_PET);
