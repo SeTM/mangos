@@ -491,10 +491,6 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         virtual const char* GetNameForLocaleIdx(int32 /*locale_idx*/) const { return GetName(); }
 
 		// from trinity
-		float GetExactDist2dSq(float x, float y) const
-		{ float dx = m_positionX - x; float dy = m_positionY - y; return dx*dx + dy*dy; }
-		float GetExactDist2d(const float x, const float y) const
-		{ return sqrt(GetExactDist2dSq(x, y)); }
         float GetDistance( const WorldObject* obj ) const;
         float GetDistance(float x, float y, float z) const;
         float GetDistance2d(const WorldObject* obj) const;
@@ -530,7 +526,6 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         bool HasInArc( const float arcangle, const WorldObject* obj ) const;
         bool isInFrontInMap(WorldObject const* target,float distance, float arc = M_PI) const;
         bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI) const;
-        bool IsInBetween(const WorldObject *obj1, const WorldObject *obj2, float size = 0) const;
         bool isInFront(WorldObject const* target,float distance, float arc = M_PI) const;
         bool isInBack(WorldObject const* target, float distance, float arc = M_PI) const;
 

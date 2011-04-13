@@ -1336,21 +1336,6 @@ bool WorldObject::HasInArc(const float arcangle, const WorldObject* obj) const
     return (( angle >= lborder ) && ( angle <= rborder ));
 }
 
-bool WorldObject::IsInBetween(const WorldObject *obj1, const WorldObject *obj2, float size) const
-{
-	if(GetPositionX() > std::max(obj1->GetPositionX(), obj2->GetPositionX())
-		|| GetPositionX() < std::min(obj1->GetPositionX(), obj2->GetPositionX())
-		|| GetPositionY() > std::max(obj1->GetPositionY(), obj2->GetPositionY())
-		|| GetPositionY() < std::min(obj1->GetPositionY(), obj2->GetPositionY()))
-		return false;
-
-	if(!size)
-		size = GetObjectBoundingRadius() / 2;
-
-	float angle = obj1->GetAngle(this) - obj1->GetAngle(obj2);
-	return abs(sin(angle)) * GetExactDist2d(obj1->GetPositionX(), obj1->GetPositionY()) < size;
-}
-
 bool WorldObject::isInFrontInMap(WorldObject const* target, float distance,  float arc) const
 {
     return IsWithinDistInMap(target, distance) && HasInArc( arc, target );
