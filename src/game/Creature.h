@@ -206,11 +206,6 @@ struct CreatureData
     ObjectGuid GetObjectGuid(uint32 lowguid) const { return ObjectGuid(GetHighGuid(), id, lowguid); }
 };
 
-struct CreatureDataAddonAura
-{
-    uint32 spell_id;
-};
-
 // from `creature_addon` and `creature_template_addon`tables
 struct CreatureDataAddon
 {
@@ -221,7 +216,7 @@ struct CreatureDataAddon
     uint8  pvp_state;                                       // UnitPVPStateFlags
     uint32 emote;
     uint32 splineFlags;
-    CreatureDataAddonAura const* auras;                     // loaded as char* "spell1 spell2 ... "
+    uint32 const* auras;                                    // loaded as char* "spell1 spell2 ... "
 };
 
 struct CreatureModelInfo
@@ -463,7 +458,9 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         char const* GetSubName() const { return GetCreatureInfo()->SubName; }
 
-        void Update(uint32 update_diff, uint32 time);                           // overwrite Unit::Update
+        void Update(uint32 update_diff, uint32 time);       // overwrite Unit::Update
+
+        virtual void RegenerateAll(uint32 update_diff);
         void GetRespawnCoord(float &x, float &y, float &z, float* ori = NULL, float* dist =NULL) const;
         uint32 GetEquipmentId() const { return m_equipmentId; }
 
@@ -602,6 +599,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
                                                             // overwrited in Pet
         virtual void SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask);
         virtual void DeleteFromDB();                        // overwrited in Pet
+        static void DeleteFromDB(uint32 lowguid, CreatureData const* data);
 
         Loot loot;
         bool lootForPickPocketed;
