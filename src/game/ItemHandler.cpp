@@ -1524,7 +1524,7 @@ void WorldSession::HandleItemRefundRequest( WorldPacket& recv_data )
         }
     }
 
-    WorldPacket packet( SMSG_ITEM_REFUND_RESULT, 60 );
+    WorldPacket packet(SMSG_ITEM_PURCHASE_REFUND_RESULT, 60 );
     packet << uint64(GUID);
     packet << uint32(error);
 
@@ -1572,7 +1572,7 @@ void WorldSession::SendRefundInfo( ObjectGuid itemGUID )
         if( proto == NULL)
             return;
 
-        WorldPacket packet( SMSG_ITEM_REFUND_INFO_RESPONSE, 68 );
+        WorldPacket packet(SMSG_SET_ITEM_PURCHASE_DATA, 68);
         packet << ObjectGuid( itemGUID );
         packet << uint32( proto->BuyPrice );
         packet << uint32( ex->reqhonorpoints );
