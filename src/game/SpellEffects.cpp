@@ -6695,7 +6695,6 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
 
     // Wild object not have owner and check clickable by players
     map->Add(pGameObj);
-    m_caster->AddGameObject(pGameObj);
 
     // Store the GO to the caster
     m_caster->AddWildGameObject(pGameObj);
