@@ -282,6 +282,8 @@ void GameObject::Update(uint32 update_diff, uint32 /*p_time*/)
                     //FIXME: this is activation radius (in different casting radius that must be selected from spell data)
                     //TODO: move activated state code (cast itself) to GO_ACTIVATED, in this place only check activating and set state
                     float radius = float(goInfo->trap.radius);
+                    if (goInfo->id == 193963)
+                        radius = 5.0f;
                     if (!radius)
                     {
                         if (goInfo->trap.cooldown != 3)     // cast in other case (at some triggering/linked go/etc explicit call)

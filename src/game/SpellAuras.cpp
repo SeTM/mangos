@@ -9691,7 +9691,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                                 if (itr->getSource() && itr->getSource()->IsWithinDistInMap(m_target,radius))
                                     itr->getSource()->CastSpell(itr->getSource(), spellId1, true);*/
                             // cast on self
-                            m_target->CastSpell(m_target,spellId1,true);
+                            //m_target->CastSpell(m_target,spellId1,true);
                         }
                     }
                     break;
